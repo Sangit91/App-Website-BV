@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Users, ShieldCheck, Landmark, GitFork, X, PhoneCall, Info, Layers } from "lucide-react";
+import { Users, ShieldCheck, Landmark, GitFork, X, PhoneCall, Info, Layers, ChevronDown } from "lucide-react";
 
 interface Member {
   name: string;
@@ -34,6 +34,12 @@ interface Division {
 export default function Organization() {
   const [selectedDept, setSelectedDept] = useState<DeptNode | null>(null);
   const [activeDivision, setActiveDivision] = useState<string>("clinical");
+  const [isExpanded, setIsExpanded] = useState<Record<string, boolean>>({});
+  const INITIAL_DISPLAY = 6;
+
+  const toggleExpand = (division: string) => {
+    setIsExpanded(prev => ({ ...prev, [division]: !prev[division] }));
+  };
 
   const directors: Member[] = [
     {
@@ -569,7 +575,10 @@ export default function Organization() {
                 transition={{ duration: 0.3 }}
                 className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
               >
-                {divisions[activeDivision].departments.map((dept) => (
+                {(isExpanded[activeDivision] 
+                  ? divisions[activeDivision].departments 
+                  : divisions[activeDivision].departments.slice(0, INITIAL_DISPLAY)
+                ).map((dept) => (
                   <button
                     key={dept.id}
                     onClick={() => setSelectedDept(dept)}
@@ -601,6 +610,17 @@ export default function Organization() {
                     </div>
                   </button>
                 ))}
+                
+                {/* Show More / Show Less button */}
+                {divisions[activeDivision].departments.length > INITIAL_DISPLAY && (
+                  <button
+                    onClick={() => toggleExpand(activeDivision)}
+                    className="col-span-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-mint/30 hover:bg-mint/50 border border-[#2FA968]/20 text-brand-green font-bold text-[13px] cursor-pointer transition-all duration-300 hover:shadow-sm"
+                  >
+                    <span>{isExpanded[activeDivision] ? "Thu gọn" : `Xem thêm ${divisions[activeDivision].departments.length - INITIAL_DISPLAY} khoa/phòng`}</span>
+                    <ChevronDown size={16} className={`transition-transform duration-300 ${isExpanded[activeDivision] ? "rotate-180" : ""}`} />
+                  </button>
+                )}
               </motion.div>
             </AnimatePresence>
           </div>
