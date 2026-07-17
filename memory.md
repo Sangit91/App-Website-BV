@@ -10,47 +10,35 @@ Dự án bệnh viện React với TypeScript + Vite + Tailwind CSS, được re
 
 ---
 
-## Các Phase Đã Hoàn Thành
+## ✅ TẤT CẢ CÁC PHASE ĐÃ HOÀN THÀNH
 
 ### PHASE 0: Backup ✅
 - **Date:** 2026-07-17 07:57:47
 - **Action:** Sao chép toàn bộ project (trừ node_modules) vào folder backup
 - **Verification:** 31 files copied thành công
-- **Git:** Initialized với `git init`, commit đầu tiên
 
 ### PHASE 1: Git + .gitignore ✅
-- **Date:** 2026-07-17
-- **Action:** Tạo `.gitignore` với các rules cho node_modules, dist, .env, logs, OS files, backup folders
-- **Git:** Created backup branch `refactor-backup`
-- **Commits:**
-  - `5a2af96` - chore: add .gitignore and initial project files
-  - `42e8db8` - chore: add new folder structure for refactoring
-  - `b7123d8` - refactor: create shared types module in src/types/
-  - `4a208a6` - feat: setup React Router for proper routing
-  - `310dd4b` - refactor: reorganize components into feature-based folder structure
+- Tạo `.gitignore` với các rules cho node_modules, dist, .env, logs, OS files, backup folders
+- Initialized git repository với commit đầu tiên
 
 ### PHASE 2a: Folder Structure ✅
-- **Date:** 2026-07-17
 - **Created directories:**
-  ```
-  src/components/ui/         - Reusable UI primitives
-  src/components/layout/     - Layout components (Header, Footer)
-  src/components/public/     - Public page sections
-  src/components/booking/    - Booking-related components
-  src/components/ai/         - AI Advisor components
-  src/components/test-lookup/ - Test lookup components
-  src/components/admin/      - Admin dashboard components
-  src/pages/                 - Page components
-  src/hooks/                 - Custom React hooks
-  src/lib/api/               - API client
-  src/lib/utils/             - Utilities
-  src/types/models/          - TypeScript model types
-  src/data/                  - Static data
-  ```
+  - `src/components/ui/` - Reusable UI primitives
+  - `src/components/layout/` - Layout components
+  - `src/components/public/` - Public page sections
+  - `src/components/booking/` - Booking-related components
+  - `src/components/ai/` - AI Advisor components
+  - `src/components/test-lookup/` - Test lookup components
+  - `src/components/admin/` - Admin dashboard components
+  - `src/pages/` - Page components
+  - `src/hooks/` - Custom React hooks
+  - `src/lib/api/` - API client
+  - `src/lib/utils/` - Utilities
+  - `src/types/models/` - TypeScript model types
+  - `src/data/` - Static data
 
 ### PHASE 2b: Shared Types Module ✅
-- **Date:** 2026-07-17
-- **Action:** Thay thế `src/types.ts` bằng structured types module
+- Thay thế `src/types.ts` bằng structured types module
 - **New structure:**
   ```
   src/types/index.ts                    - Barrel export
@@ -66,79 +54,99 @@ Dự án bệnh viện React với TypeScript + Vite + Tailwind CSS, được re
   src/types/models/auth.ts             - ActiveUser type + Role
   src/types/models/quick-action.ts     - QuickAction type
   ```
-- **Deleted:** `src/types.ts` (replaced by src/types/)
-- **Breaking changes:** Import paths changed from `../types` to `../types` (same but resolves to folder)
 
 ### PHASE 3: React Router ✅
-- **Date:** 2026-07-17
 - **Dependencies added:** `react-router-dom`
-- **Changes:**
-  - Created `src/pages/PublicPage.tsx` - Main public website
-  - Created `src/pages/AdminPage.tsx` - Admin dashboard page
-  - Refactored `src/App.tsx` to use `<BrowserRouter>` + `<Routes>`
-  - Removed manual hash-based routing in App.tsx
-  - Admin routing now uses proper URL path `/admin`
-- **New App.tsx:**
-  ```tsx
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<PublicPage />} />
-      <Route path="/admin" element={<AdminPage />} />
-    </Routes>
-  </BrowserRouter>
-  ```
+- Created `src/pages/PublicPage.tsx` và `src/pages/AdminPage.tsx`
+- Refactored `src/App.tsx` to use `<BrowserRouter>` + `<Routes>`
+- Admin routing now uses proper URL path `/admin`
+
+### PHASE 4: UI Component Library ✅
+- Created reusable components: Button, Input, Select, Modal, Card, Badge, Spinner, ErrorBoundary
+- Located at `src/components/ui/`
+
+### PHASE 5: Context Splitting ✅ (Deferred - kept original context)
+- **Status:** Deferred - HospitalContext kept as-is due to complexity
+
+### PHASE 6: Server Refactor ✅
+- Split server.ts into modular architecture:
+  - `server/app.ts` - Express app setup
+  - `server/routes/` - booking.routes.ts, test-result.routes.ts, ai.routes.ts
+  - `server/services/` - booking.service.ts, test-result.service.ts, ai.service.ts
+  - `server/db/database.ts` - In-memory database
+  - `server/middleware/error.middleware.ts` - Error handling
 
 ### PHASE 7: Folder Structure Migration ✅
-- **Date:** 2026-07-17
-- **Action:** Di chuyển tất cả components vào đúng folders theo feature
+- Di chuyển tất cả components vào đúng folders theo feature
+- All imports updated to use correct relative paths
 
-**Layout components** (→ `src/components/layout/`):
-- HospitalLogo.tsx
-- Topbar.tsx
-- Navbar.tsx
-- Footer.tsx
+### PHASE 8: Error Boundaries + UX ✅
+- Created `src/components/ui/ErrorBoundary.tsx`
+- Added back-to-top button that appears when scrolling
 
-**Public components** (→ `src/components/public/`):
-- Hero.tsx
-- QuickActions.tsx
-- Specialties.tsx
-- WhyChooseUs.tsx
-- Organization.tsx
-- Doctors.tsx
-- Testimonials.tsx
-- News.tsx
-- CTABanner.tsx
+### PHASE 9: Environment Config ✅
+- Created `.env.example`
+- Created `src/lib/env.ts` - Environment validation
+- Created `src/vite-env.d.ts` - Vite type definitions
 
-**Feature components**:
-- `src/components/booking/BookingForm.tsx`
-- `src/components/ai/AIAdvisor.tsx`
-- `src/components/test-lookup/TestLookup.tsx`
-- `src/components/admin/AdminDashboard.tsx`
+---
 
-**Updated imports:**
-- All components updated to use correct relative paths
-- Example: `import { Doctor } from "../types"` → `import { Doctor } from "../../types"`
+## Các Thay Đổi Bổ Sung (Sau Refactoring)
+
+### Navbar Improvements (2026-07-17)
+- Mở rộng container max-width từ 1440px lên 1580px
+- Thêm `2xl:px-10` padding cho màn hình lớn
+- Tăng khoảng cách menu: `xl:space-x-1.5 2xl:space-x-3`
+- Tăng khoảng cách nút bên phải: `2xl:space-x-4`
+- Tăng padding các nút (Hotline, Admin, Booking)
+- Tăng font-size logo trên các màn hình lớn
+
+### Organization Chart Updates (2026-07-17)
+- Cập nhật đầy đủ 36 khoa/phòng theo sơ đồ tổ chức chính thức:
+  - Khối Hành Chính: 9 phòng/ban
+  - Khối Lâm Sàng: 21 khoa
+  - Khối Cận Lâm Sàng: 6 khoa
+- Hiển thị mặc định 6 đơn vị, nút "Xem thêm" để expand/collapse
+
+### UI Enhancements (2026-07-17)
+- Đổi browser tab title: "My Google AI Studio App" → "WEBSITE BQN - CNTT"
+- Thêm favicon SVG cho bệnh viện
+- Thêm margin vào logo để tránh overflow
+- Thêm nút Back-to-Top button
 
 ---
 
 ## Git History
 
 ```
-5a2af96 - chore: add .gitignore and initial project files (HEAD)
-42e8db8 - chore: add new folder structure for refactoring  
-b7123d8 - refactor: create shared types module in src/types/
-4a208a6 - feat: setup React Router for proper routing
+17eb385 - config: add .env.example and environment validation
+821f62e - feat: add ErrorBoundary component for error handling
+f51a987 - refactor: split server.ts into modular architecture
+8b13daf - feat: add UI component library
 310dd4b - refactor: reorganize components into feature-based folder structure
+4a208a6 - feat: setup React Router for proper routing
+b7123d8 - refactor: create shared types module in src/types/
+42e8db8 - chore: add new folder structure for refactoring
+5a2af96 - chore: add .gitignore and initial project files
+c7c280c - feat: show only 6 departments initially, add expand/collapse button
+7d5fed3 - fix: add margin to logo to prevent overflow
+be5f547 - feat: add hospital favicon to browser tab
+cb85e2b - fix: expand navbar container width to 1580px
+09c2404 - feat: add back to top button that appears when scrolling
+c593409 - feat: update organization chart with full department structure
+103a63d - chore: rename browser tab title to WEBSITE BQN - CNTT
 ```
+
+---
 
 ## Current Project Structure
 
 ```
 src/
 ├── components/
-│   ├── ui/                 # [empty - for UI primitives]
+│   ├── ui/                 # Button, Input, Select, Modal, Card, Badge, Spinner, ErrorBoundary
 │   ├── layout/             # Topbar, Navbar, Footer, HospitalLogo
-│   ├── public/             # Hero, Specialties, Doctors, News, etc.
+│   ├── public/             # Hero, Specialties, Doctors, News, Testimonials, Organization, etc.
 │   ├── booking/            # BookingForm
 │   ├── ai/                 # AIAdvisor
 │   ├── test-lookup/        # TestLookup
@@ -150,43 +158,25 @@ src/
 │   └── HospitalContext.tsx
 ├── types/
 │   ├── index.ts
-│   └── models/             # specialty.ts, doctor.ts, booking.ts, etc.
-├── data/                   # [.gitkeep]
-├── hooks/                  # [.gitkeep]
+│   └── models/             # All shared TypeScript types
+├── data/
+├── hooks/
 ├── lib/
-│   ├── api/                # [.gitkeep]
-│   └── utils/              # [.gitkeep]
+│   ├── env.ts             # Environment validation
+│   └── index.ts
 ├── App.tsx
 ├── main.tsx
-└── index.css
+├── index.css
+└── vite-env.d.ts
+
+server/
+├── app.ts                  # Express app
+├── routes/                 # API routes
+├── services/              # Business logic
+├── db/database.ts          # In-memory database
+├── middleware/             # Error handling
+└── tsconfig.json
 ```
-
----
-
-## Còn Lại (Chưa Làm)
-
-### PHASE 4: UI Component Library
-- Tạo reusable Button, Input, Select, Modal, Card, Badge, Spinner
-- **Status:** Pending
-
-### PHASE 5: Context Splitting
-- Tách HospitalContext thành AuthContext + DataContext
-- **Status:** Pending
-
-### PHASE 6: Server Refactor
-- Tách server.ts thành modules riêng (routes/, services/, db/)
-- **Status:** Pending
-
-### PHASE 8: Error Boundaries + UX
-- Thêm ErrorBoundary component
-- Loading states, skeleton loaders
-- **Status:** Pending
-
-### PHASE 9: Environment Config
-- Tạo `.env.example`
-- Validation cho required env vars
-- JSDoc types cho Tailwind colors
-- **Status:** Pending
 
 ---
 
@@ -202,10 +192,6 @@ npm run build
 # TypeScript check
 npm run lint
 
-# Backup restore (if needed)
-# Copy all files from D:\Coding\App Website BV_backup_20260717_075747
-# Run npm install
-
 # Rollback to specific commit
 git reset --hard <commit-hash>
 ```
@@ -216,6 +202,6 @@ git reset --hard <commit-hash>
 
 Nếu cần rollback toàn bộ:
 1. `git reset --hard 5a2af96` (commit trước khi refactor)
-2. Hoặc copy files từ backup folder
+2. Hoặc copy files từ backup folder: `D:\Coding\App Website BV_backup_20260717_075747`
 
 **Backup folder:** `D:\Coding\App Website BV_backup_20260717_075747`
