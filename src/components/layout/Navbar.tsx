@@ -184,7 +184,7 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
         {/* Logo and Hospital Name */}
         <div 
           onClick={() => handleLinkClick("trang-chu")} 
-          className="flex items-center space-x-2.5 cursor-pointer group select-none shrink-0"
+          className="flex items-center space-x-2.5 cursor-pointer group select-none shrink-0 ml-1"
         >
           <HospitalLogo className="w-10 h-10 xl:w-11 xl:h-11 shrink-0 group-hover:scale-105 transition-transform duration-300" />
           <div className="leading-tight flex flex-col justify-center">
