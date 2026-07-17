@@ -566,63 +566,90 @@ export default function Organization() {
             </div>
 
             {/* Dynamic Child Nodes depending on Active Division */}
-            <AnimatePresence mode="wait">
+            <div className="relative">
               <motion.div
-                key={activeDivision}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
+                layout
                 className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
               >
-                {(isExpanded[activeDivision] 
-                  ? divisions[activeDivision].departments 
-                  : divisions[activeDivision].departments.slice(0, INITIAL_DISPLAY)
-                ).map((dept) => (
-                  <button
-                    key={dept.id}
-                    onClick={() => setSelectedDept(dept)}
-                    className="group bg-[#FCFBF7] border border-green-800/10 hover:border-[#2FA968] rounded-2xl p-5 text-left hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col justify-between h-full cursor-pointer"
-                  >
-                    <div className="absolute -right-6 -bottom-6 w-16 h-16 bg-[#EAF7EE]/40 group-hover:bg-[#2FA968]/5 rounded-full transition-colors duration-300"></div>
-                    
-                    <div>
-                      <div className="flex justify-between items-start mb-3">
-                        <span className={`inline-block py-0.5 px-2 rounded-md font-sans font-bold text-[10px] text-white ${divisions[activeDivision].color}`}>
-                          {divisions[activeDivision].name.split(" ")[1] || "Khối"}
-                        </span>
-                        <Info size={14} className="text-[#2FA968] opacity-40 group-hover:opacity-100 transition-opacity" />
-                      </div>
+                <AnimatePresence>
+                  {(isExpanded[activeDivision] 
+                    ? divisions[activeDivision].departments 
+                    : divisions[activeDivision].departments.slice(0, INITIAL_DISPLAY)
+                  ).map((dept, index) => (
+                    <motion.button
+                      key={dept.id}
+                      layout
+                      onClick={() => setSelectedDept(dept)}
+                      initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                      transition={{ 
+                        duration: 0.35, 
+                        delay: isExpanded[activeDivision] ? (index - INITIAL_DISPLAY) * 0.04 : index * 0.05,
+                        layout: { duration: 0.4, ease: "easeOut" }
+                      }}
+                      className="group bg-[#FCFBF7] border border-green-800/10 hover:border-[#2FA968] rounded-2xl p-5 text-left hover:shadow-lg hover:shadow-[#2FA968]/10 transition-all duration-300 relative overflow-hidden flex flex-col justify-between h-full cursor-pointer"
+                    >
+                      <div className="absolute -right-6 -bottom-6 w-16 h-16 bg-[#EAF7EE]/40 group-hover:bg-[#2FA968]/10 rounded-full transition-all duration-500 group-hover:scale-150 group-hover:right-[-20px] group-hover:bottom-[-20px]"></div>
                       
-                      <h4 className="font-display font-bold text-[14.5px] text-green-dark group-hover:text-[#2FA968] transition-colors leading-snug mb-2">
-                        {dept.name}
-                      </h4>
-                      <p className="font-sans text-gray-500 text-[12.5px] line-clamp-2 leading-relaxed mb-4">
-                        {dept.description}
-                      </p>
-                    </div>
+                      <div>
+                        <div className="flex justify-between items-start mb-3">
+                          <span className={`inline-block py-0.5 px-2 rounded-md font-sans font-bold text-[10px] text-white ${divisions[activeDivision].color}`}>
+                            {divisions[activeDivision].name.split(" ")[1] || "Khối"}
+                          </span>
+                          <Info size={14} className="text-[#2FA968] opacity-40 group-hover:opacity-100 transition-all duration-300" />
+                        </div>
+                        
+                        <h4 className="font-display font-bold text-[14.5px] text-green-dark group-hover:text-[#2FA968] transition-colors leading-snug mb-2">
+                          {dept.name}
+                        </h4>
+                        <p className="font-sans text-gray-500 text-[12.5px] line-clamp-2 leading-relaxed mb-4">
+                          {dept.description}
+                        </p>
+                      </div>
 
-                    <div className="pt-3 border-t border-green-800/[0.06] flex justify-between items-center text-[12px] font-sans">
-                      <span className="text-gray-600 font-medium">Trưởng khoa: <span className="text-[#164B36] font-bold">{dept.leader.replace("BSCKII. ", "").replace("BSCKI. ", "").replace("ThS. BS. ", "").replace("DS. CKI. ", "").replace("ThS. ", "")}</span></span>
-                      <span className="text-gray-400 font-mono text-[11px] bg-white border border-gray-100 px-1.5 py-0.5 rounded">
-                        {dept.staffCount} NS
+                      <div className="pt-3 border-t border-green-800/[0.06] flex justify-between items-center text-[12px] font-sans">
+                        <span className="text-gray-600 font-medium">Trưởng khoa: <span className="text-[#164B36] font-bold">{dept.leader.replace("BSCKII. ", "").replace("BSCKI. ", "").replace("ThS. BS. ", "").replace("DS. CKI. ", "").replace("ThS. ", "")}</span></span>
+                        <span className="text-gray-400 font-mono text-[11px] bg-white border border-gray-100 px-1.5 py-0.5 rounded">
+                          {dept.staffCount} NS
+                        </span>
+                      </div>
+                    </motion.button>
+                  ))}
+                  
+                  {/* Show More / Show Less button */}
+                  {divisions[activeDivision].departments.length > INITIAL_DISPLAY && (
+                    <motion.button
+                      layout
+                      onClick={() => toggleExpand(activeDivision)}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="col-span-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-gradient-to-r from-[#EAF7EE] to-[#d5f2dd] hover:from-[#d5f2dd] hover:to-[#c8ebe0] border-2 border-[#2FA968]/30 hover:border-[#2FA968] text-brand-green hover:text-green-dark font-bold text-[13px] cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md"
+                    >
+                      <motion.span
+                        animate={{ rotate: isExpanded[activeDivision] ? 180 : 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <ChevronDown size={18} />
+                      </motion.span>
+                      <span className="transition-all duration-300">
+                        {isExpanded[activeDivision] 
+                          ? "Thu gọn danh sách" 
+                          : `Xem thêm ${divisions[activeDivision].departments.length - INITIAL_DISPLAY} khoa/phòng`
+                        }
                       </span>
-                    </div>
-                  </button>
-                ))}
-                
-                {/* Show More / Show Less button */}
-                {divisions[activeDivision].departments.length > INITIAL_DISPLAY && (
-                  <button
-                    onClick={() => toggleExpand(activeDivision)}
-                    className="col-span-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-mint/30 hover:bg-mint/50 border border-[#2FA968]/20 text-brand-green font-bold text-[13px] cursor-pointer transition-all duration-300 hover:shadow-sm"
-                  >
-                    <span>{isExpanded[activeDivision] ? "Thu gọn" : `Xem thêm ${divisions[activeDivision].departments.length - INITIAL_DISPLAY} khoa/phòng`}</span>
-                    <ChevronDown size={16} className={`transition-transform duration-300 ${isExpanded[activeDivision] ? "rotate-180" : ""}`} />
-                  </button>
-                )}
+                    </motion.button>
+                  )}
+                </AnimatePresence>
               </motion.div>
-            </AnimatePresence>
+              
+              {/* Decorative corner element */}
+              <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-[#EAF7EE]/20 to-transparent rounded-bl-[40px] -z-10 pointer-events-none"></div>
+              <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tl from-[#FFA265]/10 to-transparent rounded-tr-[40px] -z-10 pointer-events-none"></div>
+            </div>
           </div>
         </div>
       </div>
