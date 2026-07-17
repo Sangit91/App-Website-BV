@@ -1,0 +1,6 @@
+{
+  "name": "Bệnh viện Đa khoa Khu vực Miền núi Phía Bắc Quảng Nam",
+  "description": "Cổng thông tin y tế, đặt lịch khám trực tuyến, tra cứu kết quả xét nghiệm và tư vấn sức khỏe từ xa BVĐK KV Miền núi phía Bắc Quảng Nam.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

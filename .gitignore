@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-server/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backup folders
+*_backup_*/
+*_backup/
+
+# Zip files
+*.zip
+*.rar
+
+# Vite cache
+.vite/
+
+# TypeScript cache
+*.tsbuildinfo
