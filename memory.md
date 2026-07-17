@@ -91,6 +91,20 @@ Dự án bệnh viện React với TypeScript + Vite + Tailwind CSS, được re
 
 ---
 
+## Bugs Đã Sửa
+
+### Lỗi "API endpoint không tồn tại" khi truy cập trang chủ (2026-07-17)
+- **Nguyên nhân:** Trong `server/app.ts`, `notFoundHandler` và `errorHandler` được đăng ký TRƯỚC `vite.middlewares`. Khi request đến `/`, Express chạy `notFoundHandler` trước và trả về lỗi "API endpoint không tồn tại" thay vì để Vite serve index.html.
+- **Sửa chữa:**
+  1. **`server/app.ts`:** Xóa `notFoundHandler` và `errorHandler` khỏi đây
+  2. **`server.ts`:** Thêm chúng SAU `vite.middlewares`
+- **Thứ tự middleware đúng:**
+  1. API routes
+  2. `vite.middlewares` (serve index.html cho SPA)
+  3. `notFoundHandler` + `errorHandler` (chỉ catch request còn lại)
+
+---
+
 ## Các Thay Đổi Bổ Sung (Sau Refactoring)
 
 ### Navbar Improvements (2026-07-17)

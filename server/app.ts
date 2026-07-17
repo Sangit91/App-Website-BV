@@ -3,7 +3,6 @@ import bookingRoutes from "./routes/booking.routes";
 import testResultRoutes from "./routes/test-result.routes";
 import aiRoutes from "./routes/ai.routes";
 import organizationRoutes from "./routes/organization.routes";
-import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
 
 const app = express();
 
@@ -18,9 +17,5 @@ app.use("/api/booking", bookingRoutes);
 app.use("/api/test-results", testResultRoutes);
 app.use("/api/gemini", aiRoutes);
 app.use("/api/organization", organizationRoutes);
-
-// Error handling
-app.use(notFoundHandler);
-app.use(errorHandler);
 
 export default app;
