@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { 
   Users, Calendar, FileText, CalendarRange, BookOpen, Layers, Newspaper, ClipboardList, 
   ArrowLeft, LogOut, Check, X, Edit, Trash2, Plus, Search, FileDown, Printer, ShieldAlert,
-  Sliders, User, Lock, ChevronRight, CheckCircle, AlertTriangle, RefreshCw, Upload, Paperclip
+  Sliders, User, Lock, ChevronRight, CheckCircle, AlertTriangle, RefreshCw, Upload, Paperclip,
+  Landmark
 } from "lucide-react";
 
 export default function AdminDashboard({ onClose }: { onClose: () => void }) {
@@ -88,6 +89,21 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
   const [newsTenderFile, setNewsTenderFile] = useState<NewsItem["tenderFile"] | null>(null);
   const [newsTenderDept, setNewsTenderDept] = useState<string>("PHÒNG CNTT");
   const [isFileDragging, setIsFileDragging] = useState(false);
+
+  // Organization management state
+  const [orgDivisions, setOrgDivisions] = useState<Record<string, any>>({});
+  const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
+  const [editingOrgDept, setEditingOrgDept] = useState<{ divisionId: string; dept: any } | null>(null);
+  const [selectedOrgDivision, setSelectedOrgDivision] = useState<string>("clinical");
+  const [orgSearchQuery, setOrgSearchQuery] = useState("");
+
+  // Organization form state
+  const [orgDeptName, setOrgDeptName] = useState("");
+  const [orgDeptLeader, setOrgDeptLeader] = useState("");
+  const [orgDeptPhone, setOrgDeptPhone] = useState("");
+  const [orgDeptStaffCount, setOrgDeptStaffCount] = useState(0);
+  const [orgDeptDescription, setOrgDeptDescription] = useState("");
+  const [orgDeptDetails, setOrgDeptDetails] = useState("");
 
   const handleTenderFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -457,6 +473,107 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
     setIsNewsModalOpen(false);
   };
 
+  // Organization CRUD handlers
+  const fetchOrganizationData = async () => {
+    try {
+      const res = await fetch("/api/organization");
+      if (res.ok) {
+        const data = await res.json();
+        setOrgDivisions(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch organization data:", err);
+    }
+  };
+
+  const handleOpenOrgModal = (divisionId: string, dept: any = null) => {
+    setSelectedOrgDivision(divisionId);
+    if (dept) {
+      setEditingOrgDept({ divisionId, dept });
+      setOrgDeptName(dept.name);
+      setOrgDeptLeader(dept.leader);
+      setOrgDeptPhone(dept.phone);
+      setOrgDeptStaffCount(dept.staffCount);
+      setOrgDeptDescription(dept.description);
+      setOrgDeptDetails(dept.details || "");
+    } else {
+      setEditingOrgDept(null);
+      setOrgDeptName("");
+      setOrgDeptLeader("");
+      setOrgDeptPhone("");
+      setOrgDeptStaffCount(0);
+      setOrgDeptDescription("");
+      setOrgDeptDetails("");
+    }
+    setIsOrgModalOpen(true);
+  };
+
+  const handleOrgSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!orgDeptName.trim() || !orgDeptLeader.trim()) {
+      alert("Tên khoa/phòng và Trưởng khoa là bắt buộc");
+      return;
+    }
+
+    const payload = {
+      name: orgDeptName,
+      leader: orgDeptLeader,
+      phone: orgDeptPhone,
+      staffCount: orgDeptStaffCount,
+      description: orgDeptDescription,
+      details: orgDeptDetails || undefined
+    };
+
+    try {
+      let res;
+      if (editingOrgDept) {
+        res = await fetch(`/api/organization/${editingOrgDept.divisionId}/departments/${editingOrgDept.dept.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        res = await fetch(`/api/organization/${selectedOrgDivision}/departments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      if (res.ok) {
+        await fetchOrganizationData();
+        addLog(`Cập nhật sơ đồ tổ chức: ${editingOrgDept ? "Sửa" : "Thêm"} khoa/phòng "${orgDeptName}"`);
+      } else {
+        const err = await res.json();
+        alert(err.error || "Có lỗi xảy ra");
+      }
+    } catch (err) {
+      console.error("Organization CRUD error:", err);
+      alert("Lỗi kết nối máy chủ");
+    }
+    setIsOrgModalOpen(false);
+  };
+
+  const handleDeleteOrgDept = async (divisionId: string, deptId: string, deptName: string) => {
+    if (!confirm(`Bạn có chắc chắn muốn xóa khoa/phòng "${deptName}"?`)) return;
+    try {
+      const res = await fetch(`/api/organization/${divisionId}/departments/${deptId}`, { method: "DELETE" });
+      if (res.ok) {
+        await fetchOrganizationData();
+        addLog(`Xóa khoa/phòng "${deptName}" khỏi sơ đồ tổ chức`);
+      }
+    } catch (err) {
+      console.error("Delete org dept error:", err);
+    }
+  };
+
+  // Load organization data on mount
+  React.useEffect(() => {
+    if (activeUser?.role === "Super Admin") {
+      fetchOrganizationData();
+    }
+  }, [activeUser]);
+
   // Open Booking Edit Modal
   const handleOpenBookingEditModal = (booking: Booking) => {
     setEditingBooking(booking);
@@ -792,6 +909,24 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
             </button>
           )}
 
+          {/* Organization Chart CRUD */}
+          {isSuperAdmin && (
+            <button
+              onClick={() => {
+                if (Object.keys(orgDivisions).length === 0) fetchOrganizationData();
+                setActiveTab("organization");
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                activeTab === "organization" 
+                  ? "bg-[#2FA968] text-white shadow-md" 
+                  : "text-mint/80 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <Landmark size={16} />
+              <span>Sơ đồ Tổ chức</span>
+            </button>
+          )}
+
           {/* Audit Logs */}
           {hasAccess("logs") && (
             <button
@@ -846,6 +981,7 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
                 {activeTab === "specialties" && "Cơ cấu Chuyên khoa Lâm sàng"}
                 {activeTab === "doctors" && "Cơ sở dữ liệu Bác sĩ Trực thuộc"}
                 {activeTab === "news" && "Nội dung Tin Tức & Y học Thường Thức"}
+                {activeTab === "organization" && "Sơ Đồ Tổ Chức Bệnh Viện"}
                 {activeTab === "logs" && "Nhật Ký Ghi Chép Bảo Mật (Audit Logs)"}
               </h1>
             </div>
@@ -1584,6 +1720,132 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
           )}
 
           {/* -------------------------------------------------------------
+              TAB: ORGANIZATION CHART MANAGEMENT
+              ------------------------------------------------------------- */}
+          {activeTab === "organization" && isSuperAdmin && (
+            <div className="space-y-6">
+              
+              {Object.keys(orgDivisions).length === 0 && (
+                <div className="bg-[#EAF7EE] p-4 rounded-xl text-xs font-semibold text-[#164B36] flex items-center gap-2 border border-[#2FA968]/30">
+                  <RefreshCw size={14} className="animate-spin" />
+                  <span>Đang tải dữ liệu sơ đồ tổ chức...</span>
+                </div>
+              )}
+
+              {Object.keys(orgDivisions).length > 0 && (
+                <>
+                  {/* Division selector tabs */}
+                  <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                    {Object.values(orgDivisions).map((div: any) => (
+                      <button
+                        key={div.id}
+                        onClick={() => setSelectedOrgDivision(div.id)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                          selectedOrgDivision === div.id
+                            ? `${div.color} text-white shadow-md`
+                            : "bg-white text-green-dark border border-green-800/10 hover:bg-cream-white"
+                        }`}
+                      >
+                        {div.name}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Search and Add */}
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="relative w-full md:w-72">
+                      <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/40" />
+                      <input
+                        type="text"
+                        placeholder="Tìm kiếm khoa/phòng..."
+                        value={orgSearchQuery}
+                        onChange={(e) => setOrgSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-white border border-green-800/10 rounded-full text-xs focus:outline-none focus:ring-2 focus:ring-[#2FA968]"
+                      />
+                    </div>
+                    <button
+                      onClick={() => handleOpenOrgModal(selectedOrgDivision)}
+                      className="flex items-center gap-1.5 bg-[#2FA968] hover:bg-[#258a53] text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition-all cursor-pointer"
+                    >
+                      <Plus size={14} />
+                      <span>Thêm Khoa/Phòng Mới</span>
+                    </button>
+                  </div>
+
+                  {/* Departments table */}
+                  <div className="bg-white rounded-[20px] shadow-[0_8px_24px_rgba(22,75,54,0.06)] p-6 border border-green-800/5">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="border-b border-ink/5 text-ink/60 font-semibold uppercase bg-cream-white">
+                            <th className="p-3">Tên Khoa/Phòng</th>
+                            <th className="p-3">Trưởng khoa</th>
+                            <th className="p-3">Số Điện Thoại</th>
+                            <th className="p-3">Số NV</th>
+                            <th className="p-3">Mô tả</th>
+                            <th className="p-3 text-right">Thao Tác</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-ink/5">
+                          {(orgDivisions[selectedOrgDivision]?.departments || [])
+                            .filter((d: any) => 
+                              !orgSearchQuery || 
+                              d.name.toLowerCase().includes(orgSearchQuery.toLowerCase()) ||
+                              d.leader.toLowerCase().includes(orgSearchQuery.toLowerCase())
+                            )
+                            .map((dept: any) => (
+                              <tr key={dept.id} className="hover:bg-cream-white transition-colors">
+                                <td className="p-3">
+                                  <span className="font-bold text-[#164B36]">{dept.name}</span>
+                                </td>
+                                <td className="p-3 font-semibold">{dept.leader}</td>
+                                <td className="p-3 text-ink/70">{dept.phone}</td>
+                                <td className="p-3">
+                                  <span className="bg-green-dark/5 text-green-dark font-mono px-2 py-0.5 rounded-md text-[11px]">
+                                    {dept.staffCount}
+                                  </span>
+                                </td>
+                                <td className="p-3 max-w-[200px] truncate text-ink/60" title={dept.description}>
+                                  {dept.description}
+                                </td>
+                                <td className="p-3 text-right">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <button
+                                      onClick={() => handleOpenOrgModal(selectedOrgDivision, dept)}
+                                      className="p-1.5 bg-[#EAF7EE] hover:bg-[#d5f2dd] text-[#2FA968] rounded-lg transition-all cursor-pointer"
+                                      title="Chỉnh sửa"
+                                    >
+                                      <Edit size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteOrgDept(selectedOrgDivision, dept.id, dept.name)}
+                                      className="p-1.5 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg transition-all cursor-pointer"
+                                      title="Xóa bỏ"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          {(orgDivisions[selectedOrgDivision]?.departments || []).length === 0 && (
+                            <tr>
+                              <td colSpan={6} className="text-center p-8 text-ink/40 font-medium">
+                                Chưa có khoa/phòng nào trong khối này
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              )}
+
+            </div>
+          )}
+
+          {/* -------------------------------------------------------------
               TAB 8: SYSTEM ACTIVITY & AUDIT LOGS
               ------------------------------------------------------------- */}
           {activeTab === "logs" && (
@@ -2063,6 +2325,132 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
           </div>
         )}
       </AnimatePresence>
+
+        {/* -------------------------------------------------------------
+            MODAL: ORGANIZATION DEPARTMENT CRUD
+            ------------------------------------------------------------- */}
+        <AnimatePresence>
+          {isOrgModalOpen && (
+            <div className="fixed inset-0 z-55 overflow-y-auto bg-black/40 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white rounded-[20px] w-full max-w-lg overflow-hidden shadow-2xl border border-green-800/10"
+              >
+                <div className="bg-[#164B36] p-5 text-white flex justify-between items-center">
+                  <h3 className="font-display font-bold text-base">
+                    {editingOrgDept ? "Cập Nhật Khoa/Phòng" : "Thêm Khoa/Phòng Mới"}
+                  </h3>
+                  <button onClick={() => setIsOrgModalOpen(false)} className="text-white/80 hover:text-white cursor-pointer">
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <form onSubmit={handleOrgSubmit} className="p-6 space-y-4 text-xs font-medium text-green-dark">
+                  <div className="space-y-1">
+                    <label className="block text-[10px] uppercase font-bold tracking-wider">Khối/Bộ Phận</label>
+                    <select
+                      value={selectedOrgDivision}
+                      onChange={(e) => setSelectedOrgDivision(e.target.value)}
+                      disabled={!!editingOrgDept}
+                      className="w-full p-2.5 bg-cream-white border border-green-800/10 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2FA968]"
+                    >
+                      {Object.values(orgDivisions).map((div: any) => (
+                        <option key={div.id} value={div.id}>{div.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-[10px] uppercase font-bold tracking-wider">Tên Khoa/Phòng <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      required
+                      value={orgDeptName}
+                      onChange={(e) => setOrgDeptName(e.target.value)}
+                      placeholder="Ví dụ: Khoa Nội tổng hợp"
+                      className="w-full p-2.5 bg-cream-white border border-green-800/10 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2FA968]"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-[10px] uppercase font-bold tracking-wider">Trưởng khoa <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      required
+                      value={orgDeptLeader}
+                      onChange={(e) => setOrgDeptLeader(e.target.value)}
+                      placeholder="Ví dụ: BSCKI. Nguyễn Văn A"
+                      className="w-full p-2.5 bg-cream-white border border-green-800/10 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2FA968]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="block text-[10px] uppercase font-bold tracking-wider">Số Điện Thoại</label>
+                      <input
+                        type="text"
+                        value={orgDeptPhone}
+                        onChange={(e) => setOrgDeptPhone(e.target.value)}
+                        placeholder="02353.747.432 (Mã nhánh: xxx)"
+                        className="w-full p-2.5 bg-cream-white border border-green-800/10 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2FA968]"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-[10px] uppercase font-bold tracking-wider">Số Nhân Sự</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={orgDeptStaffCount}
+                        onChange={(e) => setOrgDeptStaffCount(parseInt(e.target.value) || 0)}
+                        className="w-full p-2.5 bg-cream-white border border-green-800/10 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2FA968]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-[10px] uppercase font-bold tracking-wider">Mô Tả Ngắn</label>
+                    <textarea
+                      value={orgDeptDescription}
+                      onChange={(e) => setOrgDeptDescription(e.target.value)}
+                      rows={2}
+                      placeholder="Mô tả chức năng và nhiệm vụ của khoa/phòng..."
+                      className="w-full p-2.5 bg-cream-white border border-green-800/10 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2FA968]"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-[10px] uppercase font-bold tracking-wider">Chi Tiết (Thông tin bổ sung)</label>
+                    <textarea
+                      value={orgDeptDetails}
+                      onChange={(e) => setOrgDeptDetails(e.target.value)}
+                      rows={2}
+                      placeholder="Thông tin chi tiết về khoa/phòng..."
+                      className="w-full p-2.5 bg-cream-white border border-green-800/10 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2FA968]"
+                    />
+                  </div>
+
+                  <div className="pt-4 flex items-center justify-end gap-2 border-t border-ink/5">
+                    <button
+                      type="button"
+                      onClick={() => setIsOrgModalOpen(false)}
+                      className="px-4 py-2 bg-cream-white border border-ink/10 rounded-xl cursor-pointer hover:bg-ink/5"
+                    >
+                      Hủy bỏ
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-[#2FA968] hover:bg-[#258a53] text-white font-bold rounded-xl cursor-pointer"
+                    >
+                      {editingOrgDept ? "Cập Nhật" : "Thêm Mới"}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
       {/* -------------------------------------------------------------
           MODAL 4: BOOKING DETAILS MODIFY OVERLAY
