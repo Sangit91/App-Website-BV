@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Topbar from "../components/layout/Topbar";
 import Navbar from "../components/layout/Navbar";
 import Hero from "../components/public/Hero";
@@ -14,16 +14,29 @@ import Footer from "../components/layout/Footer";
 import BookingForm from "../components/booking/BookingForm";
 import AIAdvisor from "../components/ai/AIAdvisor";
 import TestLookup from "../components/test-lookup/TestLookup";
-import { Sparkles, Calendar } from "lucide-react";
+import { Sparkles, Calendar, ArrowUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function PublicPage() {
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [testOpen, setTestOpen] = useState(false);
   const [prepopulatedDoctor, setPrepopulatedDoctor] = useState("");
   const [prepopulatedSpecialtyId, setPrepopulatedSpecialtyId] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 500);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const handleScrollToSection = (sectionId: string) => {
     const el = document.getElementById(sectionId);
@@ -123,6 +136,19 @@ export default function PublicPage() {
             Đặt khám Online
           </span>
         </button>
+
+        {showBackToTop && (
+          <button
+            onClick={scrollToTop}
+            title=" Quay lại đầu trang"
+            className="w-13 h-13 rounded-full bg-white hover:bg-mint border-2 border-brand-green/30 hover:border-brand-green text-brand-green hover:text-brand-green/90 flex items-center justify-center shadow-lg transition-all duration-300 cursor-pointer group relative"
+          >
+            <ArrowUp size={22} />
+            <span className="absolute right-14 bg-green-dark text-mint text-xs font-bold py-1 px-3 rounded-full whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity shadow border border-brand-green/20">
+              Quay lại đầu trang
+            </span>
+          </button>
+        )}
       </div>
     </div>
   );
