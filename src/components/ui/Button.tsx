@@ -4,11 +4,14 @@ import { Loader2 } from "lucide-react";
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
   children: React.ReactNode;
+  className?: string;
+  disabled?: boolean;
+  onClick?: () => void;
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -24,15 +27,9 @@ const sizeClasses: Record<ButtonSize, string> = {
   lg: "text-sm font-bold py-3 px-6 rounded-full",
 };
 
-export default function Button({
-  variant = "primary",
-  size = "md",
-  loading = false,
-  className = "",
-  disabled,
-  children,
-  ...props
-}: ButtonProps) {
+export default function Button(props: ButtonProps) {
+  const { variant = "primary", size = "md", loading = false, children, className = "", disabled = false, onClick } = props;
+  
   return (
     <button
       className={`
@@ -44,7 +41,7 @@ export default function Button({
         ${className}
       `}
       disabled={disabled || loading}
-      {...props}
+      onClick={onClick}
     >
       {loading && <Loader2 size={14} className="animate-spin" />}
       {children}
