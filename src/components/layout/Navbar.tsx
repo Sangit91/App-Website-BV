@@ -179,7 +179,7 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
           : "bg-cream-white py-3"
       } border-b border-green-800/10`}
     >
-      <div className="max-w-[1440px] mx-auto px-4 xl:px-8 flex justify-between items-center relative">
+      <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10 flex justify-between items-center relative">
         
         {/* Logo and Hospital Name */}
         <div 
@@ -188,17 +188,17 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
         >
           <HospitalLogo className="w-10 h-10 xl:w-11 xl:h-11 shrink-0 group-hover:scale-105 transition-transform duration-300" />
           <div className="leading-tight flex flex-col justify-center">
-            <span className="font-display font-bold text-[11px] xl:text-[12px] text-green-dark uppercase tracking-wide">
+            <span className="font-display font-bold text-[11px] xl:text-[12px] 2xl:text-[13px] text-green-dark uppercase tracking-wide">
               BỆNH VIỆN ĐA KHOA KHU VỰC
             </span>
-            <span className="font-sans font-bold text-[12px] xl:text-[13.5px] text-brand-green whitespace-nowrap">
+            <span className="font-sans font-bold text-[12px] xl:text-[13.5px] 2xl:text-[14px] text-brand-green whitespace-nowrap">
               Miền Núi Phía Bắc Quảng Nam
             </span>
           </div>
         </div>
 
         {/* Center: Mega Menu Navigation (Hover trigger on desktop) */}
-        <nav className="hidden xl:flex items-center space-x-1">
+        <nav className="hidden xl:flex items-center xl:space-x-1.5 2xl:space-x-3">
           {navItems.map((item) => (
             <div
               key={item.id}
@@ -224,11 +224,11 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
         </nav>
 
         {/* Right side: Urgent Hotline, Admin & Booking CTA */}
-        <div className="hidden xl:flex items-center space-x-2.5 shrink-0">
+        <div className="hidden xl:flex items-center 2xl:space-x-4 shrink-0">
           {/* Hotline Button with Pulsing Signal */}
           <a
             href="tel:02353747432"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-mint border border-[#2FA968]/20 text-green-dark hover:bg-[#d5f2dd] transition-colors duration-200 group whitespace-nowrap"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-mint border border-[#2FA968]/20 text-green-dark hover:bg-[#d5f2dd] transition-colors duration-200 group whitespace-nowrap"
           >
             <div className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-peach opacity-75"></span>
@@ -241,7 +241,7 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
           {/* Admin Portal Button */}
           <button
             onClick={onOpenAdmin}
-            className="flex items-center gap-1 border border-[#2FA968]/20 hover:border-[#2FA968]/50 bg-[#EAF7EE] hover:bg-[#d5f2dd] text-[#164B36] font-sans text-[12px] xl:text-[12.5px] font-semibold px-3 py-1.5 rounded-full cursor-pointer transition-all duration-300 whitespace-nowrap"
+            className="flex items-center gap-1.5 border border-[#2FA968]/20 hover:border-[#2FA968]/50 bg-[#EAF7EE] hover:bg-[#d5f2dd] text-[#164B36] font-sans text-[12px] xl:text-[12.5px] 2xl:text-[13px] font-semibold px-4 py-2 rounded-full cursor-pointer transition-all duration-300 whitespace-nowrap"
             title="Cổng thông tin quản lý lâm sàng"
           >
             <span className="w-1.5 h-1.5 bg-[#2FA968] rounded-full animate-pulse"></span>
@@ -251,7 +251,7 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
           {/* Booking CTA Button */}
           <button
             onClick={onOpenBooking}
-            className="flex items-center gap-1 bg-[#2FA968] hover:bg-[#258752] text-white font-sans text-[12px] xl:text-[12.5px] font-semibold px-3.5 py-1.5 rounded-full cursor-pointer shadow-sm hover:shadow-md hover:translate-y-[-1px] transition-all duration-300 whitespace-nowrap"
+            className="flex items-center gap-1.5 bg-[#2FA968] hover:bg-[#258752] text-white font-sans text-[12px] xl:text-[12.5px] 2xl:text-[13px] font-semibold px-5 py-2 rounded-full cursor-pointer shadow-sm hover:shadow-md hover:translate-y-[-1px] transition-all duration-300 whitespace-nowrap"
           >
             <Calendar size={12} />
             <span>Đặt lịch khám</span>
