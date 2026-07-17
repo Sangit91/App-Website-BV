@@ -1,6 +1,6 @@
 import React from "react";
 import { Quote, Star } from "lucide-react";
-import { TESTIMONIALS } from "../data";
+import { TESTIMONIALS } from "../../data";
 
 export default function Testimonials() {
   // Guard clause: If there is no testimonial data, hide this section completely!

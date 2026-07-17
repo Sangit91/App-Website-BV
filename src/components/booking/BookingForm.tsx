@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { X, Calendar, User, Phone, Clipboard, CheckCircle2, Search, ArrowLeft, Loader2, Sparkles, AlertTriangle } from "lucide-react";
-import { useHospital } from "../context/HospitalContext";
-import { Booking } from "../types";
+import { useHospital } from "../../context/HospitalContext";
+import { Booking } from "../../types";
 
 interface BookingFormProps {
   isOpen: boolean;

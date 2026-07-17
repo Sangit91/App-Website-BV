@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Search, Calendar, UserCheck, Inbox, RefreshCw } from "lucide-react";
-import { useHospital } from "../context/HospitalContext";
-import { Doctor } from "../types";
+import { useHospital } from "../../context/HospitalContext";
+import { Doctor } from "../../types";
 
 interface DoctorsProps {
   onOpenBookingWithDoctor: (doctorName: string, specialtyId: string) => void;

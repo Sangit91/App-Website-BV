@@ -10,8 +10,8 @@ import {
   Minus,
   Sparkles
 } from "lucide-react";
-import { useHospital } from "../context/HospitalContext";
-import { Specialty } from "../types";
+import { useHospital } from "../../context/HospitalContext";
+import { Specialty } from "../../types";
 
 export default function Specialties() {
   const { specialties } = useHospital();

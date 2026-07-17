@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { useHospital, Role, Booking, Patient, DoctorSchedule } from "../context/HospitalContext";
-import { Specialty, Doctor, NewsItem } from "../types";
-import { DEPARTMENTS } from "../data";
+import { useHospital, Role, Booking, Patient, DoctorSchedule } from "../../context/HospitalContext";
+import { Specialty, Doctor, NewsItem } from "../../types";
+import { DEPARTMENTS } from "../../data";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Users, Calendar, FileText, CalendarRange, BookOpen, Layers, Newspaper, ClipboardList, 

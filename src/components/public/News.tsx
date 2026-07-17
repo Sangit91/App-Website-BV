@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Calendar, ArrowRight, X, Printer, Download, Eye, FileText, Clock, Share2, Layers, ShieldCheck, AlertCircle } from "lucide-react";
-import { useHospital } from "../context/HospitalContext";
-import { NewsItem } from "../types";
-import { DEPARTMENTS } from "../data";
+import { useHospital } from "../../context/HospitalContext";
+import { NewsItem } from "../../types";
+import { DEPARTMENTS } from "../../data";
 
 export default function News() {
   const { news } = useHospital();

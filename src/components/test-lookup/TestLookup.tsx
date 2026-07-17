@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Search, ClipboardList, Printer, AlertTriangle, CheckCircle, HelpCircle, Loader2, X } from "lucide-react";
-import { TestResult } from "../types";
+import { TestResult } from "../../types";
 
 interface TestLookupProps {
   isOpen: boolean;
