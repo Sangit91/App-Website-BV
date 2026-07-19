@@ -848,8 +848,8 @@ Fixed broken local image references:
 ### ThongTinThauPage Toggle Animation Fix (2026-07-19)
 
 - Sửa animation rotation của nút thu gọn/b-expand department
-- Thay `rotate: isExpanded ? 180 : 0` → `rotate: isExpanded ? 90 : 0`
-- 180 độ khiến icon bị lộn ngược hoàn toàn
+- Thay `rotate: isExpanded ? 180 : 0` → `rotate: isExpanded ? 360 : 0`
+- 90 độ khiến icon nằm ngang, 360 giữ nguyên hướng icon
 
 Files affected: src/pages/ThongTinThauPage.tsx
 
