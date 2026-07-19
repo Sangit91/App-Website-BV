@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Calendar, Play, CheckCircle, Star, ShieldCheck, Award } from "lucide-react";
 
 interface HeroProps {
@@ -17,18 +17,18 @@ export default function Hero({ onOpenBooking, onScrollToSection }: HeroProps) {
           {/* Subtle Tagline */}
           <div className="inline-flex items-center space-x-2 bg-brand-green/10 text-brand-green px-4 py-1.5 rounded-full w-max text-[13px] font-semibold tracking-wide">
             <Award size={14} className="text-peach animate-spin-slow" />
-            <span>Đơn vị Anh hùng Lao động thời kỳ đổi mới</span>
+            <span>ÄÆ¡n vá»‹ Anh hÃ¹ng Lao Ä‘á»™ng thá»i ká»³ Ä‘á»•i má»›i</span>
           </div>
 
           {/* Heading H1 (Fredoka rounded, warm feel) */}
           <h1 className="font-display font-bold text-green-dark text-[36px] sm:text-[44px] md:text-[48px] leading-[1.15] tracking-tight">
-            Chăm sóc bằng <span className="text-brand-green relative inline-block">Cả Trái Tim</span> <br />
-            Y đức sáng, Sức khỏe an lành
+            ChÄƒm sÃ³c báº±ng <span className="text-brand-green relative inline-block">Cáº£ TrÃ¡i Tim</span> <br />
+            Y Ä‘á»©c sÃ¡ng, Sá»©c khá»e an lÃ nh
           </h1>
 
           {/* Slogan details (Be Vietnam Pro) */}
           <p className="text-ink/80 text-base md:text-lg leading-relaxed max-w-[620px]">
-            Bệnh viện Đa khoa Khu vực Miền núi Phía Bắc Quảng Nam cam kết mang lại dịch vụ y tế kỹ thuật cao, thân thiện và ấm áp. Nơi tình thương xoa dịu nỗi đau, mang niềm tin sức khỏe đến mọi gia đình.
+            Bá»‡nh viá»‡n Äa khoa Khu vá»±c Miá»n nÃºi PhÃ­a Báº¯c Quáº£ng Nam cam káº¿t mang láº¡i dá»‹ch vá»¥ y táº¿ ká»¹ thuáº­t cao, thÃ¢n thiá»‡n vÃ  áº¥m Ã¡p. NÆ¡i tÃ¬nh thÆ°Æ¡ng xoa dá»‹u ná»—i Ä‘au, mang niá»m tin sá»©c khá»e Ä‘áº¿n má»i gia Ä‘Ã¬nh.
           </p>
 
           {/* CTA Buttons */}
@@ -39,7 +39,7 @@ export default function Hero({ onOpenBooking, onScrollToSection }: HeroProps) {
               className="flex items-center gap-2.5 bg-brand-green hover:bg-brand-green/90 text-white font-sans text-[15px] font-bold px-7 py-3.5 rounded-full cursor-pointer shadow-md hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300"
             >
               <Calendar size={18} />
-              <span>Đặt lịch khám ngay</span>
+              <span>Äáº·t lá»‹ch khÃ¡m ngay</span>
             </button>
 
             {/* Outline button */}
@@ -47,7 +47,7 @@ export default function Hero({ onOpenBooking, onScrollToSection }: HeroProps) {
               onClick={() => onScrollToSection("gioi-thieu")}
               className="flex items-center gap-2 bg-white hover:bg-brand-green/5 border-2 border-mint text-green-dark hover:border-brand-green/30 font-sans text-[15px] font-bold px-7 py-3.5 rounded-full cursor-pointer transition-all duration-300"
             >
-              <span>Xem giới thiệu bệnh viện</span>
+              <span>Xem giá»›i thiá»‡u bá»‡nh viá»‡n</span>
               <Play size={14} className="fill-green-dark text-green-dark ml-1" />
             </button>
           </div>
@@ -56,15 +56,15 @@ export default function Hero({ onOpenBooking, onScrollToSection }: HeroProps) {
           <div className="grid grid-cols-3 gap-4 pt-6 border-t border-brand-green/10 max-w-[580px]">
             <div className="flex flex-col">
               <span className="font-display text-[26px] md:text-[32px] font-bold text-green-dark">22+</span>
-              <span className="text-xs md:text-[13px] font-semibold text-ink/75">Chuyên khoa sâu</span>
+              <span className="text-xs md:text-[13px] font-semibold text-ink/75">ChuyÃªn khoa sÃ¢u</span>
             </div>
             <div className="flex flex-col border-l border-brand-green/10 pl-4 md:pl-6">
               <span className="font-display text-[26px] md:text-[32px] font-bold text-green-dark">150+</span>
-              <span className="text-xs md:text-[13px] font-semibold text-ink/75">Bác sĩ chuyên khoa giỏi</span>
+              <span className="text-xs md:text-[13px] font-semibold text-ink/75">BÃ¡c sÄ© chuyÃªn khoa giá»i</span>
             </div>
             <div className="flex flex-col border-l border-brand-green/10 pl-4 md:pl-6">
               <span className="font-display text-[26px] md:text-[32px] font-bold text-brand-green">200K+</span>
-              <span className="text-xs md:text-[13px] font-semibold text-ink/75">Lượt khám bệnh/năm</span>
+              <span className="text-xs md:text-[13px] font-semibold text-ink/75">LÆ°á»£t khÃ¡m bá»‡nh/nÄƒm</span>
             </div>
           </div>
 
@@ -76,8 +76,8 @@ export default function Hero({ onOpenBooking, onScrollToSection }: HeroProps) {
           {/* Main Wave Organic Blob holding image */}
           <div className="relative w-[300px] h-[300px] sm:w-[380px] sm:h-[380px] md:w-[420px] md:h-[420px] overflow-hidden bg-gradient-to-br from-mint via-brand-green/20 to-peach/20 blob-mask shadow-2xl group">
             <img 
-              src="https://images.pexels.com/photos/3985161/pexels-photo-3985161.jpeg?auto=compress&cs=tinysrgb&w=800"
-              alt="Đội ngũ bác sĩ BVĐK Miền Núi Phía Bắc Quảng Nam"
+              src="/images/components/hero.jpeg"
+              alt="Äá»™i ngÅ© bÃ¡c sÄ© BVÄK Miá»n NÃºi PhÃ­a Báº¯c Quáº£ng Nam"
               className="w-full h-full object-cover brightness-[1.03] group-hover:scale-105 transition-transform duration-500"
               referrerPolicy="no-referrer"
             />
@@ -89,8 +89,8 @@ export default function Hero({ onOpenBooking, onScrollToSection }: HeroProps) {
               <CheckCircle size={20} className="fill-mint" />
             </div>
             <div className="text-left">
-              <p className="text-[10px] uppercase tracking-wider text-brand-green font-bold">Đặt lịch khám</p>
-              <p className="text-xs font-bold text-green-dark">Đã xác nhận thành công!</p>
+              <p className="text-[10px] uppercase tracking-wider text-brand-green font-bold">Äáº·t lá»‹ch khÃ¡m</p>
+              <p className="text-xs font-bold text-green-dark">ÄÃ£ xÃ¡c nháº­n thÃ nh cÃ´ng!</p>
             </div>
           </div>
 
@@ -102,9 +102,9 @@ export default function Hero({ onOpenBooking, onScrollToSection }: HeroProps) {
               ))}
             </div>
             <p className="text-[11px] font-semibold text-ink/90 leading-tight">
-              &quot;Bác sĩ ân cần, phục vụ rất chu đáo!&quot;
+              &quot;BÃ¡c sÄ© Ã¢n cáº§n, phá»¥c vá»¥ ráº¥t chu Ä‘Ã¡o!&quot;
             </p>
-            <span className="text-[10px] font-bold text-brand-green">Chị Thủy - Đại Lộc</span>
+            <span className="text-[10px] font-bold text-brand-green">Chá»‹ Thá»§y - Äáº¡i Lá»™c</span>
           </div>
 
           {/* Circle background accents */}

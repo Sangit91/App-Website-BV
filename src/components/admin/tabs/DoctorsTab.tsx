@@ -37,7 +37,7 @@ export default function DoctorsTab() {
 
     const selectedSpec = specialties.find(s => s.id === form.specialtyId);
     const specNameString = selectedSpec?.name || "Ngoại khoa";
-    const finalImage = form.image.trim() || "https://images.pexels.com/photos/3786126/pexels-photo-3786126.jpeg?auto=compress&cs=tinysrgb&w=400";
+    const finalImage = form.image.trim() || "/images/doctors/doctor-placeholder.jpeg";
 
     if (editing) {
       updateDoctor({ ...editing, ...form, specialtyName: specNameString, image: finalImage });

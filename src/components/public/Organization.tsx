@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Users, ShieldCheck, Landmark, GitFork, X, PhoneCall, Info, Layers, ChevronDown } from "lucide-react";
 
@@ -65,27 +65,27 @@ export default function Organization() {
 
   const directors: Member[] = [
     {
-      name: "PGS. TS. BS. Trần Văn Trình",
-      title: "Thầy thuốc Nhân dân - Giám đốc Bệnh viện",
-      role: "Chỉ đạo chung, phụ trách Chiến lược phát triển, Nhân sự cấp cao và Hợp tác quốc tế.",
-      image: "https://images.pexels.com/photos/3279196/pexels-photo-3279196.jpeg?auto=compress&cs=tinysrgb&w=600",
-      quote: "Đặt y đức và sự hài lòng của bệnh nhân làm kim chỉ nam cho mọi hoạt động điều trị.",
+      name: "PGS. TS. BS. Tráº§n VÄƒn TrÃ¬nh",
+      title: "Tháº§y thuá»‘c NhÃ¢n dÃ¢n - GiÃ¡m Ä‘á»‘c Bá»‡nh viá»‡n",
+      role: "Chá»‰ Ä‘áº¡o chung, phá»¥ trÃ¡ch Chiáº¿n lÆ°á»£c phÃ¡t triá»ƒn, NhÃ¢n sá»± cáº¥p cao vÃ  Há»£p tÃ¡c quá»‘c táº¿.",
+      image: "/images/components/org-1.jpeg",
+      quote: "Äáº·t y Ä‘á»©c vÃ  sá»± hÃ i lÃ²ng cá»§a bá»‡nh nhÃ¢n lÃ m kim chá»‰ nam cho má»i hoáº¡t Ä‘á»™ng Ä‘iá»u trá»‹.",
       email: "tranvantrinh.director@mnpb.gov.vn"
     },
     {
-      name: "BSCKII. Nguyễn Thị Minh Tuyết",
-      title: "Thầy thuốc Ưu tú - Phó Giám đốc Lâm sàng",
-      role: "Phụ trách chuyên môn điều trị, Đội ngũ Y bác sĩ, Hội đồng Khoa học và Kiểm soát nhiễm khuẩn.",
-      image: "https://images.pexels.com/photos/4173251/pexels-photo-4173251.jpeg?auto=compress&cs=tinysrgb&w=600",
-      quote: "Chất lượng lâm sàng quyết định sự sống còn và uy tín của một cơ sở y tế.",
+      name: "BSCKII. Nguyá»…n Thá»‹ Minh Tuyáº¿t",
+      title: "Tháº§y thuá»‘c Æ¯u tÃº - PhÃ³ GiÃ¡m Ä‘á»‘c LÃ¢m sÃ ng",
+      role: "Phá»¥ trÃ¡ch chuyÃªn mÃ´n Ä‘iá»u trá»‹, Äá»™i ngÅ© Y bÃ¡c sÄ©, Há»™i Ä‘á»“ng Khoa há»c vÃ  Kiá»ƒm soÃ¡t nhiá»…m khuáº©n.",
+      image: "/images/components/org-2.jpeg",
+      quote: "Cháº¥t lÆ°á»£ng lÃ¢m sÃ ng quyáº¿t Ä‘á»‹nh sá»± sá»‘ng cÃ²n vÃ  uy tÃ­n cá»§a má»™t cÆ¡ sá»Ÿ y táº¿.",
       email: "minhtuyet.clinical@mnpb.gov.vn"
     },
     {
-      name: "ThS. BS. Lê Phan Quốc Bảo",
-      title: "Phó Giám đốc Kế hoạch - Hành chính & Vật tư",
-      role: "Phụ trách cơ sở vật chất, Trang thiết bị y tế hiện đại, Công nghệ thông tin và Công tác xã hội.",
-      image: "https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg?auto=compress&cs=tinysrgb&w=600",
-      quote: "Hạ tầng hiện đại, quy trình tinh gọn là bệ đỡ vững chắc cho các y bác sĩ cứu người.",
+      name: "ThS. BS. LÃª Phan Quá»‘c Báº£o",
+      title: "PhÃ³ GiÃ¡m Ä‘á»‘c Káº¿ hoáº¡ch - HÃ nh chÃ­nh & Váº­t tÆ°",
+      role: "Phá»¥ trÃ¡ch cÆ¡ sá»Ÿ váº­t cháº¥t, Trang thiáº¿t bá»‹ y táº¿ hiá»‡n Ä‘áº¡i, CÃ´ng nghá»‡ thÃ´ng tin vÃ  CÃ´ng tÃ¡c xÃ£ há»™i.",
+      image: "/images/components/org-3.jpeg",
+      quote: "Háº¡ táº§ng hiá»‡n Ä‘áº¡i, quy trÃ¬nh tinh gá»n lÃ  bá»‡ Ä‘á»¡ vá»¯ng cháº¯c cho cÃ¡c y bÃ¡c sÄ© cá»©u ngÆ°á»i.",
       email: "quocbao.admin@mnpb.gov.vn"
     }
 ];
@@ -100,21 +100,21 @@ export default function Organization() {
         {/* Header Title */}
         <div className="max-w-3xl mx-auto mb-16">
           <span className="inline-flex items-center gap-2 bg-[#EAF7EE] text-[#164B36] font-sans font-bold text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border border-[#2FA968]/20 mb-4">
-            <Landmark size={13} className="text-[#2FA968]" /> Uy Tín & Trách Nhiệm
+            <Landmark size={13} className="text-[#2FA968]" /> Uy TÃ­n & TrÃ¡ch Nhiá»‡m
           </span>
           <h2 className="font-display font-bold text-3xl md:text-4xl text-green-dark tracking-tight mb-4">
-            Cơ Cấu Tổ Chức & Ban Giám Đốc
+            CÆ¡ Cáº¥u Tá»• Chá»©c & Ban GiÃ¡m Äá»‘c
           </h2>
           <p className="font-sans text-ink text-sm md:text-base leading-relaxed">
-            Hệ thống quản lý lâm sàng hiện đại, chuyên nghiệp cùng tinh thần tận hiến hết mình vì đồng bào miền núi phía Bắc Quảng Nam. Chúng tôi cam kết mang lại quy trình chăm sóc khép kín, y đức sáng ngời.
+            Há»‡ thá»‘ng quáº£n lÃ½ lÃ¢m sÃ ng hiá»‡n Ä‘áº¡i, chuyÃªn nghiá»‡p cÃ¹ng tinh tháº§n táº­n hiáº¿n háº¿t mÃ¬nh vÃ¬ Ä‘á»“ng bÃ o miá»n nÃºi phÃ­a Báº¯c Quáº£ng Nam. ChÃºng tÃ´i cam káº¿t mang láº¡i quy trÃ¬nh chÄƒm sÃ³c khÃ©p kÃ­n, y Ä‘á»©c sÃ¡ng ngá»i.
           </p>
         </div>
 
-        {/* SECTION 1: BAN GIÁM ĐỐC */}
+        {/* SECTION 1: BAN GIÃM Äá»C */}
         <div className="mb-24">
           <div className="flex items-center justify-center gap-2 mb-10">
             <span className="w-8 h-px bg-[#2FA968]"></span>
-            <h3 className="font-display font-bold text-xl md:text-2xl text-green-dark">Ban Giám Đốc Bệnh Viện</h3>
+            <h3 className="font-display font-bold text-xl md:text-2xl text-green-dark">Ban GiÃ¡m Äá»‘c Bá»‡nh Viá»‡n</h3>
             <span className="w-8 h-px bg-[#2FA968]"></span>
           </div>
 
@@ -153,7 +153,7 @@ export default function Organization() {
                 <div className="p-6 flex flex-col flex-grow justify-between">
                   <div>
                     <span className="inline-block px-2.5 py-1 rounded bg-[#EAF7EE] text-[#164B36] font-sans font-bold text-[11px] mb-3">
-                      {member.title.split(" - ")[1] || "Ban Giám Đốc"}
+                      {member.title.split(" - ")[1] || "Ban GiÃ¡m Äá»‘c"}
                     </span>
                     <p className="font-sans text-ink text-[13px] leading-relaxed mb-4">
                       {member.role}
@@ -176,25 +176,25 @@ export default function Organization() {
           </div>
         </div>
 
-        {/* SECTION 2: SƠ ĐỒ TỔ CHỨC (INTERACTIVE TREE DIAGRAM) */}
+        {/* SECTION 2: SÆ  Äá»’ Tá»” CHá»¨C (INTERACTIVE TREE DIAGRAM) */}
         <div>
           <div className="flex items-center justify-center gap-2 mb-6">
             <span className="w-8 h-px bg-[#2FA968]"></span>
-            <h3 className="font-display font-bold text-xl md:text-2xl text-green-dark">Sơ đồ tổ chức Bệnh viện</h3>
+            <h3 className="font-display font-bold text-xl md:text-2xl text-green-dark">SÆ¡ Ä‘á»“ tá»• chá»©c Bá»‡nh viá»‡n</h3>
             <span className="w-8 h-px bg-[#2FA968]"></span>
           </div>
           <p className="font-sans text-gray-600 text-[13.5px] max-w-2xl mx-auto mb-10">
-            Hệ thống tổ chức gồm 3 khối: Hành chính (9 phòng/ban), Lâm sàng (21 khoa) và Cận lâm sàng (6 khoa). Click chọn khối để xem chi tiết các đơn vị và liên hệ nội bộ.
+            Há»‡ thá»‘ng tá»• chá»©c gá»“m 3 khá»‘i: HÃ nh chÃ­nh (9 phÃ²ng/ban), LÃ¢m sÃ ng (21 khoa) vÃ  Cáº­n lÃ¢m sÃ ng (6 khoa). Click chá»n khá»‘i Ä‘á»ƒ xem chi tiáº¿t cÃ¡c Ä‘Æ¡n vá»‹ vÃ  liÃªn há»‡ ná»™i bá»™.
           </p>
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-16 gap-4">
               <div className="w-10 h-10 border-4 border-[#2FA968] border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-ink/60 font-sans text-sm">Đang tải dữ liệu tổ chức...</span>
+              <span className="text-ink/60 font-sans text-sm">Äang táº£i dá»¯ liá»‡u tá»• chá»©c...</span>
             </div>
           ) : Object.keys(divisions).length === 0 ? (
             <div className="text-center py-16 text-ink/40">
-              <p>Không có dữ liệu tổ chức</p>
+              <p>KhÃ´ng cÃ³ dá»¯ liá»‡u tá»• chá»©c</p>
             </div>
           ) : (
           <>
@@ -226,15 +226,15 @@ export default function Organization() {
           <div className="relative bg-white border border-green-800/10 rounded-[28px] p-6 md:p-10 shadow-sm max-w-[1000px] mx-auto overflow-hidden">
             <div className="absolute top-0 right-0 bg-[#EAF7EE] text-[#164B36] font-mono text-[10px] font-bold py-1 px-3.5 rounded-bl-xl border-l border-b border-green-800/10 flex items-center gap-1.5">
               <span className="w-2 h-2 bg-[#2FA968] rounded-full animate-ping"></span>
-              Cơ cấu động 2026
+              CÆ¡ cáº¥u Ä‘á»™ng 2026
             </div>
 
-            {/* Tree root (Giám Đốc & Ban giám đốc) */}
+            {/* Tree root (GiÃ¡m Äá»‘c & Ban giÃ¡m Ä‘á»‘c) */}
             <div className="flex flex-col items-center mb-10">
               <div className="bg-gradient-to-r from-green-dark to-[#1f5b43] text-white py-3.5 px-8 rounded-2xl shadow-md border border-[#2FA968]/30 inline-flex flex-col items-center max-w-[280px]">
-                <span className="font-sans text-[11px] text-[#FFA265] uppercase font-bold tracking-wider mb-0.5">Báo cáo tối cao</span>
-                <span className="font-display font-bold text-sm text-center">Ban Giám Đốc Bệnh Viện</span>
-                <span className="font-sans text-[11px] text-gray-300 mt-1">Sát sao chuyên môn - Uy tín cộng đồng</span>
+                <span className="font-sans text-[11px] text-[#FFA265] uppercase font-bold tracking-wider mb-0.5">BÃ¡o cÃ¡o tá»‘i cao</span>
+                <span className="font-display font-bold text-sm text-center">Ban GiÃ¡m Äá»‘c Bá»‡nh Viá»‡n</span>
+                <span className="font-sans text-[11px] text-gray-300 mt-1">SÃ¡t sao chuyÃªn mÃ´n - Uy tÃ­n cá»™ng Ä‘á»“ng</span>
               </div>
               
               {/* Connector lines */}
@@ -272,7 +272,7 @@ export default function Organization() {
                       <div>
                         <div className="flex justify-between items-start mb-3">
                           <span className={`inline-block py-0.5 px-2 rounded-md font-sans font-bold text-[10px] text-white ${divisions[activeDivision].color}`}>
-                            {divisions[activeDivision].name.split(" ")[1] || "Khối"}
+                            {divisions[activeDivision].name.split(" ")[1] || "Khá»‘i"}
                           </span>
                           <Info size={14} className="text-[#2FA968] opacity-40 group-hover:opacity-100 transition-all duration-300" />
                         </div>
@@ -286,7 +286,7 @@ export default function Organization() {
                       </div>
 
                       <div className="pt-3 border-t border-green-800/[0.06] flex justify-between items-center text-[12px] font-sans">
-                        <span className="text-gray-600 font-medium">Trưởng khoa: <span className="text-[#164B36] font-bold">{dept.leader.replace("BSCKII. ", "").replace("BSCKI. ", "").replace("ThS. BS. ", "").replace("DS. CKI. ", "").replace("ThS. ", "")}</span></span>
+                        <span className="text-gray-600 font-medium">TrÆ°á»Ÿng khoa: <span className="text-[#164B36] font-bold">{dept.leader.replace("BSCKII. ", "").replace("BSCKI. ", "").replace("ThS. BS. ", "").replace("DS. CKI. ", "").replace("ThS. ", "")}</span></span>
                         <span className="text-gray-400 font-mono text-[11px] bg-white border border-gray-100 px-1.5 py-0.5 rounded">
                           {dept.staffCount} NS
                         </span>
@@ -314,8 +314,8 @@ export default function Organization() {
                       </motion.span>
                       <span className="transition-all duration-300">
                         {isExpanded[activeDivision] 
-                          ? "Thu gọn danh sách" 
-                          : `Xem thêm ${divisions[activeDivision].departments.length - INITIAL_DISPLAY} khoa/phòng`
+                          ? "Thu gá»n danh sÃ¡ch" 
+                          : `Xem thÃªm ${divisions[activeDivision].departments.length - INITIAL_DISPLAY} khoa/phÃ²ng`
                         }
                       </span>
                     </motion.button>
@@ -347,7 +347,7 @@ export default function Organization() {
               <div className="bg-gradient-to-r from-green-dark to-[#123e2d] px-6 py-5 text-white flex justify-between items-center relative">
                 <div>
                   <p className="text-[#FFA265] text-[11px] font-sans font-bold uppercase tracking-widest mb-1">
-                    Cơ cấu tổ chức Bệnh viện
+                    CÆ¡ cáº¥u tá»• chá»©c Bá»‡nh viá»‡n
                   </p>
                   <h3 className="font-display font-bold text-lg md:text-xl leading-tight">
                     {selectedDept.name}
@@ -366,7 +366,7 @@ export default function Organization() {
                 {/* Description */}
                 <div className="bg-[#EAF7EE] border-l-4 border-[#2FA968] p-4 rounded-r-xl">
                   <h4 className="font-display font-bold text-[13px] text-[#164B36] uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                    <Layers size={13} className="text-[#2FA968]" /> Chức năng cốt lõi
+                    <Layers size={13} className="text-[#2FA968]" /> Chá»©c nÄƒng cá»‘t lÃµi
                   </h4>
                   <p className="text-ink text-[13.5px] leading-relaxed">
                     {selectedDept.description}
@@ -376,7 +376,7 @@ export default function Organization() {
                 {/* Extended Details */}
                 {selectedDept.details && (
                   <div className="space-y-1">
-                    <h5 className="font-display font-bold text-[13px] text-green-dark">Thông tin bổ sung</h5>
+                    <h5 className="font-display font-bold text-[13px] text-green-dark">ThÃ´ng tin bá»• sung</h5>
                     <p className="text-gray-600 text-[13px] leading-relaxed">
                       {selectedDept.details}
                     </p>
@@ -386,12 +386,12 @@ export default function Organization() {
                 {/* Leadership & Personnel statistics */}
                 <div className="grid grid-cols-2 gap-4 pt-3 border-t border-green-800/10 text-[13.5px]">
                   <div>
-                    <span className="text-gray-400 block text-[11px] uppercase font-bold tracking-wider mb-0.5">Lãnh đạo đơn vị</span>
+                    <span className="text-gray-400 block text-[11px] uppercase font-bold tracking-wider mb-0.5">LÃ£nh Ä‘áº¡o Ä‘Æ¡n vá»‹</span>
                     <span className="text-[#164B36] font-bold font-display">{selectedDept.leader}</span>
                   </div>
                   <div>
-                    <span className="text-gray-400 block text-[11px] uppercase font-bold tracking-wider mb-0.5">Nhân sự hiện tại</span>
-                    <span className="text-green-dark font-bold font-display">{selectedDept.staffCount} Y bác sĩ & Điều dưỡng</span>
+                    <span className="text-gray-400 block text-[11px] uppercase font-bold tracking-wider mb-0.5">NhÃ¢n sá»± hiá»‡n táº¡i</span>
+                    <span className="text-green-dark font-bold font-display">{selectedDept.staffCount} Y bÃ¡c sÄ© & Äiá»u dÆ°á»¡ng</span>
                   </div>
                 </div>
 
@@ -401,7 +401,7 @@ export default function Organization() {
                     <PhoneCall size={16} />
                   </div>
                   <div>
-                    <span className="text-gray-400 block text-[10px] uppercase font-bold tracking-wider">Đường dây nóng khoa phòng</span>
+                    <span className="text-gray-400 block text-[10px] uppercase font-bold tracking-wider">ÄÆ°á»ng dÃ¢y nÃ³ng khoa phÃ²ng</span>
                     <span className="text-green-dark font-mono font-bold text-[13px]">{selectedDept.phone}</span>
                   </div>
                 </div>
@@ -413,7 +413,7 @@ export default function Organization() {
                   onClick={() => setSelectedDept(null)}
                   className="px-5 py-2 rounded-full border border-gray-200 hover:bg-gray-100 text-gray-600 text-xs font-bold cursor-pointer transition-all duration-200"
                 >
-                  Đóng lại
+                  ÄÃ³ng láº¡i
                 </button>
               </div>
             </motion.div>

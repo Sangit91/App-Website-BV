@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import ScrollAnimation from "../components/ui/ScrollAnimation";
@@ -20,59 +20,59 @@ export default function ChuyenKhoaPage() {
 
   const departments = {
     "ngoai-cap-cuu": {
-      title: "Ngoại & Cấp cứu",
+      title: "Ngoáº¡i & Cáº¥p cá»©u",
       icon: Scissors,
       color: "bg-red-50",
       textColor: "text-red-600",
-      heroImage: "https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=800&h=400&fit=crop",
+      heroImage: "/images/pages/hero-chuyenkhoa.jpeg",
       items: [
-        { name: "Khoa Ngoại chung", desc: "Phẫu thuật tổng quát, cấp cứu ngoại", img: "https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=400&h=300&fit=crop" },
-        { name: "Khoa Răng Hàm Mặt", desc: "Phẫu thuật răng, hàm, mặt", img: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=400&h=300&fit=crop" },
-        { name: "Khoa Tai – Mũi – Họng", desc: "Phẫu thuật tai, mũi, họng", img: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400&h=300&fit=crop" },
-        { name: "Khoa Hồi sức tích cực ICU", desc: "Hồi sức cấp cứu 24/7", img: "https://images.unsplash.com/photo-1516549655169-df83a0774514?w=400&h=300&fit=crop" },
-        { name: "Khoa ung bướu", desc: "Phẫu thuật, hóa trị, xạ trị", img: "https://images.unsplash.com/photo-1631815589968-fdb2fc1e0303?w=400&h=300&fit=crop" }
+        { name: "Khoa Ngoáº¡i chung", desc: "Pháº«u thuáº­t tá»•ng quÃ¡t, cáº¥p cá»©u ngoáº¡i", img: "/images/pages/ngoai-1.jpeg" },
+        { name: "Khoa RÄƒng HÃ m Máº·t", desc: "Pháº«u thuáº­t rÄƒng, hÃ m, máº·t", img: "/images/pages/ranghamach-1.jpeg" },
+        { name: "Khoa Tai â€“ MÅ©i â€“ Há»ng", desc: "Pháº«u thuáº­t tai, mÅ©i, há»ng", img: "/images/pages/taimuihong-1.jpeg" },
+        { name: "Khoa Há»“i sá»©c tÃ­ch cá»±c ICU", desc: "Há»“i sá»©c cáº¥p cá»©u 24/7", img: "/images/pages/icu-1.jpeg" },
+        { name: "Khoa ung bÆ°á»›u", desc: "Pháº«u thuáº­t, hÃ³a trá»‹, xáº¡ trá»‹", img: "/images/pages/ungbuou-1.jpeg" }
       ]
     },
     "noi-tong-quat": {
-      title: "Nội tổng quát",
+      title: "Ná»™i tá»•ng quÃ¡t",
       icon: Stethoscope,
       color: "bg-blue-50",
       textColor: "text-blue-600",
-      heroImage: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&h=400&fit=crop",
+      heroImage: "/images/pages/hero-dichvu.jpeg",
       items: [
-        { name: "Khoa Nội chung", desc: "Khám và điều trị các bệnh nội khoa", img: "https://images.unsplash.com/photo-1530026405186-ed1f139313f3?w=400&h=300&fit=crop" },
-        { name: "Khoa Tim mạch", desc: "Tim mạch can thiệp, phẫu thuật", img: "https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&h=300&fit=crop" },
-        { name: "Khoa Nội tiết", desc: "Đái tháo đường, tuyến giáp", img: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop" },
-        { name: "Khoa Thận nhân tạo", desc: "Lọc máu, chạy thận nhân tạo", img: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=300&fit=crop" },
-        { name: "Khoa Cơ Xương Khớp", desc: "Xương khớp, phục hồi chức năng", img: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=300&fit=crop" },
-        { name: "Khoa Da Liễu", desc: "Da liễu, thẩm mỹ da", img: "https://images.unsplash.com/photo-1576021182211-9ea8dced3690?w=400&h=300&fit=crop" },
-        { name: "Khoa Tâm lý & Sức khỏe", desc: "Tâm thần, tâm lý trị liệu", img: "https://images.unsplash.com/photo-1493836512294-502baa1986e2?w=400&h=300&fit=crop" }
+        { name: "Khoa Ná»™i chung", desc: "KhÃ¡m vÃ  Ä‘iá»u trá»‹ cÃ¡c bá»‡nh ná»™i khoa", img: "/images/pages/vanchuyen-1.jpeg" },
+        { name: "Khoa Tim máº¡ch", desc: "Tim máº¡ch can thiá»‡p, pháº«u thuáº­t", img: "/images/pages/vanchuyen-1.jpeg" },
+        { name: "Khoa Ná»™i tiáº¿t", desc: "ÄÃ¡i thÃ¡o Ä‘Æ°á»ng, tuyáº¿n giÃ¡p", img: "/images/pages/timmach-1.jpeg" },
+        { name: "Khoa Tháº­n nhÃ¢n táº¡o", desc: "Lá»c mÃ¡u, cháº¡y tháº­n nhÃ¢n táº¡o", img: "/images/pages/khamtongquat-1.jpeg" },
+        { name: "Khoa CÆ¡ XÆ°Æ¡ng Khá»›p", desc: "XÆ°Æ¡ng khá»›p, phá»¥c há»“i chá»©c nÄƒng", img: "/images/pages/bacsi-1.jpeg" },
+        { name: "Khoa Da Liá»…u", desc: "Da liá»…u, tháº©m má»¹ da", img: "/images/pages/daliem-1.jpeg" },
+        { name: "Khoa TÃ¢m lÃ½ & Sá»©c khá»e", desc: "TÃ¢m tháº§n, tÃ¢m lÃ½ trá»‹ liá»‡u", img: "/images/pages/tamly-1.jpeg" }
       ]
     },
     "san-nhi": {
-      title: "Sản & Nhi",
+      title: "Sáº£n & Nhi",
       icon: Baby,
       color: "bg-pink-50",
       textColor: "text-pink-600",
-      heroImage: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&h=400&fit=crop",
+      heroImage: "/images/pages/hero-thaisan.jpeg",
       items: [
-        { name: "Khoa Sản phụ khoa", desc: "Mangled sản, phụ khoa", img: "https://images.unsplash.com/photo-1518584303990-7892c8e5f9f5?w=400&h=300&fit=crop" },
-        { name: "Khoa Nhi & Sơ sinh", desc: "Nhi khoa, sơ sinh", img: "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=400&h=300&fit=crop" },
-        { name: "Khoa Thẩm mỹ và chăm sóc trị liệu", desc: "Thẩm mỹ, spa y tế", img: "https://images.unsplash.com/photo-1598524374912-6e92af34e484?w=400&h=300&fit=crop" }
+        { name: "Khoa Sáº£n phá»¥ khoa", desc: "Mangled sáº£n, phá»¥ khoa", img: "/images/pages/sanphukhoa-1.jpeg" },
+        { name: "Khoa Nhi & SÆ¡ sinh", desc: "Nhi khoa, sÆ¡ sinh", img: "/images/pages/nhi-1.jpeg" },
+        { name: "Khoa Tháº©m má»¹ vÃ  chÄƒm sÃ³c trá»‹ liá»‡u", desc: "Tháº©m má»¹, spa y táº¿", img: "/images/pages/thammy-1.jpeg" }
       ]
     },
     "can-lam-sang": {
-      title: "Cận lâm sàng",
+      title: "Cáº­n lÃ¢m sÃ ng",
       icon: Microscope,
       color: "bg-purple-50",
       textColor: "text-purple-600",
-      heroImage: "https://images.unsplash.com/photo-1579154204601-01588f351e67?w=800&h=400&fit=crop",
+      heroImage: "/images/pages/hero-tongquat.jpeg",
       items: [
-        { name: "Khoa Dược", desc: "Cung ứng thuốc, tư vấn dược", img: "https://images.unsplash.com/photo-1585435557343-3b092031a831?w=400&h=300&fit=crop" },
-        { name: "Khoa Mắt", desc: "Mắt, phẫu thuật khúc xạ", img: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop" },
-        { name: "Khoa Xét nghiệm và Giải phẫu", desc: "Xét nghiệm, giải phẫu bệnh", img: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop" },
-        { name: "Khoa Y tế dự phòng", desc: "Phòng bệnh, tiêm chủng", img: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=400&h=300&fit=crop" },
-        { name: "Khoa Chẩn đoán hình ảnh", desc: "MRI, CT, X-quang, siêu âm", img: "https://images.unsplash.com/photo-1551076805-e1869033e561?w=400&h=300&fit=crop" }
+        { name: "Khoa DÆ°á»£c", desc: "Cung á»©ng thuá»‘c, tÆ° váº¥n dÆ°á»£c", img: "/images/pages/duoc-1.jpeg" },
+        { name: "Khoa Máº¯t", desc: "Máº¯t, pháº«u thuáº­t khÃºc xáº¡", img: "/images/pages/mat-1.jpeg" },
+        { name: "Khoa XÃ©t nghiá»‡m vÃ  Giáº£i pháº«u", desc: "XÃ©t nghiá»‡m, giáº£i pháº«u bá»‡nh", img: "/images/pages/tainha-1.jpeg" },
+        { name: "Khoa Y táº¿ dá»± phÃ²ng", desc: "PhÃ²ng bá»‡nh, tiÃªm chá»§ng", img: "/images/pages/tiemchung-1.jpeg" },
+        { name: "Khoa Cháº©n Ä‘oÃ¡n hÃ¬nh áº£nh", desc: "MRI, CT, X-quang, siÃªu Ã¢m", img: "/images/pages/xetnghiem-1.jpeg" }
       ]
     }
   };
@@ -82,9 +82,9 @@ export default function ChuyenKhoaPage() {
       <section className="py-12">
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <ScrollAnimation className="text-center mb-8" animation="fade-up">
-            <h1 className="text-4xl font-display font-bold text-green-dark mb-4">Chuyên khoa</h1>
+            <h1 className="text-4xl font-display font-bold text-green-dark mb-4">ChuyÃªn khoa</h1>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Hệ thống chuyên khoa đa dạng, trang thiết bị hiện đại, đội ngũ bác sĩ chuyên môn cao
+              Há»‡ thá»‘ng chuyÃªn khoa Ä‘a dáº¡ng, trang thiáº¿t bá»‹ hiá»‡n Ä‘áº¡i, Ä‘á»™i ngÅ© bÃ¡c sÄ© chuyÃªn mÃ´n cao
             </p>
           </ScrollAnimation>
         </div>

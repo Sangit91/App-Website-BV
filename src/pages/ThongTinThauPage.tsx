@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+﻿import { useState, useMemo } from "react";
 import Layout from "../components/layout/Layout";
 import ScrollAnimation from "../components/ui/ScrollAnimation";
 import { useHospital } from "../context/HospitalContext";
@@ -256,7 +256,7 @@ export default function ThongTinThauPage() {
                                 >
                                   <div className="relative aspect-[4/3] overflow-hidden">
                                     <img
-                                      src={item.image || "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&h=300&fit=crop"}
+                                      src={item.image || "/images/pages/bhyt-1.jpeg"}
                                       alt={item.title}
                                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                       referrerPolicy="no-referrer"

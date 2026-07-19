@@ -214,31 +214,23 @@ Không tạo context mới nếu không thực sự cần thiết.
 
 Path:
 
-D:\Coding\code backup\App Website BV_20260719_150635
+D:\Coding\code backup\App Website BV_20260719_160404
 
 Files:
 
-* Full project backup (141 files)
-* Admin tabs: OverviewTab, BookingsTab, PatientsTab, ShiftsTab, SpecialtiesTab, DoctorsTab, NewsTab, OrganizationTab, LogsTab
-* AdminContext, AdminLogin, AdminSidebar, AdminHeader
-* Updated memory.md
+* Full project backup (including public/images/)
+* Backup sau Local Images Migration
 
 Note:
 
-Backup sau Phase 13 NewsTab Enhancement.
+Backup sau Phase 14 - Local Images Migration.
 
 ---
 
 ## All Backups
 
-* D:\Coding\code backup\App Website BV_20260719_150635 (latest - after Phase 13)
-* D:\Coding\code backup\App Website BV_20260719_134842
-* D:\Coding\code backup\App Website BV_20260719_134824
-* D:\Coding\code backup\App Website BV_20260719_131807
-* D:\Coding\code backup\App Website BV_20260718_192527
-* D:\Coding\code backup\App Website BV_20260718_182929
-* D:\Coding\code backup\App Website BV_20260718_181829
-* D:\Coding\App Website BV_backup_20260717_075747
+* D:\Coding\code backup\App Website BV_20260719_160404 (latest - after Local Images Migration)
+* D:\Coding\code backup\App Website BV_20260719_150635
 
 ---
 
@@ -586,6 +578,97 @@ Giải pháp:
 Trạng thái:
 
 Đã sửa.
+
+---
+
+## Broken Images Trong ChoBenhNhanPage & DichVuPage
+
+Ngày:
+
+2026-07-19
+
+Vấn đề:
+
+4 ảnh Unsplash bị lỗi 404 hoặc có ký tự Chinese trong URL
+
+Nguyên nhân:
+
+1. `photo-1587613865765-5e33e4bd57f9` - 404 Not Found
+2. `photo-1530026405186-ed1f139313f3` - 404 Not Found
+3. `photo-1587613865765-5e33e4零点bd58` - URL có ký tự Chinese (encoding error)
+4. `photo-1546823零da49c4d-a3b3b3a9a4c1` - URL có ký tự Chinese (encoding error)
+
+Files affected:
+
+* src/pages/ChoBenhNhanPage.tsx (2 ảnh)
+* src/pages/DichVuPage.tsx (2 ảnh)
+* src/pages/ChuyenKhoaPage.tsx (1 ảnh - cùng URL với DichVuPage)
+
+Giải pháp:
+
+* Thay `photo-1587613865765-5e33e4bd57f9` → `photo-1551601651-2a8555f1a136`
+* Thay `photo-1530026405186-ed1f139313f3` → `photo-1557804506-669a67965ba0`
+* Thay `photo-1587613865765-5e33e4零点bd58` → `photo-1559757175-5700dde675bc`
+* Thay `photo-1546823零da49c4d-a3b3b3a9a4c1` → `photo-1519494026892-80bbd2d6fd0d`
+
+Trạng thái:
+
+Đã sửa. Đã verify tất cả ảnh thay thế hoạt động tốt.
+
+Commands executed:
+
+* npm run lint - Passed
+* npm run build - Passed
+
+---
+
+## Local Images Migration
+
+Ngày:
+
+2026-07-19
+
+Vấn đề:
+
+Phụ thuộc vào external image URLs (Unsplash, Pexels) - có thể bị lỗi 404 hoặc không load được
+
+Giải pháp:
+
+* Tạo folder structure trong `public/images/`
+  - `public/images/pages/` - Ảnh cho các trang
+  - `public/images/components/` - Ảnh cho components (Hero, WhyChooseUs, Organization)
+  - `public/images/doctors/` - Ảnh bác sĩ placeholder
+  - `public/images/hero/` - Ảnh hero section
+* Download 54 images từ Unsplash/Pexels về local
+* Thay thế tất cả external URLs bằng local paths
+
+Files đã update:
+
+* public/images/ (54 images)
+* src/pages/ChoBenhNhanPage.tsx (12 replacements)
+* src/pages/DichVuPage.tsx (19 replacements)
+* src/pages/ChuyenKhoaPage.tsx (20 replacements)
+* src/pages/GioiThieuPage.tsx (9 replacements)
+* src/pages/LienHePage.tsx (2 replacements)
+* src/pages/TinTucPage.tsx (2 replacements)
+* src/pages/SoDoToChucPage.tsx (6 replacements)
+* src/pages/ThongTinThauPage.tsx (1 replacement)
+* src/components/public/Hero.tsx (1 replacement)
+* src/components/public/WhyChooseUs.tsx (2 replacements)
+* src/components/public/Organization.tsx (3 replacements)
+* src/components/admin/tabs/NewsTab.tsx (1 replacement)
+* src/components/admin/tabs/DoctorsTab.tsx (1 replacement)
+
+Total: 79 replacements across 13 files
+
+Trạng thái:
+
+✅ Hoàn thành. Không còn external image URLs trong codebase.
+
+Commands executed:
+
+* npm run lint - Passed
+* npm run build - Passed
 
 ---
 

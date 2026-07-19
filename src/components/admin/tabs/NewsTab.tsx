@@ -118,7 +118,7 @@ export default function NewsTab() {
     e.preventDefault();
     if (!form.title.trim() || !form.summary.trim()) return;
 
-    const finalImage = form.image.trim() || "https://images.pexels.com/photos/4386476/pexels-photo-4386476.jpeg?auto=compress&cs=tinysrgb&w=500";
+    const finalImage = form.image.trim() || "/images/components/news-placeholder.jpeg";
     const todayStr = new Date().toLocaleDateString("vi-VN");
 
     if (editing) {
