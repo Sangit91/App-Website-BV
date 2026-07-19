@@ -53,7 +53,7 @@ export default function DichVuPage() {
       heroImage: "/images/pages/hero-tiemchung.jpeg",
       items: [
         { name: "Tiêm chủng – Vaccine", desc: "Đầy đủ các loại vaccine", price: "Từ 200.000đ", img: "/images/pages/tiemchung-1.jpeg" },
-        { name: "Dịch vụ tiêm chủng", desc: "Tiêm tại bệnh viện hoặc tại nhà", price: "Từ 150.000đ", img: "/images/pages/tiendung-1.jpeg" },
+        { name: "Dịch vụ tiêm chủng", desc: "Tiêm tại bệnh viện hoặc tại nhà", price: "Từ 150.000đ", img: "/images/pages/tiemchung-1.jpeg" },
         { name: "Tiêm vaccine tại Bệnh viện", desc: "Phòng tiêm hiện đại, an toàn", price: "Theo loại vaccine", img: "/images/pages/tiemchung-1.jpeg" },
         { name: "Tư vấn tiêm chủng trẻ em", desc: "Lịch tiêm, giấy tờ đầy đủ", price: "Miễn phí", img: "/images/pages/nhi-1.jpeg" }
       ]
