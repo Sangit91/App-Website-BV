@@ -1,0 +1,9 @@
+export { default as OverviewTab } from "./OverviewTab";
+export { default as BookingsTab } from "./BookingsTab";
+export { default as PatientsTab } from "./PatientsTab";
+export { default as ShiftsTab } from "./ShiftsTab";
+export { default as SpecialtiesTab } from "./SpecialtiesTab";
+export { default as DoctorsTab } from "./DoctorsTab";
+export { default as NewsTab } from "./NewsTab";
+export { default as OrganizationTab } from "./OrganizationTab";
+export { default as LogsTab } from "./LogsTab";

@@ -12,6 +12,7 @@ interface ButtonProps {
   className?: string;
   disabled?: boolean;
   onClick?: () => void;
+  type?: "button" | "submit" | "reset";
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -28,10 +29,11 @@ const sizeClasses: Record<ButtonSize, string> = {
 };
 
 export default function Button(props: ButtonProps) {
-  const { variant = "primary", size = "md", loading = false, children, className = "", disabled = false, onClick } = props;
-  
+  const { variant = "primary", size = "md", loading = false, children, className = "", disabled = false, onClick, type = "button" } = props;
+
   return (
     <button
+      type={type}
       className={`
         flex items-center justify-center gap-2
         disabled:bg-brand-green/60 disabled:cursor-not-allowed
