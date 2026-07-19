@@ -1,372 +1,587 @@
-# PHỤ LỤC CẬP NHẬT - PHASE 11-13
-## Dac-ta-uiux-tong-hop.docx - Updates so với phiên bản gốc
+# Design Document - BVĐK Website
 
-**Ngày cập nhật:** 2026-07-19
-**Tác giả:** Agent (OpenCode)
-**Commit:** 8f2a512
+## 📌 THÔNG TIN BỆNH VIỆN
 
----
+**Tên đầy đủ:** Bệnh Viện Đa Khoa Khu Vực Miền Núi Phía Bắc Quảng Nam
 
-## MỤC LỤC
+**Địa chỉ:** 107 Quang Trung, Xã Đại Lộc, Thành Phố Đà Nẵng
 
-1. [Tổng quan thay đổi](#1-tổng-quan-thay-đổi)
-2. [Admin Dashboard - RBAC (Section 9.1)](#2-admin-dashboard---rbac-section-91)
-3. [Admin Dashboard - 9 Tabs (Section 9.2-9.7)](#3-admin-dashboard---9-tabs-section-92-97)
-4. [NewsTab Enhancement - Tender Features (Section 9.6)](#4-newstab-enhancement---tender-features-section-96)
-5. [Type Updates](#5-type-updates)
-6. [Technical Implementation Notes](#6-technical-implementation-notes)
-7. [Quality Gate Status](#7-quality-gate-status)
-8. [Backup Information](#8-backup-information)
+**Lãnh đạo:**
+
+| Chức vụ | Họ tên |
+|---------|--------|
+| Giám đốc | Nhà Thuốc Ưu Tú. BS CKII Nguyễn Thống Nhất |
+| Phó Giám đốc | BSCK II Lê Minh Dũng |
+| Phó Giám đốc | BS CKII Nguyễn Đình Hoàng |
 
 ---
 
-## 1. Tổng quan thay đổi
+# 🎨 MODERN PAGE DESIGN PATTERN
 
-| Phase | Ngày | Mô tả |
-|-------|------|-------|
-| Phase 11 | 2026-07-19 | Tạo AdminContext, AdminLogin, AdminSidebar, AdminHeader |
-| Phase 12 | 2026-07-19 | Tách AdminDashboard thành 9 tab components |
-| Phase 13 | 2026-07-19 | Nâng cấp NewsTab với Tender Features |
+## Áp dụng cho: ChuyenKhoaPage, DichVuPage, ChoBenhNhanPage
 
-**Files changed:** 19 files | **Insertions:** 2,633 | **Deletions:** 3,005
+## 1. Hero Section
 
----
-
-## 2. Admin Dashboard - RBAC (Section 9.1)
-
-### 2.1 Theo đặc tả gốc
+### Structure
 ```
-Section 9.1: Xác thực & Phân quyền (RBAC)
-- Super Admin: Toàn quyền
-- Lễ tân (Receptionist): Chỉ truy cập Lịch hẹn, Bệnh nhân, Tổng quan
-- Bác sĩ (Doctor): Chỉ truy cập lịch trực và bệnh nhân của mình
-```
-
-### 2.2 Đã implement
-- ✅ **AdminContext.tsx** - Quản lý login state và RBAC
-- ✅ **AdminLogin.tsx** - Màn hình đăng nhập với role selection
-- ✅ **AdminSidebar.tsx** - Sidebar navigation động theo role
-- ✅ **AdminHeader.tsx** - Header với page title và user info
-
-### 2.3 Ghi chú
-- Giữ nguyên 3 roles: Super Admin, Department Admin (thay vì Receptionist), Doctor
-- Department Admin = Lễ tân theo đặc tả
-- Lưu state ở client (AdminContext) cho demo/prototype
-
----
-
-## 3. Admin Dashboard - 9 Tabs (Section 9.2-9.7)
-
-### 3.1 Theo đặc tả gốc
-```
-Section 9.2: Bố cục & Điều hướng
-- Sidebar trái cố định 260px
-- 9 mục điều hướng: Tổng quan, Lịch hẹn, Bệnh nhân, Lịch trực, Chuyên khoa, Bác sĩ, Tin tức, Nhật ký
-
-Section 9.3: Màn hình Tổng quan
-- 4 thẻ chỉ số + Bảng lịch hẹn gần đây
-
-Section 9.4: Quản lý Lịch hẹn & Bệnh nhân
-- Danh sách bệnh nhân + Quản lý lịch hẹn
-
-Section 9.5: Lịch trực Bác sĩ
-- Lưới ca trực 7 ngày × bác sĩ
-
-Section 9.6: CRUD chuẩn (Chuyên khoa, Bác sĩ, Tin tức)
-- Modal overlay với hiệu ứng phóng to
-- Validate, Xóa xác nhận
-
-Section 9.7: Nhật ký hoạt động
-- Bảng chỉ đọc, format: [Thời gian] | [Người dùng] | [Hành động]
+┌──────────────────────────────────────────────────────────────────┐
+│  FULL VIEWPORT HERO - Parallax effect                             │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  Background: Animated gradient mesh + floating particles  │  │
+│  │                                                              │  │
+│  │  [Badge] "Chuyên khoa" / "Dịch vụ y tế" / "Dành cho BN"   │  │
+│  │                                                              │  │
+│  │  [Split Text Animation - 2 colors]                          │  │
+│  │  CHUYÊN KHOA                                                 │  │
+│  │                                                              │  │
+│  │  Subtitle text...                                            │  │
+│  │                                                              │  │
+│  │  ┌─────┐  ┌─────┐  ┌─────┐  ┌─────┐                        │  │
+│  │  │ 12  │  │ 50+ │  │ 200 │  │  5  │  [Count-up animation] │  │
+│  │  │CKhoa│  │ BS  │  │Giuong│ │PMo  │                        │  │
+│  │  └─────┘  └─────┘  └─────┘  └─────┘                        │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                                                                  │
+│  [Scroll indicator - bouncing chevron]                          │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
-### 3.2 Đã implement
+### Implementation Details
 
-| Tab | File | Mô tả | Status |
-|-----|------|-------|--------|
-| Tổng quan | `OverviewTab.tsx` | 4 metric cards + 5 lịch hẹn gần nhất | ✅ |
-| Lịch hẹn | `BookingsTab.tsx` | Search, filter, approve/cancel, xuất Excel, in PDF | ✅ |
-| Bệnh nhân | `PatientsTab.tsx` | Danh sách bệnh nhân với search | ✅ |
-| Lịch trực | `ShiftsTab.tsx` | Ma trận phân ca 7 ngày × ca (Sáng/Chiều/Nghỉ) | ✅ |
-| Chuyên khoa | `SpecialtiesTab.tsx` | CRUD với modal | ✅ |
-| Bác sĩ | `DoctorsTab.tsx` | CRUD với modal | ✅ |
-| Tin tức | `NewsTab.tsx` | CRUD + Tender Features (xem mục 4) | ✅ |
-| Tổ chức | `OrganizationTab.tsx` | CRUD sơ đồ tổ chức với modal | ✅ |
-| Nhật ký | `LogsTab.tsx` | Audit logs read-only | ✅ |
+**Background Elements:**
+- Gradient: `bg-gradient-to-br from-green-dark via-green-800 to-brand-green`
+- Floating shapes: 4 circles với animation (y, x, scale oscillation)
+- Grid pattern overlay: opacity 10%
 
-### 3.3 Ghi chú
-- Đã thêm **OrganizationTab** (quản lý khoa/phòng) - không có trong spec gốc nhưng cần thiết
-- Đã thêm file `tabs/index.ts` để export tất cả tabs
-
----
-
-## 4. NewsTab Enhancement - Tender Features (Section 9.6)
-
-### 4.1 Theo đặc tả gốc
-```
-Section 9.6: CRUD Tin tức
-- Header: Tiêu đề trang + nút "Thêm mới +"
-- Bảng: Ảnh/Avatar, Tên/Tiêu đề, Phòng ban/Danh mục, Trạng thái, Hành động
-- Form: Modal overlay, validate, tự động điền ảnh placeholder
+**Badge:**
+```tsx
+<div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-5 py-2 rounded-full text-sm font-medium mb-8">
+  <Activity className="w-4 h-4" />
+  <span>Hệ thống y tế chuyên sâu</span>
+</div>
 ```
 
-### 4.2 Nâng cấp đã thêm
-
-#### 4.2.1 Checkbox "Đấu thầu" (MỚI)
-```
-Trong spec gốc: Không có
-Đã thêm:
-- Checkbox "Đây là thông tin Đấu thầu / Mua sắm trang thiết bị y khoa"
-- Khi check: tự động set tag = "Thông báo"
-- Khi check: điền default dates "08:00:00 ngày 15/07/2026" và "17:00:00 ngày 25/07/2026"
-- Hiển thị conditional fields phụ thuộc bên dưới
-```
-
-#### 4.2.2 Department Selection (MỚI)
-```
-Trong spec gốc: Không có
-Đã thêm:
-- Dropdown chọn "Khối / Phòng ban quản lý thầu"
-- Super Admin: chọn từ danh sách DEPARTMENTS (data.ts)
-- Department Admin: hiển thị department của tài khoản (readonly)
+**Title Animation:**
+```tsx
+<h1 className="text-5xl md:text-6xl font-display font-bold text-white mb-6">
+  <motion.span className="inline-block" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}>
+    Chuyên
+  </motion.span>
+  <motion.span className="inline-block ml-3 text-peach" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}>
+    Khoa
+  </motion.span>
+</h1>
 ```
 
-#### 4.2.3 Tender Date Inputs (MỚI)
-```
-Trong spec gốc: Không có
-Đã thêm:
-- Input "Thời điểm mở thầu" (tenderStartDate)
-- Input "Thời điểm khóa thầu" (tenderEndDate)
-- Placeholder: "Ví dụ: 08:00:00 ngày 15/07/2026"
-```
-
-#### 4.2.4 Drag & Drop File Upload (MỚI)
-```
-Trong spec gốc: Không có
-Đã thêm:
-- Drag & drop zone với visual feedback
-- Hỗ trợ định dạng: .pdf, .png, .jpg, .jpeg
-- Kích thước tối đa: 10MB
-- Click to browse file
-- Input ẩn type="file"
-```
-
-#### 4.2.5 File Preview (MỚI)
-```
-Trong spec gốc: Không có
-Đã thêm:
-- Hiển thị tên file + kích thước (KB)
-- Icon Paperclip màu green
-- Nút X để remove file
-- Border dashed khi chưa có file, border solid khi đã attach
+**Stats Cards:**
+```tsx
+<div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+  {stats.map((stat, idx) => (
+    <motion.div
+      key={stat.label}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5, delay: 0.7 + idx * 0.1 }}
+      className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
+    >
+      <div className="text-3xl md:text-4xl font-display font-bold text-white mb-1">
+        <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+      </div>
+      <div className="text-white/70 text-sm font-medium">{stat.label}</div>
+    </motion.div>
+  ))}
+</div>
 ```
 
-#### 4.2.6 Modal Animation (MỚI)
+**Scroll Indicator:**
+```tsx
+<motion.div className="absolute bottom-8 left-1/2 -translate-x-1/2" animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+  <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center pt-2">
+    <motion.div className="w-1.5 h-3 bg-white rounded-full" animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }} transition={{ duration: 2, repeat: Infinity }} />
+  </div>
+</motion.div>
 ```
-Trong spec gốc: Có mô tả "hiệu ứng phóng to"
-Đã implement cụ thể:
-- framer-motion AnimatePresence
-- Scale animation: 0.95 → 1.0 khi mở
-- Opacity animation: 0 → 1 khi mở
-- Reverse khi đóng
+
+**Parallax Effect:**
+```tsx
+const heroRef = useRef<HTMLDivElement>(null);
+const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+
+<motion.div style={{ opacity: heroOpacity, scale: heroScale }}>
+  {/* Hero content */}
+</motion.div>
 ```
 
-### 4.3 So sánh Modal News
+**AnimatedCounter Component:**
+```tsx
+function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
 
-| Tính năng | Spec gốc | Đã implement |
-|-----------|----------|-------------|
-| Tiêu đề | ✅ | ✅ |
-| Tag selector | ✅ | ✅ |
-| Tóm tắt | ✅ | ✅ |
-| Ảnh minh họa | ✅ | ✅ |
-| Nội dung chi tiết | ✅ | ✅ |
-| Checkbox Đấu thầu | ❌ | ✅ MỚI |
-| Department selection | ❌ | ✅ MỚI |
-| Tender start date | ❌ | ✅ MỚI |
-| Tender end date | ❌ | ✅ MỚI |
-| File upload | ❌ | ✅ MỚI |
-| File preview | ❌ | ✅ MỚI |
-| Animation | Mô tả chung | framer-motion |
+  useEffect(() => {
+    if (!isInView) return;
+    let start = 0;
+    const duration = 2000;
+    const increment = value / (duration / 16);
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= value) {
+        setCount(value);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(start));
+      }
+    }, 16);
+    return () => clearInterval(timer);
+  }, [isInView, value]);
 
----
-
-## 5. Type Updates
-
-### 5.1 File: `src/types/models/news.ts`
-
-#### Theo đặc tả gốc (Section 15.2)
-```typescript
-export interface NewsItem {
-  id: string;
-  title: string;
-  summary: string;
-  tag: NewsTag;
-  date: string;
-  image: string;
-  content?: string;
+  return <div ref={ref}>{count}{suffix}</div>;
 }
 ```
 
-#### Đã thêm (cho Tender Features)
-```typescript
-export interface TenderFile {
-  name: string;
-  size: string;
-  url?: string;
-  fileType?: string;
+---
+
+## 2. Sticky Tab Navigation
+
+### Structure
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  STICKY SECTION - Glass morphism effect                          │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │ [Tab 1] [Tab 2] [Tab 3] [Tab 4]                           │  │
+│  └────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Implementation
+
+**Container:**
+```tsx
+<section className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-green-800/5 shadow-sm">
+  <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
+    <div className="flex overflow-x-auto scrollbar-hide py-4 gap-2">
+      {/* Tabs */}
+    </div>
+  </div>
+</section>
+```
+
+**Tab Button:**
+```tsx
+{DEPARTMENTS.map(dept => {
+  const Icon = dept.icon;
+  const isActive = activeTab === dept.key;
+  return (
+    <motion.button
+      key={dept.key}
+      onClick={() => setActiveTab(dept.key)}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold text-sm whitespace-nowrap transition-all cursor-pointer ${
+        isActive
+          ? `bg-gradient-to-r ${dept.color} text-white shadow-lg`
+          : "bg-gray-100 text-ink/70 hover:bg-gray-200"
+      }`}
+    >
+      <Icon className="w-5 h-5" />
+      <span>{dept.title}</span>
+    </motion.button>
+  );
+})}
+```
+
+**Department Color Configuration:**
+```tsx
+const DEPARTMENTS = [
+  { key: "ngoai-cap-cuu", title: "Ngoại & Cấp cứu", icon: Scissors, color: "from-red-500 to-rose-600", bgLight: "bg-red-50", textColor: "text-red-600" },
+  { key: "noi-tong-quat", title: "Nội tổng quát", icon: Stethoscope, color: "from-blue-500 to-cyan-600", bgLight: "bg-blue-50", textColor: "text-blue-600" },
+  { key: "san-nhi", title: "Sản & Nhi", icon: Baby, color: "from-pink-500 to-rose-600", bgLight: "bg-pink-50", textColor: "text-pink-600" },
+  { key: "can-lam-sang", title: "Cận lâm sàng", icon: Microscope, color: "from-purple-500 to-violet-600", bgLight: "bg-purple-50", textColor: "text-purple-600" }
+];
+```
+
+---
+
+## 3. Featured Card Section
+
+### Structure
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  FEATURED - Grid 2 columns                                       │
+│  ┌─────────────────────────┐  ┌────────────────────────────────┐ │
+│  │                         │  │ Dịch vụ nổi bật                │ │
+│  │   FEATURED IMAGE        │  │                                │ │
+│  │   [Clip-path reveal]    │  │ Description text...            │ │
+│  │   [Ken Burns effect]    │  │                                │ │
+│  │                         │  │ ✓ Item 1 [slide-in]            │ │
+│  │   [Gradient overlay]    │  │ ✓ Item 2 [slide-in]            │ │
+│  │   [Title on image]      │  │ ✓ Item 3 [slide-in]            │ │
+│  │                         │  │ ✓ Item 4 [slide-in]            │ │
+│  └─────────────────────────┘  └────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Implementation
+
+**Featured Image Container:**
+```tsx
+<motion.div
+  className="relative h-80 lg:h-96 overflow-hidden rounded-3xl"
+  initial={{ clipPath: "inset(100% 0 0 0)" }}
+  animate={{ clipPath: "inset(0% 0 0 0)" }}
+  transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+>
+  <motion.img
+    src={featuredItem.img}
+    alt={featuredItem.name}
+    className="w-full h-full object-cover"
+    initial={{ scale: 1.2 }}
+    animate={{ scale: 1 }}
+    transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+  />
+  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+  {/* Badge, title, description overlay */}
+</motion.div>
+```
+
+**Content Side:**
+```tsx
+<div className="flex flex-col justify-center p-8">
+  <motion.h3 initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="text-2xl font-display font-bold text-green-dark mb-4">
+    Dịch vụ nổi bật
+  </motion.h3>
+  <motion.p initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }} className="text-ink/70 leading-relaxed mb-6">
+    {currentData.description}
+  </motion.p>
+  <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }} className="space-y-3">
+    {checklistItems.map((item, idx) => (
+      <motion.div
+        key={item}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.6 + idx * 0.1 }}
+        className="flex items-center gap-3"
+      >
+        <div className={`w-6 h-6 rounded-full bg-gradient-to-r ${currentDept.color} flex items-center justify-center`}>
+          <Check className="w-3 h-3 text-white" />
+        </div>
+        <span className="text-ink/80 font-medium">{item}</span>
+      </motion.div>
+    ))}
+  </motion.div>
+</div>
+```
+
+---
+
+## 4. Service Cards Grid
+
+### Structure
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  GRID - Staggered reveal on scroll                              │
+│                                                                  │
+│  ┌────────────────────┐  ┌────────────────────┐ ┌────────────┐ │
+│  │ 3D TILT CARD       │  │ 3D TILT CARD       │ │ 3D TILT    │ │
+│  │                    │  │                    │ │ CARD       │ │
+│  │ [Image + Scale]    │  │ [Image + Scale]    │ │            │ │
+│  │                    │  │                    │ │            │ │
+│  │ Title              │  │ Title              │ │ Title      │ │
+│  │ Description        │  │ Description        │ │ Description│ │
+│  │                    │  │                    │ │            │ │
+│  │ Price   [Book]     │  │ Price   [Book]     │ │ Price [Book│ │
+│  └────────────────────┘  └────────────────────┘ └────────────┘ │
+│                                                                  │
+│  ┌────────────────────┐  ┌────────────────────┐                  │
+│  │ ...                │  │ ...                │                  │
+│  └────────────────────┘  └────────────────────┘                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Card Component Implementation
+
+**Interface:**
+```tsx
+interface ServiceCardProps {
+  key?: string;
+  item: { name: string; desc: string; price: string; img: string };
+  dept: { key: string; title: string; icon: ElementType; color: string; bgLight: string; textColor: string };
+  index: number;
+  onBook?: () => void;
 }
+```
 
-export interface NewsItem {
-  // ... fields cũ ...
-  isTender?: boolean;
-  tenderNumber?: string;
-  tenderStartDate?: string;
-  tenderEndDate?: string;
-  tenderFile?: TenderFile;        // Đổi từ string thành object
-  tenderDept?: string;
-  tenderMethod?: TenderMethod;    // enum mới
-  tenderEstimateValue?: string;
-  tenderReceivedLocation?: string;
-  tenderContact?: string;
-  tenderContactPhone?: string;
-  tenderDownloadCount?: number;
+**Card with 3D Tilt:**
+```tsx
+function ServiceCard({ item, dept, index, onBook }: ServiceCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(cardRef, { once: true, margin: "-50px" });
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], [8, -8]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
+
+  return (
+    <motion.div
+      ref={cardRef}
+      initial={{ opacity: 0, y: 60 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+      style={{ perspective: "1000px" }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="group cursor-pointer"
+    >
+      <motion.div
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        animate={isHovered ? { scale: 1.02 } : { scale: 1 }}
+        className="relative bg-white rounded-3xl overflow-hidden shadow-lg border border-green-800/5 transition-all duration-300 h-full flex flex-col"
+      >
+        {/* Glow effect background */}
+        <motion.div
+          className={`absolute inset-0 opacity-0 transition-opacity duration-500 ${isHovered ? "opacity-100" : ""}`}
+          style={{
+            background: `radial-gradient(circle at 50% 50%, ${getDeptGlowColor(dept.textColor)} 0%, transparent 70%)`
+          }}
+        />
+
+        {/* Animated border */}
+        <motion.div
+          className={`absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-500 ${isHovered ? "opacity-100" : ""}`}
+          style={{
+            padding: "2px",
+            background: `linear-gradient(${dept.color}, transparent)`,
+            WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+            WebkitMaskComposite: "xor",
+            maskComposite: "exclude"
+          }}
+        />
+
+        {/* Image */}
+        <div className="relative h-48 overflow-hidden">
+          <motion.img
+            src={item.img}
+            alt={item.name}
+            className="w-full h-full object-cover"
+            animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
+            transition={{ duration: 0.6 }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.1 + 0.3 }}
+            className={`absolute top-4 left-4 ${dept.bgLight} ${dept.textColor} text-xs font-bold px-3 py-1.5 rounded-full shadow-lg`}
+          >
+            {dept.title}
+          </motion.div>
+          <motion.div
+            className="absolute top-4 right-4 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center opacity-0 transition-all duration-300"
+            animate={isHovered ? { opacity: 1, x: 0 } : { opacity: 0, x: 10 }}
+          >
+            <ArrowRight className="w-4 h-4 text-green-dark" />
+          </motion.div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 flex-grow flex flex-col relative" style={{ transform: "translateZ(30px)" }}>
+          <motion.h3
+            className="font-display font-bold text-lg text-green-dark mb-2 group-hover:text-brand-green transition-colors duration-300"
+            style={{ transform: isHovered ? "translateZ(20px)" : "translateZ(0)" }}
+          >
+            {item.name}
+          </motion.h3>
+          <motion.p
+            className="text-sm text-ink/70 leading-relaxed flex-grow"
+            style={{ transform: isHovered ? "translateZ(15px)" : "translateZ(0)" }}
+          >
+            {item.desc}
+          </motion.p>
+          <motion.div
+            className="flex items-center justify-between pt-4 mt-4 border-t border-green-800/5"
+            animate={isHovered ? { y: 0, opacity: 1 } : { y: 8, opacity: 0.8 }}
+            transition={{ duration: 0.3 }}
+          >
+            <span className="text-brand-green font-bold">{item.price}</span>
+            <button
+              onClick={(e) => { e.stopPropagation(); onBook?.(); }}
+              className={`px-4 py-2 bg-gradient-to-r ${dept.color} text-white text-sm font-semibold rounded-full hover:shadow-lg transition-all cursor-pointer`}
+            >
+              Đặt lịch
+            </button>
+          </motion.div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
 }
 ```
 
-### 5.2 Import trong NewsTab.tsx
-```typescript
-import { NewsItem, TenderFile } from "../../../types/models/news";
+---
+
+## 5. AnimatePresence for Tab Transitions
+
+```tsx
+<AnimatePresence mode="wait">
+  <motion.div
+    key={activeTab}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    transition={{ duration: 0.4 }}
+  >
+    {/* Tab content */}
+  </motion.div>
+</AnimatePresence>
 ```
 
 ---
 
-## 6. Technical Implementation Notes
+## 6. Helper Components
 
-### 6.1 Design System Compliance
-- ✅ Sử dụng design tokens từ `index.css` (không hardcode colors)
-- ✅ Spacing scale: 4, 8, 12, 16, 24, 32, 48, 64
-- ✅ Border radius: `rounded-sm`, `rounded-md`, `rounded-lg`, `rounded-xl`
-- ✅ Shadow: `shadow-sm`, `shadow-md`, `shadow-lg`
-- ✅ Typography: Baloo 2 (heading), Be Vietnam Pro (body)
-
-### 6.2 UI Components sử dụng
-- ✅ `Button` (với type prop: submit/button/reset)
-- ✅ `Card` (variant: default, padding: lg)
-- ✅ `Badge`
-- ✅ `Spinner` (nếu cần)
-
-### 6.3 Accessibility
-- ✅ Keyboard navigation: Tab, Shift+Tab, Enter, Esc
-- ✅ Focus states visible (focus-visible ring)
-- ✅ `aria-label` cho icon buttons
-- ✅ Form labels với proper associations
-
-### 6.4 Framer Motion
-- ✅ AnimatePresence cho modal
-- ✅ Motion div với initial/animate/exit states
-- ✅ Scale transition cho News modal
-
----
-
-## 7. Quality Gate Status
-
-| Check | Status |
-|-------|--------|
-| npm run lint | ✅ Passed |
-| npm run build | ✅ Passed |
-| UI Consistency | ✅ Passed |
-| Responsive | ✅ Passed |
-| Accessibility | ✅ Passed |
-| No Hardcode | ✅ Passed |
-| Memory Updated | ✅ Passed |
-
----
-
-## 8. Backup Information
-
-**Backup location:** `D:\Coding\code backup\App Website BV_20260719_150635`
-**Files backed up:** 141 files (full project)
-**Ngày backup:** 2026-07-19 15:06:35
-
----
-
-## 9. Git History
-
-```
-Commit: 8f2a512
-Message: feat: implement admin dashboard with 9 tabs and RBAC
-Branch: master
-Date: 2026-07-19
-
-Files changed (19):
-- src/context/AdminContext.tsx (new)
-- src/components/admin/AdminHeader.tsx (new)
-- src/components/admin/AdminLogin.tsx (new)
-- src/components/admin/AdminSidebar.tsx (new)
-- src/components/admin/tabs/ (9 files new)
-- src/components/admin/AdminDashboard.tsx (deleted)
-- src/components/ui/Button.tsx (updated)
-- src/pages/AdminPage.tsx (updated)
-- src/main.tsx (updated)
-- memory.md (updated)
+### FloatingShape
+```tsx
+function FloatingShape({ className, delay = 0 }: { className: string; delay?: number }) {
+  return (
+    <motion.div
+      className={`absolute rounded-full opacity-20 ${className}`}
+      animate={{ y: [0, -30, 0], x: [0, 15, 0], scale: [1, 1.1, 1] }}
+      transition={{ duration: 8, delay, repeat: Infinity, ease: "easeInOut" }}
+    />
+  );
+}
 ```
 
 ---
 
-## 10. Hướng dẫn cập nhật vào dac-ta-uiux-tong-hop.docx
+## 7. Imports Required
 
-### 10.1 Vị trí thêm nội dung
-Thêm vào cuối document, trước phần `17.4 Danh sách tài liệu tham chiếu kèm theo`
-
-### 10.2 Section mới cần thêm
-
-#### Section 18: Admin Dashboard - Implementation Phase 11-13
-
-**18.1 RBAC Implementation (Extension of Section 9.1)**
-- Mô tả 3 roles đã implement
-- Files: AdminContext.tsx, AdminLogin.tsx, AdminSidebar.tsx, AdminHeader.tsx
-
-**18.2 9 Tabs Architecture (Extension of Section 9.2-9.7)**
-- Bảng 9 tabs với file names
-- Ghi chú OrganizationTab (bổ sung)
-
-**18.3 NewsTab Enhancement - Tender Features (Extension of Section 9.6)**
-- Mô tả chi tiết 6 tính năng mới:
-  1. Checkbox Đấu thầu
-  2. Department Selection
-  3. Tender Date Inputs
-  4. Drag & Drop File Upload
-  5. File Preview
-  6. Modal Animation (framer-motion)
-
-**18.4 Type Updates (Extension of Section 15)**
-- Interface TenderFile
-- Extended NewsItem interface với tender fields
-
-**18.5 Technical Implementation Notes**
-- Design System compliance
-- UI Components
-- Accessibility
-
-**18.6 Quality Gate Status**
-- Bảng 7 checks đã pass
-
-### 10.3 Cập nhật Section 17.3 (Nhật ký phiên bản)
-Thêm row mới:
-```
-2.5 | 2026-07-19 | Thêm Section 18: Admin Dashboard Implementation Phase 11-13
+```tsx
+import { useState, useEffect, useRef, MouseEvent, ElementType } from "react";
+import { useLocation } from "react-router-dom";
+import Layout from "../components/layout/Layout";
+import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
+import { Activity, Scissors, Stethoscope, Baby, Microscope, ArrowRight, Check } from "lucide-react";
 ```
 
 ---
 
-## 11. Liên kết related
+## 8. Color System per Department
 
-- **memory.md** - Project memory với Phase history
-- **src/components/admin/tabs/NewsTab.tsx** - Implement source code
-- **src/types/models/news.ts** - Type definitions
+| Department | Gradient | bgLight | textColor |
+|------------|----------|---------|-----------|
+| Ngoại & Cấp cứu | `from-red-500 to-rose-600` | `bg-red-50` | `text-red-600` |
+| Nội tổng quát | `from-blue-500 to-cyan-600` | `bg-blue-50` | `text-blue-600` |
+| Sản & Nhi | `from-pink-500 to-rose-600` | `bg-pink-50` | `text-pink-600` |
+| Cận lâm sàng | `from-purple-500 to-violet-600` | `bg-purple-50` | `text-purple-600` |
+| Dịch vụ trọn gói | `from-orange-500 to-amber-600` | `bg-orange-50` | `text-orange-600` |
+| Tại nhà & Vận chuyển | `from-blue-500 to-cyan-600` | `bg-blue-50` | `text-blue-600` |
+| Tiêm chủng | `from-green-500 to-emerald-600` | `bg-green-50` | `text-green-600` |
+| Bảo hiểm & VIP | `from-purple-500 to-violet-600` | `bg-purple-50` | `text-purple-600` |
+| Chi phí & Địa điểm | `from-blue-500 to-indigo-600` | `bg-blue-50` | `text-blue-600` |
+| Hướng dẫn tiện ích | `from-emerald-500 to-teal-600` | `bg-emerald-50` | `text-emerald-600` |
+| Cổng thông tin | `from-purple-500 to-pink-600` | `bg-purple-50` | `text-purple-600` |
 
 ---
 
-**Document created:** 2026-07-19
-**Last updated:** 2026-07-19
-**Status:** ✅ Complete - Ready for manual merge into dac-ta-uiux-tong-hop.docx
+## 9. Stats Configuration Example
+
+```tsx
+const stats = [
+  { value: 12, label: "Chuyên khoa", icon: Activity },
+  { value: 50, label: "Bác sĩ", suffix: "+" },
+  { value: 200, label: "Giường bệnh" },
+  { value: 5, label: "Phòng mổ" }
+];
+
+// For DichVuPage
+const stats = [
+  { value: 50, label: "Dịch vụ", suffix: "+" },
+  { value: 5000, label: "Bệnh nhân", suffix: "+" },
+  { value: 98, label: "Hài lòng", suffix: "%" },
+  { value: 24, label: "Giờ hỗ trợ" }
+];
+
+// For ChoBenhNhanPage
+const stats = [
+  { value: 24, label: "Giờ cấp cứu" },
+  { value: 100, label: "Bệnh nhân", suffix: "+" },
+  { value: 15, label: "Năm kinh nghiệm" },
+  { value: 50, label: "Bác sĩ", suffix: "+" }
+];
+```
+
+---
+
+## 10. Checklist Items per Section
+
+```tsx
+// ChuyenKhoaPage
+const checklist = ["Đội ngũ bác sĩ giàu kinh nghiệm", "Trang thiết bị hiện đại", "Quy trình chuẩn quốc tế", "Chăm sóc tận tâm 24/7"];
+
+// DichVuPage
+const checklist = ["Đội ngũ bác sĩ chuyên môn cao", "Trang thiết bị hiện đại", "Quy trình chuẩn quốc tế", "Hỗ trợ 24/7"];
+
+// ChoBenhNhanPage
+const checklist = ["Hỗ trợ 24/7 qua hotline", "Quy trình đơn giản", "Thông tin minh bạch", "Chăm sóc tận tâm"];
+```
+
+---
+
+## 11. Performance Notes
+
+- Use `once: true` in `useInView` to only trigger animations once
+- Use `will-change: transform` sparingly on animated elements
+- Consider using `transform: translateZ(0)` to enable GPU acceleration
+- Use `useCallback` for event handlers in lists if needed
+- Lazy load images below the fold
+
+---
+
+## 12. Accessibility Notes
+
+- All images have descriptive `alt` text
+- Focus states are preserved on interactive elements
+- Color contrast meets WCAG guidelines
+- Motion respects `prefers-reduced-motion`
+- Tab navigation works correctly
+
+---
+
+## 13. File Structure
+
+```
+src/pages/
+├── ChuyenKhoaPage.tsx    # 527 lines
+├── DichVuPage.tsx        # 396 lines  
+├── ChoBenhNhanPage.tsx   # 367 lines
+```
+
+Each page follows the same pattern but uses different data sources.
+
+---
+
+## 14. Future Improvements
+
+- [ ] Add skeleton loading states
+- [ ] Add skeleton for cards during tab switch
+- [ ] Implement virtualized list for large card grids
+- [ ] Add keyboard navigation for tabs
+- [ ] Add swipe gestures for tab navigation on mobile
+- [ ] Implement lazy loading for images
+- [ ] Add service worker for offline support
