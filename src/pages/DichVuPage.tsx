@@ -41,7 +41,7 @@ export default function DichVuPage() {
       heroImage: "https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=800&h=400&fit=crop",
       items: [
         { name: "Dịch vụ khám tại nhà", desc: "Bác sĩ đến tận nhà khám", price: "Từ 500.000đ", img: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop" },
-        { name: "Dịch vụ vận chuyển cấp cứu", desc: "Xe cấp cứu 24/7", price: "Theo km", img: "https://images.unsplash.com/photo-1587613865765-5e33e4零点bd58?w=400&h=300&fit=crop" },
+        { name: "Dịch vụ vận chuyển cấp cứu", desc: "Xe cấp cứu 24/7", price: "Theo km", img: "https://images.unsplash.com/photo-1584027455891-1c0f63de1d42?w=400&h=300&fit=crop" },
         { name: "Khám bệnh và xét nghiệm tại nhà", desc: "Lấy mẫu xét nghiệm tại nhà", price: "Từ 300.000đ", img: "https://images.unsplash.com/photo-1551076805-e1869033e561?w=400&h=300&fit=crop" }
       ]
     },
@@ -55,7 +55,7 @@ export default function DichVuPage() {
         { name: "Tiêm chủng – Vaccine", desc: "Đầy đủ các loại vaccine", price: "Từ 200.000đ", img: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=400&h=300&fit=crop" },
         { name: "Dịch vụ tiêm chủng", desc: "Tiêm tại bệnh viện hoặc tại nhà", price: "Từ 150.000đ", img: "https://images.unsplash.com/photo-1585435557343-3b092031a831?w=400&h=300&fit=crop" },
         { name: "Tiêm vaccine tại Bệnh viện", desc: "Phòng tiêm hiện đại, an toàn", price: "Theo loại vaccine", img: "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=400&h=300&fit=crop" },
-        { name: "Tư vấn tiêm chủng trẻ em", desc: "Lịch tiêm, giấy tờ đầy đủ", price: "Miễn phí", img: "https://images.unsplash.com/photo-1546823零da49c4d-a3b3b3a9a4c1?w=400&h=300&fit=crop" }
+        { name: "Tư vấn tiêm chủng trẻ em", desc: "Lịch tiêm, giấy tờ đầy đủ", price: "Miễn phí", img: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop" }
       ]
     },
     {
