@@ -1,9 +1,11 @@
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 import { useAdmin } from "../../context/AdminContext";
 import {
-  Sliders, Calendar, Users, CalendarRange, Layers, User,
-  Newspaper, Landmark, ClipboardList,
-  LogOut, ArrowLeft, ShieldAlert
+  Sliders, Home, Info, Layers, Briefcase, Heart,
+  Newspaper, FileText, Phone, MapPin,
+  Calendar, Users, CalendarRange, User,
+  ClipboardList, Settings, LogOut, ArrowLeft, ShieldAlert,
+  ChevronRight
 } from "lucide-react";
 import { Button } from "../ui";
 
@@ -13,6 +15,7 @@ interface NavItem {
   icon: ReactNode;
   roles?: string[];
   badge?: number;
+  subItems?: { id: string; label: string; icon: ReactNode; badge?: number }[];
 }
 
 interface AdminSidebarProps {
@@ -34,18 +37,47 @@ export default function AdminSidebar({
 
   const navItems: NavItem[] = [
     { id: "overview", label: "Tổng quan nghiệp vụ", icon: <Sliders size={16} />, roles: ["Super Admin", "Receptionist"] },
-    { id: "bookings", label: "Lịch hẹn khám bệnh", icon: <Calendar size={16} />, roles: ["Super Admin", "Receptionist"], badge: pendingCount },
-    { id: "patients", label: "Quản lý Bệnh nhân", icon: <Users size={16} />, roles: ["Super Admin", "Receptionist"] },
-    { id: "shifts", label: "Lịch trực Bác sĩ", icon: <CalendarRange size={16} />, roles: ["Super Admin", "Doctor"] },
-    { id: "specialties", label: "Quản lý Chuyên khoa", icon: <Layers size={16} />, roles: ["Super Admin"] },
-    { id: "doctors", label: "Quản lý Bác sĩ", icon: <User size={16} />, roles: ["Super Admin"] },
-    { id: "news", label: "Quản lý Tin tức", icon: <Newspaper size={16} />, roles: ["Super Admin", "Department Admin"] },
-    { id: "organization", label: "Sơ đồ Tổ chức", icon: <Landmark size={16} />, roles: ["Super Admin"] },
-    { id: "logs", label: "Nhật ký hoạt động", icon: <ClipboardList size={16} />, roles: ["Super Admin", "Receptionist"] },
+    {
+      id: "content",
+      label: "Quản lý Nội dung",
+      icon: <Home size={16} />,
+      roles: ["Super Admin"],
+      subItems: [
+        { id: "home", label: "Trang chủ", icon: <Home size={14} /> },
+        { id: "about", label: "Giới thiệu", icon: <Info size={14} /> },
+        { id: "specialties", label: "Chuyên khoa", icon: <Layers size={14} /> },
+        { id: "services", label: "Dịch vụ", icon: <Briefcase size={14} /> },
+        { id: "patient", label: "Cho bệnh nhân", icon: <Heart size={14} /> },
+        { id: "news", label: "Tin tức", icon: <Newspaper size={14} /> },
+        { id: "tender", label: "Thông tin thầu", icon: <FileText size={14} /> },
+        { id: "contact", label: "Liên hệ / Footer", icon: <Phone size={14} /> },
+      ]
+    },
+    {
+      id: "people",
+      label: "Quản lý Nhân sự",
+      icon: <Users size={16} />,
+      roles: ["Super Admin"],
+      subItems: [
+        { id: "doctors", label: "Bác sĩ", icon: <User size={14} /> },
+        { id: "shifts", label: "Phân ca", icon: <CalendarRange size={14} /> },
+      ]
+    },
+    {
+      id: "operations",
+      label: "Quản lý Hoạt động",
+      icon: <Calendar size={16} />,
+      roles: ["Super Admin", "Receptionist", "Doctor"],
+      subItems: [
+        { id: "bookings", label: "Đặt lịch khám", icon: <Calendar size={14} />, badge: pendingCount },
+        { id: "patients", label: "Bệnh nhân", icon: <Heart size={14} /> },
+        { id: "logs", label: "Nhật ký hệ thống", icon: <ClipboardList size={14} /> },
+      ]
+    },
   ];
 
   const filteredItems = navItems.filter(item =>
-    item.roles?.includes(activeUser?.role || "")
+    !item.roles || item.roles.includes(activeUser?.role || "")
   );
 
   const roleLabel = activeUser?.role === "Super Admin"
@@ -56,19 +88,39 @@ export default function AdminSidebar({
     ? "Bác Sĩ Trực"
     : activeUser?.department;
 
+  const isSubItemActive = (item: NavItem) => {
+    if (!item.subItems) return false;
+    return item.subItems.some(sub => sub.id === activeTab);
+  };
+
+  const isActive = (item: NavItem) => {
+    if (item.subItems) return isSubItemActive(item);
+    return activeTab === item.id;
+  };
+
+  const [expandedGroups, setExpandedGroups] = React.useState<string[]>(
+    navItems.filter(item => isSubItemActive(item)).map(item => item.id)
+  );
+
+  const toggleGroup = (id: string) => {
+    setExpandedGroups(prev =>
+      prev.includes(id) ? prev.filter(g => g !== id) : [...prev, id]
+    );
+  };
+
   return (
-    <aside className="w-full md:w-[260px] bg-green-dark flex flex-col border-r border-brand-green/20 shrink-0">
-      <div className="p-6 border-b border-white/10 flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="text-brand-green w-5 h-5 shrink-0" />
-            <h2 className="font-display font-bold text-sm tracking-wide text-mint uppercase">Lâm Sàng Portal</h2>
+    <aside className="w-full md:w-[280px] bg-green-dark flex flex-col border-r border-brand-green/20 shrink-0 overflow-hidden">
+      <div className="p-5 border-b border-white/10">
+        <div className="flex items-center gap-2">
+          <ShieldAlert className="text-brand-green w-6 h-6 shrink-0" />
+          <div>
+            <h2 className="font-display font-bold text-sm tracking-wide text-mint uppercase">BVĐK Quản trị</h2>
+            <p className="text-[10px] text-mint/60 mt-0.5 font-medium">Miền Núi Quảng Nam</p>
           </div>
-          <p className="text-[10px] text-mint/60 mt-1 font-medium italic">BVĐK Miền Núi Quảng Nam</p>
         </div>
       </div>
 
-      <div className="px-6 py-4 border-b border-white/5 bg-green-dark/50 flex items-center gap-3">
+      <div className="px-4 py-3 border-b border-white/5 bg-green-dark/50 flex items-center gap-3">
         <div className="w-9 h-9 rounded-full bg-brand-green flex items-center justify-center text-white font-bold text-xs">
           {activeUser?.name.slice(0, 2).toUpperCase()}
         </div>
@@ -80,43 +132,80 @@ export default function AdminSidebar({
         </div>
       </div>
 
-      <nav className="flex-grow p-4 space-y-1 overflow-y-auto">
-        <p className="text-[10px] font-bold text-mint/40 px-3 uppercase tracking-wider mb-2">Chức năng quản trị</p>
-
+      <nav className="flex-grow p-3 overflow-y-auto space-y-1">
         {filteredItems.map(item => (
-          <button
-            key={item.id}
-            onClick={() => onTabChange(item.id)}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-              activeTab === item.id
-                ? "bg-brand-green text-white shadow-md"
-                : "text-mint/80 hover:bg-white/5 hover:text-white"
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              {item.icon}
-              <span>{item.label}</span>
-            </div>
-            {item.badge && item.badge > 0 && (
-              <span className="w-5 h-5 bg-peach text-green-dark rounded-full text-[10px] font-extrabold flex items-center justify-center">
-                {item.badge}
-              </span>
+          <div key={item.id}>
+            {item.subItems ? (
+              <div>
+                <button
+                  onClick={() => toggleGroup(item.id)}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                    isActive(item)
+                      ? "bg-brand-green/20 text-brand-green"
+                      : "text-mint/80 hover:bg-white/5 hover:text-white"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </div>
+                  <ChevronRight
+                    size={14}
+                    className={`transition-transform ${expandedGroups.includes(item.id) ? "rotate-90" : ""}`}
+                  />
+                </button>
+
+                {expandedGroups.includes(item.id) && (
+                  <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-white/10 pl-3">
+                    {item.subItems.map(sub => (
+                      <button
+                        key={sub.id}
+                        onClick={() => onTabChange(sub.id)}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all cursor-pointer ${
+                          activeTab === sub.id
+                            ? "bg-brand-green text-white shadow-sm"
+                            : "text-mint/60 hover:text-white hover:bg-white/5"
+                        }`}
+                      >
+                        <span className={activeTab === sub.id ? "text-white/80" : "text-mint/40"}>
+                          {sub.icon}
+                        </span>
+                        <span className="flex-1 text-left">{sub.label}</span>
+                        {sub.badge && sub.badge > 0 && (
+                          <span className="w-5 h-5 bg-peach text-green-dark rounded-full text-[10px] font-extrabold flex items-center justify-center">
+                            {sub.badge}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => onTabChange(item.id)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                  activeTab === item.id
+                    ? "bg-brand-green text-white shadow-md"
+                    : "text-mint/80 hover:bg-white/5 hover:text-white"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {item.icon}
+                  <span>{item.label}</span>
+                </div>
+                {item.badge && item.badge > 0 && (
+                  <span className="w-5 h-5 bg-peach text-green-dark rounded-full text-[10px] font-extrabold flex items-center justify-center">
+                    {item.badge}
+                  </span>
+                )}
+              </button>
             )}
-          </button>
+          </div>
         ))}
       </nav>
 
-      <div className="p-4 border-t border-white/5 bg-green-dark/50 space-y-2 shrink-0">
-        <Button
-          variant="ghost"
-          size="md"
-          onClick={onLogout}
-          className="w-full justify-start text-peach hover:bg-white/5"
-        >
-          <LogOut size={16} />
-          <span>Đăng xuất tài khoản</span>
-        </Button>
-
+      <div className="p-3 border-t border-white/5 bg-green-dark/50 space-y-1.5 shrink-0">
         <Button
           variant="ghost"
           size="md"
@@ -125,6 +214,16 @@ export default function AdminSidebar({
         >
           <ArrowLeft size={16} />
           <span>Quay lại Trang chủ</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="md"
+          onClick={onLogout}
+          className="w-full justify-start text-peach hover:bg-white/5"
+        >
+          <LogOut size={16} />
+          <span>Đăng xuất</span>
         </Button>
       </div>
     </aside>

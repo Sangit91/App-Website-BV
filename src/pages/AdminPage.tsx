@@ -2,17 +2,22 @@ import { useState } from "react";
 import { useAdmin } from "../context/AdminContext";
 import AdminLogin from "../components/admin/AdminLogin";
 import AdminSidebar from "../components/admin/AdminSidebar";
-import AdminHeader from "../components/admin/AdminHeader";
 import {
   OverviewTab,
+  HomeTab,
+  AboutTab,
+  SpecialtiesTab,
+  ServicesTab,
+  PatientTab,
+  NewsTab,
+  TenderTab,
+  ContactTab,
+  DoctorsTab,
   BookingsTab,
   PatientsTab,
   ShiftsTab,
-  SpecialtiesTab,
-  DoctorsTab,
-  NewsTab,
-  OrganizationTab,
   LogsTab,
+  OrganizationTab,
 } from "../components/admin/tabs";
 
 export default function AdminPage() {
@@ -28,14 +33,20 @@ export default function AdminPage() {
   const renderTab = () => {
     switch (activeTab) {
       case "overview": return <OverviewTab onNavigate={setActiveTab} />;
+      case "home": return <HomeTab />;
+      case "about": return <AboutTab />;
+      case "specialties": return <SpecialtiesTab />;
+      case "services": return <ServicesTab />;
+      case "patient": return <PatientTab />;
+      case "news": return <NewsTab />;
+      case "tender": return <TenderTab />;
+      case "contact": return <ContactTab />;
+      case "doctors": return <DoctorsTab />;
       case "bookings": return <BookingsTab />;
       case "patients": return <PatientsTab />;
       case "shifts": return <ShiftsTab />;
-      case "specialties": return <SpecialtiesTab />;
-      case "doctors": return <DoctorsTab />;
-      case "news": return <NewsTab />;
-      case "organization": return <OrganizationTab />;
       case "logs": return <LogsTab />;
+      case "organization": return <OrganizationTab />;
       default: return <OverviewTab onNavigate={setActiveTab} />;
     }
   };
@@ -52,7 +63,6 @@ export default function AdminPage() {
 
       <main className="flex-grow flex flex-col bg-cream-white overflow-y-auto">
         <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto w-full">
-          <AdminHeader activeTab={activeTab} />
           {renderTab()}
         </div>
       </main>
