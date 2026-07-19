@@ -39,7 +39,7 @@ export default function GioiThieuPage() {
     {
       title: "Hình ảnh bệnh viện",
       icon: Award,
-      image: "https://images.unsplash.com/photo-1586773860418-d37222d8f0a3?w=400&h=300&fit=crop",
+      image: "/images/pages/coso-2.jpeg",
       items: ["Không gian sạch sẽ, thoáng mát", "Khu vườn cây xanh mát", "Phòng chờ hiện đại", "Khuôn viên rộng 5 hecta"]
     },
     {
