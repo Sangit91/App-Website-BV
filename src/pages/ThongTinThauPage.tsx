@@ -1,18 +1,24 @@
-import { useState, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Layout from "../components/layout/Layout";
-import ScrollAnimation from "../components/ui/ScrollAnimation";
+import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
+import { FileText, Download, Server, Stethoscope, Microscope, Pill, Building2, Users, ChevronDown, ChevronUp, X, Calendar, Clock, MapPin, Phone, BadgeCheck, DollarSign, FileCheck, CheckCircle, Layers, ShieldCheck, AlertCircle } from "lucide-react";
 import { useHospital } from "../context/HospitalContext";
-import { NewsItem, TenderStatus, TenderMethod } from "../types";
-import { FileText, Download, Server, Stethoscope, Microscope, Pill, Building2, Users, ChevronDown, ChevronUp, X, Calendar, Clock, MapPin, Phone, BadgeCheck, DollarSign, FileCheck, CheckCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { NewsItem, TenderStatus } from "../types";
 
 const DEPARTMENTS = [
-  { id: "PHÒNG CNTT", name: "Phòng Công Nghệ Thông Tin", icon: Server, color: "bg-blue-500" },
-  { id: "PHÒNG VTTBYT", name: "Vật Tư Thiết Bị Y Tế", icon: Stethoscope, color: "bg-green-500" },
-  { id: "XÉT NGHIỆM", name: "Khoa Xét Nghiệm", icon: Microscope, color: "bg-purple-500" },
-  { id: "DƯỢC", name: "Khoa Dược", icon: Pill, color: "bg-orange-500" },
-  { id: "PHÒNG HCQT", name: "Hành Chính Quản Trị", icon: Building2, color: "bg-teal-500" },
-  { id: "PHÒNG KẾ TOÁN HÀNH CHÍNH", name: "Kế Toán Hành Chính", icon: Users, color: "bg-pink-500" }
+  { id: "PHÒNG CNTT", name: "Phòng Công Nghệ Thông Tin", icon: Server, color: "from-blue-500 to-cyan-600" },
+  { id: "PHÒNG VTTBYT", name: "Vật Tư Thiết Bị Y Tế", icon: Stethoscope, color: "from-green-500 to-emerald-600" },
+  { id: "XÉT NGHIỆM", name: "Khoa Xét Nghiệm", icon: Microscope, color: "from-purple-500 to-violet-600" },
+  { id: "DƯỢC", name: "Khoa Dược", icon: Pill, color: "from-orange-500 to-amber-600" },
+  { id: "PHÒNG HCQT", name: "Hành Chính Quản Trị", icon: Building2, color: "from-teal-500 to-cyan-600" },
+  { id: "PHÒNG KẾ TOÁN HÀNH CHÍNH", name: "Kế Toán Hành Chính", icon: Users, color: "from-pink-500 to-rose-600" }
+];
+
+const stats = [
+  { value: 15, label: "Gói thầu", suffix: "+" },
+  { value: 8, label: "Phòng ban", suffix: "" },
+  { value: 50, label: "Nhà thầu", suffix: "+" },
+  { value: 2, label: "Tỷ đồng", suffix: "" }
 ];
 
 function getTenderStatus(item: NewsItem): TenderStatus {
@@ -28,21 +34,12 @@ function getTenderStatus(item: NewsItem): TenderStatus {
   return "Đang mở";
 }
 
-function getStatusColor(status: string) {
+function getStatusBadge(status: string) {
   switch (status) {
-    case "Đang mở": return "bg-brand-green text-white";
-    case "Sắp mở": return "bg-peach text-white";
-    case "Đã đóng": return "bg-gray-400 text-white";
-    default: return "bg-gray-200 text-gray-700";
-  }
-}
-
-function getStatusLabel(status: string) {
-  switch (status) {
-    case "Đang mở": return "ĐANG MỞ THẦU";
-    case "Sắp mở": return "SẮP ĐÓNG";
-    case "Đã đóng": return "ĐÃ KẾT THÚC";
-    default: return status;
+    case "Đang mở": return { bg: "bg-brand-green", text: "text-white", label: "ĐANG MỞ THẦU" };
+    case "Sắp mở": return { bg: "bg-peach", text: "text-white", label: "SẮP ĐÓNG THẦU" };
+    case "Đã đóng": return { bg: "bg-gray-400", text: "text-white", label: "ĐÃ KẾT THÚC" };
+    default: return { bg: "bg-gray-200", text: "text-gray-700", label: status };
   }
 }
 
@@ -54,57 +51,135 @@ function formatDateShort(dateStr: string): string {
   return `${hours}:${minutes} ${day}/${month}/${year}`;
 }
 
+function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  useEffect(() => {
+    if (!isInView) return;
+    let start = 0;
+    const duration = 2000;
+    const increment = value / (duration / 16);
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= value) { setCount(value); clearInterval(timer); }
+      else { setCount(Math.floor(start)); }
+    }, 16);
+    return () => clearInterval(timer);
+  }, [isInView, value]);
+
+  return <div ref={ref}>{count}{suffix}</div>;
+}
+
+function FloatingShape({ className, delay = 0 }: { className: string; delay?: number }) {
+  return (
+    <motion.div className={`absolute rounded-full opacity-20 ${className}`}
+      animate={{ y: [0, -30, 0], x: [0, 15, 0], scale: [1, 1.1, 1] }}
+      transition={{ duration: 8, delay, repeat: Infinity, ease: "easeInOut" }}
+    />
+  );
+}
+
+interface TenderCardProps {
+  item: NewsItem;
+  dept: { name: string; color: string };
+  index: number;
+  onClick: () => void;
+  key?: React.Key;
+}
+
+function TenderCard({ item, dept, index, onClick }: TenderCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(cardRef, { once: true, margin: "-50px" });
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const status = getTenderStatus(item);
+  const statusBadge = getStatusBadge(status);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], [8, -8]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
+
+  return (
+    <motion.div ref={cardRef} initial={{ opacity: 0, y: 60 }} animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay: index * 0.1 }} style={{ perspective: "1000px" }}
+      onMouseMove={handleMouseMove} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}
+      className="group cursor-pointer">
+      <motion.div style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        animate={isHovered ? { scale: 1.02 } : { scale: 1 }}
+        className="bg-white border border-green-800/5 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
+        <div className="relative aspect-[16/10] overflow-hidden bg-mint/20">
+          <motion.img src={item.image || "/images/pages/chiphi-1.jpeg"} alt={item.title}
+            className="w-full h-full object-cover" referrerPolicy="no-referrer"
+            animate={isHovered ? { scale: 1.1 } : { scale: 1 }} transition={{ duration: 0.6 }} />
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+            <span className={`${statusBadge.bg} ${statusBadge.text} font-mono text-[9px] font-bold py-1 px-2.5 rounded-full flex items-center gap-1 shadow`}>
+              {status === "Đang mở" && <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>}
+              {statusBadge.label}
+            </span>
+            {item.tenderNumber && (
+              <span className="bg-[#164B36]/90 text-white font-mono text-[8px] font-bold py-0.5 px-2 rounded-md">
+                {item.tenderNumber}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="p-5">
+          <h3 className="font-display font-bold text-sm text-green-dark leading-snug group-hover:text-brand-green line-clamp-2 min-h-[40px] mb-2">
+            {item.title}
+          </h3>
+          <p className="text-xs text-ink/70 leading-relaxed line-clamp-2 mb-3">{item.summary}</p>
+          {item.tenderEstimateValue && (
+            <div className="flex items-center gap-1.5 text-[11px] text-gray-600 font-medium mb-3">
+              <DollarSign size={14} className="text-brand-green" />
+              <span className="font-bold">{item.tenderEstimateValue}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between pt-3 border-t border-green-800/5">
+            <span className="text-[10px] text-ink/50 flex items-center gap-1">
+              <Calendar size={12} /> {item.tenderEndDate ? formatDateShort(item.tenderEndDate) : item.date}
+            </span>
+            <button onClick={onClick} className="px-3 py-1.5 bg-brand-green/10 text-brand-green text-xs font-bold rounded-full hover:bg-brand-green hover:text-white transition-colors">
+              Chi tiết
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function ThongTinThauPage() {
   const { news } = useHospital();
-  const [expandedDept, setExpandedDept] = useState<string | null>("PHÒNG VTTBYT");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [activeDept, setActiveDept] = useState("PHÒNG CNTT");
   const [selectedTender, setSelectedTender] = useState<NewsItem | null>(null);
   const [downloadToast, setDownloadToast] = useState<string | null>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
 
-  const tenders = useMemo(() => {
-    return news.filter(item => item.isTender === true).map(item => ({
-      ...item,
-      status: getTenderStatus(item)
-    }));
-  }, [news]);
-
-  const tendersByDept = useMemo(() => {
-    const filtered = statusFilter === "all"
-      ? tenders
-      : tenders.filter(t => t.status === statusFilter);
-
-    const grouped: Record<string, typeof filtered> = {};
-    DEPARTMENTS.forEach(dept => {
-      grouped[dept.id] = filtered.filter(t => t.tenderDept === dept.id);
-    });
-    return grouped;
-  }, [tenders, statusFilter]);
-
-  const deptStats = useMemo(() => {
-    const stats: Record<string, { open: number; coming: number; closed: number; total: number }> = {};
-    DEPARTMENTS.forEach(dept => {
-      const deptTenders = tenders.filter(t => t.tenderDept === dept.id);
-      stats[dept.id] = {
-        open: deptTenders.filter(t => t.status === "Đang mở").length,
-        coming: deptTenders.filter(t => t.status === "Sắp mở").length,
-        closed: deptTenders.filter(t => t.status === "Đã đóng").length,
-        total: deptTenders.length
-      };
-    });
-    return stats;
-  }, [tenders]);
-
-  const toggleDept = (deptId: string) => {
-    setExpandedDept(expandedDept === deptId ? null : deptId);
-  };
+  const tenders = news.filter(item => item.isTender).map(item => ({ ...item, status: getTenderStatus(item) }));
+  const currentDept = DEPARTMENTS.find(d => d.id === activeDept)!;
+  const deptTenders = tenders.filter(t => t.tenderDept === activeDept);
+  const featuredTender = deptTenders[0];
 
   const handleDownload = (item: NewsItem) => {
     if (item.tenderFile?.url) {
       window.open(item.tenderFile.url, "_blank");
       setDownloadToast(`Đã tải: ${item.tenderFile.name}`);
     } else {
-      const fileName = item.tenderFile?.name || "ThongBao_Thau.pdf";
-      setDownloadToast(`Đang tải: ${fileName}`);
+      setDownloadToast(`Đang tải: ${item.tenderFile?.name || "HS_MOI_THAU.pdf"}`);
       setTimeout(() => setDownloadToast(null), 3000);
     }
   };
@@ -118,424 +193,190 @@ export default function ThongTinThauPage() {
         </div>
       )}
 
-      <section className="py-12">
-        <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
-          <ScrollAnimation animation="fade-up" className="text-center mb-8">
-            <span className="inline-flex items-center gap-1.5 bg-[#EAF7EE] text-[#164B36] font-bold text-[11px] uppercase tracking-widest px-4 py-1.5 rounded-full border border-[#2FA968]/20 mb-4">
-              <FileCheck size={14} /> Cổng thông tin đấu thầu
-            </span>
-            <h1 className="text-4xl font-display font-bold text-green-dark mb-4">Thông tin đấu thầu</h1>
-            <p className="text-ink/80 max-w-2xl mx-auto">
-              Thông báo chào giá các gói thầu của Bệnh viện theo từng phòng ban
-            </p>
-          </ScrollAnimation>
-
-          <ScrollAnimation animation="fade-up" delay={100} className="flex justify-center gap-3 flex-wrap">
-            {[
-              { key: "all", label: "Tất cả", count: tenders.length },
-              { key: "Đang mở", label: "Đang mở", count: tenders.filter(t => t.status === "Đang mở").length },
-              { key: "Sắp mở", label: "Sắp mở", count: tenders.filter(t => t.status === "Sắp mở").length },
-              { key: "Đã đóng", label: "Đã đóng", count: tenders.filter(t => t.status === "Đã đóng").length }
-            ].map(filter => (
-              <button
-                key={filter.key}
-                onClick={() => setStatusFilter(filter.key)}
-                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
-                  statusFilter === filter.key
-                    ? "bg-brand-green text-white shadow-md"
-                    : "bg-white text-ink/70 hover:bg-mint border border-green-800/10"
-                }`}
-              >
-                {filter.label}
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  statusFilter === filter.key ? "bg-white/20" : "bg-mint/50"
-                }`}>
-                  {filter.count}
-                </span>
-              </button>
-            ))}
-          </ScrollAnimation>
+      <section ref={heroRef} className="relative min-h-[60vh] flex items-center overflow-hidden bg-gradient-to-br from-green-dark via-emerald-800 to-teal-700">
+        <div className="absolute inset-0 overflow-hidden">
+          <FloatingShape className="w-96 h-96 bg-brand-green -top-20 -left-20" delay={0} />
+          <FloatingShape className="w-64 h-64 bg-peach -top-10 right-20" delay={1} />
+          <FloatingShape className="w-80 h-80 bg-mint bottom-0 left-1/3" delay={2} />
+          <div className="absolute inset-0 opacity-10">
+            <div className="w-full h-full" style={{
+              backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
+              backgroundSize: "50px 50px"
+            }} />
+          </div>
         </div>
+
+        <motion.div className="relative z-10 max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10 py-16 w-full"
+          style={{ opacity: heroOpacity, scale: heroScale }}>
+          <div className="text-center">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+              className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-5 py-2 rounded-full text-sm font-medium mb-6">
+              <Layers className="w-4 h-4" />
+              <span>Cổng thông tin công khai</span>
+            </motion.div>
+            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
+              <span className="inline-block">Thông tin</span>
+              <span className="inline-block ml-3 text-peach">đấu thầu</span>
+            </motion.h1>
+            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-white/80 text-lg max-w-2xl mx-auto mb-8">
+              Thông báo mời thầu, mua sắm công của Bệnh viện Đa Khoa Khu Vực Miền Núi Phía Bắc Quảng Nam
+            </motion.p>
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.5 }}
+              className="flex flex-wrap justify-center gap-4 mb-6">
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
+                <ShieldCheck className="w-4 h-4 text-brand-green" />
+                <span className="text-white text-sm">Chính xác & Công khai</span>
+              </div>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.6 }}
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+              {stats.map((stat, idx) => (
+                <motion.div key={stat.label} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.7 + idx * 0.1 }}
+                  className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                  <div className="text-2xl font-display font-bold text-white">
+                    <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                  </div>
+                  <div className="text-white/60 text-xs">{stat.label}</div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </motion.div>
       </section>
 
-      <section className="pb-16">
+      <section className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-green-800/5 shadow-sm">
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
-          <div className="space-y-4">
+          <div className="flex overflow-x-auto scrollbar-hide py-4 gap-2">
             {DEPARTMENTS.map(dept => {
               const Icon = dept.icon;
-              const deptTenders = tendersByDept[dept.id];
-              const stats = deptStats[dept.id];
-              const isExpanded = expandedDept === dept.id;
-              const hasTenders = deptTenders.length > 0;
-
-              if (!hasTenders && statusFilter !== "all") return null;
-
+              const isActive = activeDept === dept.id;
+              const deptCount = tenders.filter(t => t.tenderDept === dept.id).length;
               return (
-                <div key={dept.id}>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="bg-white border border-green-800/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
-                  >
-                    <button
-                      onClick={() => toggleDept(dept.id)}
-                      className="w-full flex items-center justify-between p-5 cursor-pointer hover:bg-mint/20 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <motion.div
-                          animate={{ rotate: isExpanded ? 360 : 0 }}
-                          transition={{ duration: 0.3 }}
-                          className={`w-12 h-12 ${dept.color} rounded-xl flex items-center justify-center shadow-sm`}
-                        >
-                          <Icon className="w-6 h-6 text-white" />
-                        </motion.div>
-                        <div className="text-left">
-                          <h3 className="font-display font-bold text-lg text-green-dark">{dept.name}</h3>
-                          <div className="flex items-center gap-3 mt-1 flex-wrap">
-                            <span className="text-xs text-ink/60 bg-mint/40 px-2.5 py-1 rounded-full font-semibold">
-                              {stats.total} thông báo
-                            </span>
-                            {stats.open > 0 && (
-                              <span className="text-xs text-brand-green font-bold bg-brand-green/10 px-2.5 py-1 rounded-full">
-                                {stats.open} đang mở
-                              </span>
-                            )}
-                            {stats.coming > 0 && (
-                              <span className="text-xs text-peach font-bold bg-peach/10 px-2.5 py-1 rounded-full">
-                                {stats.coming} sắp mở
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      {hasTenders ? (
-                        <motion.div
-                          animate={{ rotate: isExpanded ? 360 : 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="flex items-center gap-2 text-ink/50"
-                        >
-                          <span className="text-xs hidden sm:inline">{
-                            isExpanded ? "Thu gọn" : "Xem chi tiết"
-                          }</span>
-                          {isExpanded ? (
-                            <ChevronUp className="w-5 h-5" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5" />
-                          )}
-                        </motion.div>
-                      ) : (
-                        <span className="text-xs text-ink/40 italic bg-gray-50 px-3 py-1.5 rounded-lg">Không có thầu</span>
-                      )}
-                    </button>
-
-                    <AnimatePresence>
-                      {isExpanded && hasTenders && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3, ease: "easeInOut" }}
-                          className="overflow-hidden"
-                        >
-                          <div className="border-t border-green-800/5 p-5">
-                            <motion.div
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ delay: 0.1, duration: 0.2 }}
-                              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
-                            >
-                              {deptTenders.map((item, idx) => (
-                                <motion.div
-                                  key={item.id}
-                                  initial={{ opacity: 0, y: 20 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ delay: idx * 0.05, duration: 0.3 }}
-                                  onClick={() => setSelectedTender(item)}
-                                  className="bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border border-green-800/5 hover:border-brand-green/30 group"
-                                >
-                                  <div className="relative aspect-[4/3] overflow-hidden">
-                                    <img
-                                      src={item.image || "/images/pages/chi-phi-1.jpeg"}
-                                      alt={item.title}
-                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                      referrerPolicy="no-referrer"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
-
-                                    <div className="absolute top-2.5 left-2.5 right-2.5 flex justify-between items-start">
-                                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusColor(item.status)} shadow-lg`}>
-                                        {getStatusLabel(item.status)}
-                                      </span>
-                                      {item.tenderNumber && (
-                                        <span className="bg-[#164B36]/90 text-white font-mono text-[9px] font-bold px-2 py-0.5 rounded-md shadow">
-                                          {item.tenderNumber}
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    <div className="absolute bottom-2.5 left-2.5 right-2.5">
-                                      <div className="flex items-center gap-2 text-white/90 text-[11px] bg-black/40 backdrop-blur-sm rounded-lg px-2 py-1.5">
-                                        <Calendar size={11} />
-                                        <span>{item.tenderEndDate ? formatDateShort(item.tenderEndDate) : item.date}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="p-4">
-                                    <h4 className="font-bold text-green-dark text-[13px] leading-snug line-clamp-2 min-h-[36px] group-hover:text-brand-green transition-colors">
-                                      {item.title}
-                                    </h4>
-
-                                    {item.tenderEstimateValue && (
-                                      <div className="mt-2 flex items-center gap-1.5 text-[11px] text-gray-600">
-                                        <DollarSign size={11} className="text-brand-green" />
-                                        <span className="font-medium">{item.tenderEstimateValue}</span>
-                                      </div>
-                                    )}
-
-                                    {item.tenderMethod && (
-                                      <div className="mt-1 flex items-center gap-1.5 text-[11px] text-gray-500">
-                                        <BadgeCheck size={11} className="text-[#2FA968]" />
-                                        <span>{item.tenderMethod}</span>
-                                      </div>
-                                    )}
-
-                                    <div className="mt-3 pt-3 border-t border-green-800/5 flex items-center justify-between">
-                                      <span className="text-[11px] text-ink/50 font-medium">Xem chi tiết</span>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleDownload(item);
-                                        }}
-                                        className="w-7 h-7 rounded-full bg-brand-green/10 flex items-center justify-center text-brand-green hover:bg-brand-green hover:text-white transition-all cursor-pointer"
-                                        title="Tải hồ sơ thầu"
-                                      >
-                                        <Download size={12} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                </motion.div>
-                              ))}
-                            </motion.div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                </div>
+                <motion.button key={dept.id} onClick={() => setActiveDept(dept.id)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm whitespace-nowrap transition-all cursor-pointer ${isActive ? `bg-gradient-to-r ${dept.color} text-white shadow-lg` : "bg-gray-100 text-ink/70 hover:bg-gray-200"}`}>
+                  <Icon className="w-4 h-4" />
+                  <span>{dept.name}</span>
+                  {deptCount > 0 && (
+                    <span className={`w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${isActive ? "bg-white/20" : "bg-brand-green/10 text-brand-green"}`}>
+                      {deptCount}
+                    </span>
+                  )}
+                </motion.button>
               );
             })}
           </div>
+        </div>
+      </section>
 
-          {tenders.length === 0 && (
-            <div className="text-center py-16 text-ink/50">
-              <FileText className="w-16 h-16 mx-auto mb-4 opacity-30" />
-              <p className="text-lg">Chưa có thông báo đấu thầu nào được đăng tải.</p>
+      <section className="py-16 bg-gradient-to-b from-gray-50/50 to-white">
+        <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-display font-bold text-green-dark">{currentDept.name}</h2>
+              <p className="text-sm text-ink/60">Danh sách các thông báo mua sắm, mời thầu do {currentDept.name} đăng tải</p>
             </div>
-          )}
+            <div className="hidden sm:flex items-center gap-1.5 bg-[#EAF7EE] text-[#164B36] py-1.5 px-4 rounded-full border border-[#2FA968]/20 text-xs font-bold">
+              <ShieldCheck size={14} className="text-[#2FA968]" />
+              <span>Chính xác & Công khai</span>
+            </div>
+          </div>
 
-          <ScrollAnimation animation="fade-up" className="mt-12">
-            <div className="bg-mint/30 rounded-[20px] overflow-hidden">
-              <div className="grid grid-cols-1 lg:grid-cols-2">
-                <div className="relative h-64 lg:h-auto">
-                  <img
-                    src="/images/pages/coso-1.jpeg"
-                    alt="Cơ sở bệnh viện"
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent to-mint/30 lg:block hidden" />
+          <AnimatePresence mode="wait">
+            <motion.div key={activeDept} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
+              {deptTenders.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {deptTenders.map((item, idx) => (
+                    <TenderCard key={item.id} item={item} dept={{ name: currentDept.name, color: currentDept.color }} index={idx} onClick={() => setSelectedTender(item)} />
+                  ))}
                 </div>
-                <div className="p-8 lg:p-10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-brand-green/10 rounded-xl flex items-center justify-center">
-                      <FileText className="w-6 h-6 text-brand-green" />
-                    </div>
-                    <h2 className="font-display font-bold text-xl text-green-dark">
-                      Thông tin đấu thầu
-                    </h2>
+              ) : (
+                <div className="bg-white border border-green-800/[0.04] rounded-3xl p-16 text-center">
+                  <div className="w-16 h-16 bg-[#FCFBF7] rounded-full flex items-center justify-center border border-green-800/5 text-gray-400 mx-auto mb-4">
+                    <AlertCircle size={24} />
                   </div>
-                  <p className="text-ink/70 text-sm leading-relaxed mb-6">
-                    Bệnh Viện Đa Khoa Khu Vực Miền Núi Phía Bắc Quảng Nam đăng tải công khai các thông báo mời thầu trên website.
-                    Nhà thầu vui lòng tải hồ sơ mời thầu có chữ ký số và đóng dấu đỏ của bệnh viện.
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-                    <div className="bg-white rounded-xl p-4 shadow-sm">
-                      <FileCheck className="w-5 h-5 text-brand-green mb-2" />
-                      <p className="text-xs text-ink/70 font-medium leading-snug">Hồ sơ có chữ ký số và đóng dấu đỏ</p>
-                    </div>
-                    <div className="bg-white rounded-xl p-4 shadow-sm">
-                      <Server className="w-5 h-5 text-brand-green mb-2" />
-                      <p className="text-xs text-ink/70 font-medium leading-snug">Theo dõi trên cổng đấu thầu quốc gia</p>
-                    </div>
-                    <div className="bg-white rounded-xl p-4 shadow-sm">
-                      <Phone className="w-5 h-5 text-brand-green mb-2" />
-                      <p className="text-xs text-ink/70 font-medium leading-snug">Liên hệ bệnh viện để được hướng dẫn</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-3 text-sm text-ink/60">
-                    <span className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
-                      <span className="text-brand-green">📧</span> benhvien@bvqnam.vn
-                    </span>
-                    <span className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
-                      <span className="text-brand-green">📞</span> 02353.747.432
-                    </span>
-                    <span className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
-                      <span className="text-brand-green">📍</span> 107 Quang Trung, Xã Đại Lộc, TP. Đà Nẵng
-                    </span>
-                  </div>
+                  <h5 className="font-display font-extrabold text-base text-green-dark mb-2">Chưa có thông báo mời thầu mới</h5>
+                  <p className="text-sm text-gray-500 max-w-md mx-auto">{currentDept.name} hiện tại chưa công bố dự án mua sắm hoặc đấu thầu thiết bị vật tư nào mới.</p>
                 </div>
-              </div>
-            </div>
-          </ScrollAnimation>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </section>
 
       <AnimatePresence>
         {selectedTender && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] overflow-y-auto"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] overflow-y-auto">
             <div className="min-h-screen flex items-start justify-center p-4 bg-black/50">
-              <motion.div
-                initial={{ opacity: 0, y: 50, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 50, scale: 0.95 }}
-                className="bg-white rounded-[20px] w-full max-w-3xl my-8 overflow-hidden shadow-2xl"
-              >
+              <motion.div initial={{ opacity: 0, y: 50, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 50, scale: 0.95 }}
+                className="bg-white rounded-[20px] w-full max-w-3xl my-8 overflow-hidden shadow-2xl">
                 <div className="relative bg-gradient-to-r from-green-dark to-brand-green p-6">
-                  <button
-                    onClick={() => setSelectedTender(null)}
-                    className="absolute top-4 right-4 w-8 h-8 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white transition-colors cursor-pointer"
-                  >
+                  <button onClick={() => setSelectedTender(null)} className="absolute top-4 right-4 w-8 h-8 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white cursor-pointer">
                     <X size={18} />
                   </button>
                   <div className="flex items-start gap-3">
                     <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
                       <FileCheck className="w-6 h-6 text-white" />
                     </div>
-                    <div className="flex-grow">
+                    <div>
                       {selectedTender.tenderNumber && (
-                        <span className="text-xs font-mono opacity-80 bg-white/20 px-2 py-0.5 rounded mb-1 inline-block">
-                          {selectedTender.tenderNumber}
-                        </span>
+                        <span className="text-xs font-mono opacity-80 bg-white/20 px-2 py-0.5 rounded mb-1 inline-block">{selectedTender.tenderNumber}</span>
                       )}
-                      <h2 className="font-display font-bold text-xl text-white mt-1 leading-tight">
-                        {selectedTender.title}
-                      </h2>
+                      <h2 className="font-display font-bold text-xl text-white mt-1 leading-tight">{selectedTender.title}</h2>
                       <div className="flex items-center gap-2 mt-2 flex-wrap">
-                        <span className="text-xs bg-white/20 px-2.5 py-1 rounded-full">
-                          {selectedTender.tenderDept || "Phòng HCQT"}
+                        <span className="text-xs bg-white/20 px-2.5 py-1 rounded-full">{selectedTender.tenderDept}</span>
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${getStatusBadge(selectedTender.status).bg} ${getStatusBadge(selectedTender.status).text}`}>
+                          {getStatusBadge(selectedTender.status).label}
                         </span>
-                        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${getStatusColor(selectedTender.status)}`}>
-                          {getStatusLabel(selectedTender.status)}
-                        </span>
-                        {selectedTender.tenderMethod && (
-                          <span className="text-xs bg-white/10 px-2.5 py-1 rounded-full">
-                            {selectedTender.tenderMethod}
-                          </span>
-                        )}
                       </div>
                     </div>
                   </div>
                 </div>
-
                 <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
                   {selectedTender.image && (
                     <div className="rounded-xl overflow-hidden border border-green-800/10">
-                      <img
-                        src={selectedTender.image}
-                        alt={selectedTender.title}
-                        className="w-full h-auto max-h-[300px] object-cover bg-gray-50"
-                        referrerPolicy="no-referrer"
-                      />
+                      <img src={selectedTender.image} alt={selectedTender.title} className="w-full h-auto max-h-[300px] object-cover bg-gray-50" referrerPolicy="no-referrer" />
                     </div>
                   )}
-
-                  {selectedTender.tenderFile?.url && selectedTender.tenderFile.fileType?.startsWith("image/") && (
-                    <div className="rounded-xl overflow-hidden border border-green-800/10">
-                      <img
-                        src={selectedTender.tenderFile.url}
-                        alt={selectedTender.tenderFile.name}
-                        className="w-full h-auto max-h-[400px] object-contain bg-gray-50"
-                        referrerPolicy="no-referrer"
-                      />
-                    </div>
-                  )}
-
                   <div className="bg-cream-white rounded-xl p-4">
                     <p className="text-ink/80 text-sm leading-relaxed">{selectedTender.summary}</p>
                   </div>
-
-                  {selectedTender.content && (
-                    <div className="prose prose-sm max-w-none">
-                      <p className="text-ink/80 text-sm leading-relaxed whitespace-pre-line">{selectedTender.content}</p>
-                    </div>
-                  )}
-
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-mint/30 rounded-xl p-4">
-                      <div className="flex items-center gap-2 text-brand-green text-xs font-bold mb-1">
-                        <Clock size={12} />
-                        Ngày đăng
-                      </div>
+                      <div className="flex items-center gap-2 text-brand-green text-xs font-bold mb-1"><Clock size={12} /> Ngày đăng</div>
                       <p className="text-sm font-semibold text-green-dark">{selectedTender.date}</p>
                     </div>
                     <div className="bg-peach/10 rounded-xl p-4">
-                      <div className="flex items-center gap-2 text-peach text-xs font-bold mb-1">
-                        <Calendar size={12} />
-                        Hạn nộp
-                      </div>
-                      <p className="text-sm font-semibold text-green-dark">
-                        {selectedTender.tenderEndDate ? formatDateShort(selectedTender.tenderEndDate) : "Liên hệ bệnh viện"}
-                      </p>
+                      <div className="flex items-center gap-2 text-peach text-xs font-bold mb-1"><Calendar size={12} /> Hạn nộp</div>
+                      <p className="text-sm font-semibold text-green-dark">{selectedTender.tenderEndDate ? formatDateShort(selectedTender.tenderEndDate) : "Liên hệ bệnh viện"}</p>
                     </div>
                   </div>
-
                   {selectedTender.tenderEstimateValue && (
                     <div className="bg-green-dark/5 rounded-xl p-4">
-                      <div className="flex items-center gap-2 text-brand-green text-xs font-bold mb-1">
-                        <DollarSign size={12} />
-                        Giá trị dự toán
-                      </div>
+                      <div className="flex items-center gap-2 text-brand-green text-xs font-bold mb-1"><DollarSign size={12} /> Giá trị dự toán</div>
                       <p className="text-base font-bold text-green-dark">{selectedTender.tenderEstimateValue}</p>
                     </div>
                   )}
-
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {selectedTender.tenderReceivedLocation && (
                       <div className="bg-blue-50 rounded-xl p-4">
-                        <div className="flex items-center gap-2 text-blue-600 text-xs font-bold mb-1">
-                          <MapPin size={12} />
-                          Địa điểm nộp hồ sơ
-                        </div>
+                        <div className="flex items-center gap-2 text-blue-600 text-xs font-bold mb-1"><MapPin size={12} /> Địa điểm nộp hồ sơ</div>
                         <p className="text-sm text-ink/80">{selectedTender.tenderReceivedLocation}</p>
                       </div>
                     )}
                     {selectedTender.tenderContact && (
                       <div className="bg-purple-50 rounded-xl p-4">
-                        <div className="flex items-center gap-2 text-purple-600 text-xs font-bold mb-1">
-                          <Phone size={12} />
-                          Người liên hệ
-                        </div>
+                        <div className="flex items-center gap-2 text-purple-600 text-xs font-bold mb-1"><Phone size={12} /> Người liên hệ</div>
                         <p className="text-sm font-semibold text-green-dark">{selectedTender.tenderContact}</p>
-                        {selectedTender.tenderContactPhone && (
-                          <p className="text-xs text-ink/60 mt-0.5">{selectedTender.tenderContactPhone}</p>
-                        )}
+                        {selectedTender.tenderContactPhone && <p className="text-xs text-ink/60 mt-0.5">{selectedTender.tenderContactPhone}</p>}
                       </div>
                     )}
                   </div>
-
                   {selectedTender.tenderFile && (
                     <div className="border-t border-green-800/10 pt-4">
-                      <p className="text-xs font-bold text-green-dark mb-2 flex items-center gap-2">
-                        <FileCheck size={14} />
-                        File đính kèm:
-                      </p>
+                      <p className="text-xs font-bold text-green-dark mb-2 flex items-center gap-2"><FileCheck size={14} /> File đính kèm:</p>
                       <div className="flex items-center justify-between bg-mint/30 rounded-xl p-4">
                         <div>
                           <p className="text-sm font-semibold text-green-dark">{selectedTender.tenderFile.name}</p>
@@ -545,22 +386,14 @@ export default function ThongTinThauPage() {
                             <span className="text-xs text-ink/60">Lượt tải: {selectedTender.tenderDownloadCount || 0}</span>
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleDownload(selectedTender)}
-                          className="flex items-center gap-2 bg-brand-green hover:bg-brand-green/90 text-white font-semibold py-2.5 px-5 rounded-lg transition-colors cursor-pointer"
-                        >
-                          <Download size={14} />
-                          Tải xuống
+                        <button onClick={() => handleDownload(selectedTender)} className="flex items-center gap-2 bg-brand-green hover:bg-brand-green/90 text-white font-semibold py-2 px-4 rounded-lg transition-colors cursor-pointer">
+                          <Download size={14} /> Tải xuống
                         </button>
                       </div>
                     </div>
                   )}
-
                   <div className="border-t border-green-800/10 pt-4 flex justify-end">
-                    <button
-                      onClick={() => setSelectedTender(null)}
-                      className="px-5 py-2.5 border border-green-800/20 text-green-dark rounded-full text-sm font-semibold hover:bg-green-800/5 transition-colors cursor-pointer"
-                    >
+                    <button onClick={() => setSelectedTender(null)} className="px-5 py-2.5 border border-green-800/20 text-green-dark rounded-full text-sm font-semibold hover:bg-green-800/5 transition-colors cursor-pointer">
                       Đóng
                     </button>
                   </div>

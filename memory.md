@@ -516,6 +516,34 @@ Cleanup đã thực hiện:
 - 3D tilt effect on hover cho các cards trong News component
 - Image zoom animation khi hover
 - Loại bỏ 2 cards cũ (Tin tuyển dụng, Thông tin đấu thầu) vì đã có trong News component
+- **Featured image với clip-path reveal + Ken Burns effect** cho mỗi tab (benh-vien, y-khoa)
+- Featured section gồm: image với animation, overlay text, và info panel với checklist
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
+## PHASE 17
+
+### ThongTinThauPage - Cổng thông tin đấu thầu (Hoàn thành 2026-07-19)
+
+**Files affected:**
+- src/pages/ThongTinThauPage.tsx
+
+**Đã thực hiện:**
+- Hero section với animated gradient mesh + floating shapes + stats counter animation
+- Sticky department tab navigation với icon + count badge
+- 3D tilt effect on hover cho tender cards
+- Modal popup cho chi tiết tender với full info layout
+- Toast notification cho download
+- Empty state khi không có tender
+
+**Design pattern (từ News.tsx):**
+- Hero với floating shapes và animated gradient
+- Count-up animation cho stats
+- Tab navigation với gradient active state
+- Cards với 3D tilt effect
+- Modal với gradient header
 
 **Commands:** npm run lint - Passed, npm run build - Passed
 
