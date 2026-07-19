@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import ScrollAnimation from "../components/ui/ScrollAnimation";
@@ -21,91 +21,91 @@ export default function ChoBenhNhanPage() {
   const patientInfo = [
     {
       id: "chi-phi-dia-diem",
-      title: "Chi phÃ­ & Äá»‹a Ä‘iá»ƒm",
+      title: "Chi phí & Địa điểm",
       icon: MapPin,
       color: "from-blue-50 to-indigo-50",
-      heroImage: "/images/pages/hero-chi-phi.jpeg",
+      heroImage: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&h=400&fit=crop",
       items: [
         {
-          name: "Chi phÃ­ Ä‘iá»u trá»‹ cÃ´ng khai",
-          desc: "Báº£ng giÃ¡ dá»‹ch vá»¥ y táº¿ niÃªm yáº¿t cÃ´ng khai",
-          action: "Xem báº£ng giÃ¡",
+          name: "Chi phí điều trị công khai",
+          desc: "Bảng giá dịch vụ y tế niêm yết công khai",
+          action: "Xem bảng giá",
           icon: DollarSign,
-          img: "/images/pages/chiphi-1.jpeg"
+          img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop"
         },
         {
-          name: "CÆ¡ sá»Ÿ Ä‘iá»u trá»‹",
-          desc: "2 cÆ¡ sá»Ÿ: 123 ÄÆ°á»ng XYZ (CS1) vÃ  456 ÄÆ°á»ng ABC (CS2)",
-          action: "Báº£n Ä‘á»“",
+          name: "Cơ sở điều trị",
+          desc: "2 cơ sở: 123 Đường XYZ (CS1) và 456 Đường ABC (CS2)",
+          action: "Bản đồ",
           icon: MapPin,
-          img: "/images/pages/coso-2.jpeg"
+          img: "https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=400&h=300&fit=crop"
         },
         {
-          name: "Danh má»¥c thuá»‘c BHYT",
-          desc: "Danh má»¥c thuá»‘c Ä‘Æ°á»£c báº£o hiá»ƒm y táº¿ chi tráº£",
-          action: "Tra cá»©u",
+          name: "Danh mục thuốc BHYT",
+          desc: "Danh mục thuốc được bảo hiểm y tế chi trả",
+          action: "Tra cứu",
           icon: Pill,
-          img: "/images/pages/duoc-1.jpeg"
+          img: "https://images.unsplash.com/photo-1585435557343-3b092031a831?w=400&h=300&fit=crop"
         }
       ]
     },
     {
       id: "huong-dan-tien-ich",
-      title: "HÆ°á»›ng dáº«n tiá»‡n Ã­ch",
+      title: "Hướng dẫn tiện ích",
       icon: Users,
       color: "from-emerald-50 to-teal-50",
-      heroImage: "/images/pages/hero-muangoi.jpeg",
+      heroImage: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&h=400&fit=crop",
       items: [
         {
-          name: "Dá»‹ch vá»¥ Ä‘iá»u trá»‹",
-          desc: "HÆ°á»›ng dáº«n cÃ¡c dá»‹ch vá»¥ y táº¿ táº¡i bá»‡nh viá»‡n",
-          action: "TÃ¬m hiá»ƒu thÃªm",
+          name: "Dịch vụ điều trị",
+          desc: "Hướng dẫn các dịch vụ y tế tại bệnh viện",
+          action: "Tìm hiểu thêm",
           icon: FileText,
-          img: "/images/pages/tainha-1.jpeg"
+          img: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop"
         },
         {
-          name: "DÃ nh cho bá»‡nh nhÃ¢n ná»™i trÃº",
-          desc: "Quy Ä‘á»‹nh nháº­p viá»‡n, thÄƒm nom, Äƒn á»Ÿ",
-          action: "Xem hÆ°á»›ng dáº«n",
+          name: "Dành cho bệnh nhân nội trú",
+          desc: "Quy định nhập viện, thăm nom, ăn ở",
+          action: "Xem hướng dẫn",
           icon: Bed,
-          img: "/images/pages/muangoi-1.jpeg"
+          img: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&h=300&fit=crop"
         },
         {
-          name: "DÃ nh cho thÄƒm khÃ¡m ngoáº¡i trÃº",
-          desc: "Quy trÃ¬nh Ä‘Äƒng kÃ½, khÃ¡m bá»‡nh, nháº­n káº¿t quáº£",
-          action: "Xem hÆ°á»›ng dáº«n",
+          name: "Dành cho thăm khám ngoại trú",
+          desc: "Quy trình đăng ký, khám bệnh, nhận kết quả",
+          action: "Xem hướng dẫn",
           icon: Calendar,
-          img: "/images/pages/ngoai-1.jpeg"
+          img: "https://images.unsplash.com/photo-1587613865765-5e33e4bd57f9?w=400&h=300&fit=crop"
         }
       ]
     },
     {
       id: "cong-thong-tin",
-      title: "Cá»•ng thÃ´ng tin",
+      title: "Cổng thông tin",
       icon: Search,
       color: "from-purple-50 to-pink-50",
-      heroImage: "/images/pages/hero-congthongtin.jpeg",
+      heroImage: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&h=400&fit=crop",
       items: [
         {
-          name: "Tra cá»©u bá»‡nh sá»­ online",
-          desc: "Xem lá»‹ch sá»­ khÃ¡m bá»‡nh, káº¿t quáº£ xÃ©t nghiá»‡m",
-          action: "ÄÄƒng nháº­p",
+          name: "Tra cứu bệnh sử online",
+          desc: "Xem lịch sử khám bệnh, kết quả xét nghiệm",
+          action: "Đăng nhập",
           icon: Clipboard,
-          img: "/images/pages/timmach-1.jpeg"
+          img: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop"
         },
         {
-          name: "YÃªu cáº§u trÃ­ch sao há»“ sÆ¡",
-          desc: "Láº¥y báº£n sao há»“ sÆ¡ y táº¿, giáº¥y chá»©ng nháº­n",
-          action: "Gá»­i yÃªu cáº§u",
+          name: "Yêu cầu trích sao hồ sơ",
+          desc: "Lấy bản sao hồ sơ y tế, giấy chứng nhận",
+          action: "Gửi yêu cầu",
           icon: FileText,
-          img: "/images/pages/hoso-1.jpeg"
+          img: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?w=400&h=300&fit=crop"
         },
         {
-          name: "GÃ³p Ã½ cháº¥t lÆ°á»£ng phá»¥c vá»¥",
-          desc: "ÄÃ³ng gÃ³p Ã½ kiáº¿n Ä‘á»ƒ cáº£i thiá»‡n dá»‹ch vá»¥",
-          action: "Gá»­i gÃ³p Ã½",
+          name: "Góp ý chất lượng phục vụ",
+          desc: "Đóng góp ý kiến để cải thiện dịch vụ",
+          action: "Gửi góp ý",
           icon: Phone,
-          img: "/images/pages/noi-1.jpeg"
+          img: "https://images.unsplash.com/photo-1530026405186-ed1f139313f3?w=400&h=300&fit=crop"
         }
       ]
     }
@@ -116,9 +116,9 @@ export default function ChoBenhNhanPage() {
       <section className="py-12">
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <ScrollAnimation className="text-center mb-8" animation="fade-up">
-            <h1 className="text-4xl font-display font-bold text-green-dark mb-4">DÃ nh cho bá»‡nh nhÃ¢n</h1>
+            <h1 className="text-4xl font-display font-bold text-green-dark mb-4">Dành cho bệnh nhân</h1>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              ThÃ´ng tin hÆ°á»›ng dáº«n vÃ  dá»‹ch vá»¥ há»— trá»£ bá»‡nh nhÃ¢n
+              Thông tin hướng dẫn và dịch vụ hỗ trợ bệnh nhân
             </p>
           </ScrollAnimation>
 
@@ -127,7 +127,7 @@ export default function ChoBenhNhanPage() {
               href="tel:02353747432"
               className="px-4 py-2 bg-peach text-white rounded-full text-sm font-semibold hover:bg-peach/90 transition-colors"
             >
-              Cáº¥p cá»©u: 02353.747.432
+              Cấp cứu: 02353.747.432
             </a>
           </ScrollAnimation>
         </div>

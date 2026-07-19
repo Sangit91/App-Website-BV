@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import ScrollAnimation from "../components/ui/ScrollAnimation";
@@ -22,31 +22,31 @@ export default function GioiThieuPage() {
   }, [location]);
 
   const directors = [
-    { name: "Gs.Ts. Nguyá»…n VÄƒn A", role: "GiÃ¡m Ä‘á»‘c", img: "/images/doctors/giamdoc-1.jpeg" },
-    { name: "Bs.Ts. Tráº§n Thá»‹ B", role: "PhÃ³ GiÃ¡m Ä‘á»‘c", img: "/images/doctors/truongphong-1.jpeg" },
-    { name: "Bs.Ts. LÃª VÄƒn C", role: "PhÃ³ GiÃ¡m Ä‘á»‘c", img: "/images/doctors/phogiamdoc-1.jpeg" }
+    { name: "Gs.Ts. Nguyễn Văn A", role: "Giám đốc", img: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&fit=crop" },
+    { name: "Bs.Ts. Trần Thị B", role: "Phó Giám đốc", img: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&h=200&fit=crop" },
+    { name: "Bs.Ts. Lê Văn C", role: "Phó Giám đốc", img: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&h=200&fit=crop" }
   ];
 
-  const partners = ["BHYT Quáº£ng Nam", "Báº£o Viá»‡t", "PTI", "PJICO", "Manulife", "Prudential"];
+  const partners = ["BHYT Quảng Nam", "Bảo Việt", "PTI", "PJICO", "Manulife", "Prudential"];
 
   const facilities = [
     {
-      title: "CÆ¡ sá»Ÿ â€“ Trang thiáº¿t bá»‹",
+      title: "Cơ sở – Trang thiết bị",
       icon: Building2,
-      image: "/images/pages/muangoi-1.jpeg",
-      items: ["5 phÃ²ng má»• hiá»‡n Ä‘áº¡i", "200 giÆ°á»ng bá»‡nh", "Thiáº¿t bá»‹ MRI, CT Scanner", "PhÃ²ng ICU vá»›i 20 giÆ°á»ng"]
+      image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&h=300&fit=crop",
+      items: ["5 phòng mổ hiện đại", "200 giường bệnh", "Thiết bị MRI, CT Scanner", "Phòng ICU với 20 giường"]
     },
     {
-      title: "HÃ¬nh áº£nh bá»‡nh viá»‡n",
+      title: "Hình ảnh bệnh viện",
       icon: Award,
-      image: "/images/pages/coso-1.jpeg",
-      items: ["KhÃ´ng gian sáº¡ch sáº½, thoÃ¡ng mÃ¡t", "Khu vÆ°á»n cÃ¢y xanh mÃ¡t", "PhÃ²ng chá» hiá»‡n Ä‘áº¡i", "KhuÃ´n viÃªn rá»™ng 5 hecta"]
+      image: "https://images.unsplash.com/photo-1586773860418-d37222d8f0a3?w=400&h=300&fit=crop",
+      items: ["Không gian sạch sẽ, thoáng mát", "Khu vườn cây xanh mát", "Phòng chờ hiện đại", "Khuôn viên rộng 5 hecta"]
     },
     {
-      title: "Tiá»‡n nghi â€“ Sang trá»ng",
+      title: "Tiện nghi – Sang trọng",
       icon: Heart,
-      image: "/images/pages/ranghamach-1.jpeg",
-      items: ["Wifi miá»…n phÃ­ toÃ n bá»‡nh viá»‡n", "NhÃ  hÃ ng cao cáº¥p", "Khu vui chÆ¡i tráº» em", "BÃ£i Ä‘á»— xe rá»™ng rÃ£i"]
+      image: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=400&h=300&fit=crop",
+      items: ["Wifi miễn phí toàn bệnh viện", "Nhà hàng cao cấp", "Khu vui chơi trẻ em", "Bãi đỗ xe rộng rãi"]
     }
   ];
 
@@ -55,9 +55,9 @@ export default function GioiThieuPage() {
       <section className="py-12">
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <ScrollAnimation className="text-center mb-8" animation="fade-up">
-            <h1 className="text-4xl font-display font-bold text-green-dark mb-4">Giá»›i thiá»‡u Bá»‡nh viá»‡n</h1>
+            <h1 className="text-4xl font-display font-bold text-green-dark mb-4">Giới thiệu Bệnh viện</h1>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Bá»‡nh viá»‡n Äa khoa khu vá»±c Miá»n NÃºi PhÃ­a Báº¯c Quáº£ng Nam - NÆ¡i mang Ä‘áº¿n dá»‹ch vá»¥ y táº¿ cháº¥t lÆ°á»£ng cao cho ngÆ°á»i dÃ¢n
+              Bệnh viện Đa khoa khu vực Miền Núi Phía Bắc Quảng Nam - Nơi mang đến dịch vụ y tế chất lượng cao cho người dân
             </p>
           </ScrollAnimation>
         </div>
@@ -67,7 +67,7 @@ export default function GioiThieuPage() {
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <ScrollAnimation animation="fade-up">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-display font-bold text-green-dark mb-4">Vá» chÃºng tÃ´i</h2>
+              <h2 className="text-3xl font-display font-bold text-green-dark mb-4">Về chúng tôi</h2>
               <div className="w-20 h-1 bg-brand-green mx-auto rounded-full"></div>
             </div>
           </ScrollAnimation>
@@ -77,15 +77,15 @@ export default function GioiThieuPage() {
               <div className="bg-white rounded-2xl p-8 shadow-sm h-full">
                 <h3 className="font-display font-bold text-xl text-green-dark mb-6 flex items-center gap-2">
                   <Star className="text-peach" />
-                  Táº¡i sao láº¡i chá»n Bá»‡nh viá»‡n?
+                  Tại sao lại chọn Bệnh viện?
                 </h3>
                 <ul className="space-y-4">
                   {[
-                    "Äá»™i ngÅ© bÃ¡c sÄ© chuyÃªn mÃ´n cao, giÃ u kinh nghiá»‡m",
-                    "Trang thiáº¿t bá»‹ y táº¿ hiá»‡n Ä‘áº¡i, tiÃªn tiáº¿n",
-                    "Quy trÃ¬nh khÃ¡m chá»¯a bá»‡nh chuyÃªn nghiá»‡p",
-                    "ThÃ¡i Ä‘á»™ phá»¥c vá»¥ táº­n tÃ¢m, chu Ä‘Ã¡o",
-                    "Chi phÃ­ há»£p lÃ½, minh báº¡ch"
+                    "Đội ngũ bác sĩ chuyên môn cao, giàu kinh nghiệm",
+                    "Trang thiết bị y tế hiện đại, tiên tiến",
+                    "Quy trình khám chữa bệnh chuyên nghiệp",
+                    "Thái độ phục vụ tận tâm, chu đáo",
+                    "Chi phí hợp lý, minh bạch"
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-start gap-3">
                       <CheckCircle className="text-brand-green w-5 h-5 mt-0.5 shrink-0" />
@@ -95,8 +95,8 @@ export default function GioiThieuPage() {
                 </ul>
                 <div className="mt-6">
                   <img
-                    src="/images/pages/tainha-1.jpeg"
-                    alt="Bá»‡nh viá»‡n hiá»‡n Ä‘áº¡i"
+                    src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop"
+                    alt="Bệnh viện hiện đại"
                     className="w-full h-48 object-cover rounded-xl"
                   />
                 </div>
@@ -107,7 +107,7 @@ export default function GioiThieuPage() {
               <div className="bg-white rounded-2xl p-8 shadow-sm h-full">
                 <h3 className="font-display font-bold text-xl text-green-dark mb-6 flex items-center gap-2">
                   <Shield className="text-brand-green" />
-                  Äá»‘i tÃ¡c cá»§a Bá»‡nh viá»‡n
+                  Đối tác của Bệnh viện
                 </h3>
                 <div className="grid grid-cols-3 gap-3 mb-6">
                   {partners.map((partner) => (
@@ -118,7 +118,7 @@ export default function GioiThieuPage() {
                 </div>
                 <h3 className="font-display font-bold text-xl text-green-dark mt-6 mb-4 flex items-center gap-2">
                   <Users className="text-brand-green" />
-                  Ban GiÃ¡m Äá»‘c
+                  Ban Giám Đốc
                 </h3>
                 <div className="grid grid-cols-3 gap-4">
                   {directors.map((leader) => (
@@ -143,7 +143,7 @@ export default function GioiThieuPage() {
               className="inline-flex items-center gap-2 text-brand-green font-semibold hover:text-brand-green/80 transition-colors"
             >
               <Stethoscope size={18} />
-              Xem sÆ¡ Ä‘á»“ tá»• chá»©c Ä‘áº§y Ä‘á»§
+              Xem sơ đồ tổ chức đầy đủ
               <ArrowRight size={16} />
             </Link>
           </ScrollAnimation>
@@ -154,7 +154,7 @@ export default function GioiThieuPage() {
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <ScrollAnimation animation="fade-up">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-display font-bold text-green-dark mb-4">CÆ¡ sá»Ÿ váº­t cháº¥t</h2>
+              <h2 className="text-3xl font-display font-bold text-green-dark mb-4">Cơ sở vật chất</h2>
               <div className="w-20 h-1 bg-brand-green mx-auto rounded-full"></div>
             </div>
           </ScrollAnimation>
@@ -182,7 +182,7 @@ export default function GioiThieuPage() {
                       <ul className="space-y-2">
                         {facility.items.map((item, i) => (
                           <li key={i} className="flex items-start gap-2 text-ink/75 text-sm">
-                            <span className="text-brand-green mt-0.5">â€¢</span>
+                            <span className="text-brand-green mt-0.5">•</span>
                             {item}
                           </li>
                         ))}
@@ -200,7 +200,7 @@ export default function GioiThieuPage() {
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <ScrollAnimation animation="fade-up">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-display font-bold text-green-dark mb-4">Quy trÃ¬nh chÄƒm sÃ³c</h2>
+              <h2 className="text-3xl font-display font-bold text-green-dark mb-4">Quy trình chăm sóc</h2>
               <div className="w-20 h-1 bg-brand-green mx-auto rounded-full"></div>
             </div>
           </ScrollAnimation>
@@ -209,21 +209,21 @@ export default function GioiThieuPage() {
             {[
               {
                 num: "1",
-                title: "Quy trÃ¬nh chÄƒm sÃ³c khÃ©p kÃ­n",
-                desc: "Tá»« tiáº¿p nháº­n Ä‘áº¿n xuáº¥t viá»‡n, má»—i bÆ°á»›c Ä‘á»u Ä‘Æ°á»£c theo dÃµi vÃ  chÄƒm sÃ³c táº­n tÃ¬nh",
-                img: "/images/pages/tainha-1.jpeg"
+                title: "Quy trình chăm sóc khép kín",
+                desc: "Từ tiếp nhận đến xuất viện, mỗi bước đều được theo dõi và chăm sóc tận tình",
+                img: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop"
               },
               {
                 num: "2",
-                title: "HÆ°á»›ng dáº«n Ä‘áº·t khÃ¡m nhanh",
-                desc: "Äáº·t lá»‹ch khÃ¡m trá»±c tuyáº¿n qua website hoáº·c hotline, tiáº¿t kiá»‡m thá»i gian chá» Ä‘á»£i",
-                img: "/images/pages/timmach-1.jpeg"
+                title: "Hướng dẫn đặt khám nhanh",
+                desc: "Đặt lịch khám trực tuyến qua website hoặc hotline, tiết kiệm thời gian chờ đợi",
+                img: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop"
               },
               {
                 num: "3",
-                title: "Há»— trá»£ báº£o hiá»ƒm trá»±c tiáº¿p",
-                desc: "Bá»‡nh viá»‡n liÃªn káº¿t vá»›i nhiá»u cÃ´ng ty báº£o hiá»ƒm, há»— trá»£ thanh toÃ¡n trá»±c tiáº¿p",
-                img: "/images/pages/bhyt-1.jpeg"
+                title: "Hỗ trợ bảo hiểm trực tiếp",
+                desc: "Bệnh viện liên kết với nhiều công ty bảo hiểm, hỗ trợ thanh toán trực tiếp",
+                img: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&h=300&fit=crop"
               }
             ].map((item, idx) => (
               <div key={item.num}>
