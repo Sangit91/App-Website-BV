@@ -28,7 +28,7 @@ export default function DichVuPage() {
       heroImage: "/images/pages/hero-dichvu.jpeg",
       items: [
         { name: "Dịch vụ trọn gói", desc: "Gói khám, điều trị toàn diện", price: "Từ 5.000.000đ", img: "/images/pages/vip-1.jpeg" },
-        { name: "Kiến thức thai sản", desc: "Tư vấn, chăm sóc mẹ và bé", price: "Miễn phí", img: "/images/pages/thaisy-1.jpeg" },
+        { name: "Kiến thức thai sản", desc: "Tư vấn, chăm sóc mẹ và bé", price: "Miễn phí", img: "/images/pages/sanphukhoa-1.jpeg" },
         { name: "Điều trị vô sinh, hiếm muộn", desc: "IVF, IUI, các phương pháp hỗ trợ", price: "Từ 15.000.000đ", img: "/images/pages/timmach-1.jpeg" },
         { name: "Dịch vụ thai sản và sinh trọn gói", desc: "Theo dõi thai kỳ, sinh con", price: "Từ 25.000.000đ", img: "/images/pages/sanphukhoa-1.jpeg" }
       ]
@@ -82,7 +82,7 @@ export default function DichVuPage() {
         { name: "Gói khám sức khỏe định kỳ", desc: "Tổng quát, toàn diện", price: "Từ 1.500.000đ", img: "/images/pages/khamtongquat-1.jpeg" },
         { name: "Khám sức khỏe công ty", desc: "Kiểm tra sức khỏi nhân viên", price: "Từ 500.000đ/người", img: "/images/pages/bacsi-1.jpeg" },
         { name: "Khám sức khỏe tổng quát cá nhân", desc: "Gói cơ bản, nâng cao", price: "Từ 800.000đ", img: "/images/pages/khamtongquat-1.jpeg" },
-        { name: "Khám xuất khẩu lao động", desc: "Giấy khám sức khỏe chuẩn", price: "Từ 300.000đ", img: "/images/pages/chi-phi-1.jpeg" }
+        { name: "Khám xuất khẩu lao động", desc: "Giấy khám sức khỏe chuẩn", price: "Từ 300.000đ", img: "/images/pages/chiphi-1.jpeg" }
       ]
     }
   ];
