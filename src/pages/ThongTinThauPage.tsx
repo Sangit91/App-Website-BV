@@ -336,29 +336,56 @@ export default function ThongTinThauPage() {
           )}
 
           <ScrollAnimation animation="fade-up" className="mt-12">
-            <div className="bg-mint/30 rounded-[20px] p-8 text-center">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-brand-green/10 rounded-xl flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-brand-green" />
+            <div className="bg-mint/30 rounded-[20px] overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2">
+                <div className="relative h-64 lg:h-auto">
+                  <img
+                    src="/images/pages/coso-1.jpeg"
+                    alt="Cơ sở bệnh viện"
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent to-mint/30 lg:block hidden" />
                 </div>
-                <h2 className="font-display font-bold text-xl text-green-dark">
-                  Hướng dẫn tham gia đấu thầu
-                </h2>
-              </div>
-              <p className="text-ink/70 text-sm max-w-2xl mx-auto mb-6">
-                Nhà thầu vui lòng tải file PDF có chữ ký số và đóng dấu đỏ của bệnh viện.
-                Sau khi nghiên cứu, gửi hồ sơ theo thông tin liên hệ trong file.
-              </p>
-              <div className="flex flex-wrap justify-center gap-4 text-sm text-ink/60">
-                <span className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
-                  <span className="text-brand-green">📧</span> benhvien@bvqnam.vn
-                </span>
-                <span className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
-                  <span className="text-brand-green">📞</span> 02353.747.432
-                </span>
-                <span className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
-                  <span className="text-brand-green">📍</span> 123 Đường XYZ, TP. Quảng Nam
-                </span>
+                <div className="p-8 lg:p-10">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-brand-green/10 rounded-xl flex items-center justify-center">
+                      <FileText className="w-6 h-6 text-brand-green" />
+                    </div>
+                    <h2 className="font-display font-bold text-xl text-green-dark">
+                      Thông tin đấu thầu
+                    </h2>
+                  </div>
+                  <p className="text-ink/70 text-sm leading-relaxed mb-6">
+                    Bệnh viện Quảng Nam đăng tải công khai các thông báo mời thầu trên website.
+                    Nhà thầu vui lòng tải hồ sơ mời thầu có chữ ký số và đóng dấu đỏ của bệnh viện.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                    <div className="bg-white rounded-xl p-4 shadow-sm">
+                      <FileCheck className="w-5 h-5 text-brand-green mb-2" />
+                      <p className="text-xs text-ink/70 font-medium leading-snug">Hồ sơ có chữ ký số và đóng dấu đỏ</p>
+                    </div>
+                    <div className="bg-white rounded-xl p-4 shadow-sm">
+                      <Server className="w-5 h-5 text-brand-green mb-2" />
+                      <p className="text-xs text-ink/70 font-medium leading-snug">Theo dõi trên cổng đấu thầu quốc gia</p>
+                    </div>
+                    <div className="bg-white rounded-xl p-4 shadow-sm">
+                      <Phone className="w-5 h-5 text-brand-green mb-2" />
+                      <p className="text-xs text-ink/70 font-medium leading-snug">Liên hệ bệnh viện để được hướng dẫn</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-sm text-ink/60">
+                    <span className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
+                      <span className="text-brand-green">📧</span> benhvien@bvqnam.vn
+                    </span>
+                    <span className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
+                      <span className="text-brand-green">📞</span> 02353.747.432
+                    </span>
+                    <span className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
+                      <span className="text-brand-green">📍</span> 123 Đường XYZ, TP. Quảng Nam
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </ScrollAnimation>

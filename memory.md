@@ -483,6 +483,24 @@ Cleanup đã thực hiện:
 
 ---
 
+## PHASE 14
+
+### ThongTinThauPage Decorate (Hoàn thành 2026-07-19)
+
+**Files affected:** src/pages/ThongTinThauPage.tsx
+
+**Đã thực hiện:**
+- Layout 2 cột: ảnh bệnh viện bên trái, nội dung bên phải
+- Image: `/images/pages/coso-1.jpeg`
+- Title: "Hướng dẫn tham gia đấu thầu" → "Thông tin đấu thầu"
+- Thay text mô tả bằng thông tin chung (không phải quy trình)
+- 3 cards lưu ý: Chữ ký số + Cổng đấu thầu quốc gia + Liên hệ hỗ trợ
+- Giữ nguyên contact info
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## PHASE 13
 
 ### NewsTab Enhancement - Tender Features (Hoàn thành)
