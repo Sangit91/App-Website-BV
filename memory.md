@@ -501,18 +501,194 @@ Cleanup đã thực hiện:
 
 ---
 
+## PHASE 16
+
+### ChuyenKhoaPage - Modern Redesign với Animation Ấn Tượng (2026-07-19) - ĐANG THIẾT KẾ
+
+#### Design Concept: "Surgical Precision meets Digital Innovation"
+
+**Triết lý:**
+- Medical precision + Modern tech feel
+- Smooth, purposeful animations thể hiện sự chính xác y khoa
+- Dark mode-ready color palette với accents nổi bật
+- Parallax và depth effects tạo cảm giác 3D
+
+---
+
+#### Layout Structure
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  HERO SECTION - Full viewport với Parallax                        │
+│  ┌────────────────────────────────────────────────────────────┐   │
+│  │  Background: Animated gradient mesh + floating particles  │   │
+│  │                                                              │   │
+│  │  ┌──────────────────────────────────────────────────────┐ │   │
+│  │  │  [Staggered Text Animation]                           │ │   │
+│  │  │  CHUYÊN KHOA                                          │ │   │
+│  │  │  [Split text reveal on scroll]                        │ │   │
+│  │  │  Hệ thống chuyên khoa đa dạng...                    │ │   │
+│  │  └──────────────────────────────────────────────────────┘ │   │
+│  │                                                              │   │
+│  │  ┌─────┐  ┌─────┐  ┌─────┐  ┌─────┐                        │   │
+│  │  │ 12  │  │ 50+ │  │ 200 │  │  5  │  [Count-up animation] │   │
+│  │  │CKhoa│  │ BS  │  │Giuong│ │PMo  │                        │   │
+│  │  └─────┘  └─────┘  └─────┘  └─────┘                        │   │
+│  └────────────────────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│  HORIZONTAL SCROLL SECTION - Draggable Cards                      │
+│  ┌────────────────────────────────────────────────────────────┐   │
+│  │ [← Drag/Scroll →]                                          │   │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐          │   │
+│  │  │  Tab 1  │ │  Tab 2  │ │  Tab 3  │ │  Tab 4  │          │   │
+│  │  │ Icon    │ │ Icon    │ │ Icon    │ │ Icon    │          │   │
+│  │  │ Title   │ │ Title   │ │ Title   │ │ Title   │          │   │
+│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘          │   │
+│  └────────────────────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│  FEATURED DEPARTMENT - Large reveal animation                     │
+│  ┌───────────────────────────────────────────────────────────┐    │
+│  │  [Clip-path reveal on scroll]                             │    │
+│  │  ┌─────────────────────┐ ┌────────────────────────────┐  │    │
+│  │  │                     │ │  [Staggered content reveal]│  │    │
+│  │  │   FEATURED IMAGE    │ │  Department Title           │  │    │
+│  │  │   with Ken Burns    │ │  Description paragraphs    │  │    │
+│  │  │   effect            │ │  with line-by-line reveal  │  │    │
+│  │  │                     │ │                             │  │    │
+│  │  │                     │ │  [Animated list items]      │  │    │
+│  │  │                     │ │  ○ Item 1 [slide-in]        │  │    │
+│  │  │                     │ │  ○ Item 2 [slide-in]        │  │    │
+│  │  │                     │ │  ○ Item 3 [slide-in]        │  │    │
+│  │  └─────────────────────┘ └────────────────────────────┘  │    │
+│  └───────────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│  SERVICES GRID - Staggered card reveal                            │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐                 │
+│  │ Card 1  │ │ Card 2  │ │ Card 3  │ │ Card 4  │                 │
+│  │ [3D     │ │ [3D     │ │ [3D     │ │ [3D     │                 │
+│  │ tilt on │ │ tilt on │ │ tilt on │ │ tilt on │                 │
+│  │ hover]  │ │ hover]  │ │ hover]  │ │ hover]  │                 │
+│  └─────────┘ └─────────┘ └─────────┘ └─────────┘                 │
+│  ┌─────────┐ ┌─────────┐                                        │
+│  │ Card 5  │ │ Card 6  │                                        │
+│  │ ...     │ │ ...     │                                        │
+│  └─────────┘ └─────────┘                                        │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### Animation Details
+
+**1. Hero Section**
+- Background: Animated gradient mesh (CSS keyframes)
+- Floating shapes: 4-6 floating circles với parallax
+- Text: Split text animation (mỗi chữ reveal riêng)
+- Stats: Count-up animation khi scroll vào view
+- Scroll indicator: Bouncing chevron
+
+**2. Horizontal Tab Navigation**
+- Draggable horizontal scroll (scroll-snap)
+- Active tab: Scale up + glow effect
+- Tab icon: Animated morphing giữa icons
+- Background: Glass morphism (backdrop-blur)
+
+**3. Featured Department**
+- Image: Clip-path reveal (polygon animation)
+- Image: Ken Burns effect (subtle zoom/pan)
+- Content: Line-by-line staggered reveal
+- List items: Slide in từ alternating sides
+- Decorative: Animated connecting lines
+
+**4. Service Cards Grid**
+- Layout: Masonry-style hoặc staggered grid
+- Scroll: Staggered reveal (cascade effect)
+- Hover: 
+  - 3D tilt effect (perspective transform)
+  - Glow border animation
+  - Image zoom-in
+  - Content slide-up
+- Active card: Expand to show more details
+
+---
+
+#### Color Palette
+
+- Primary: `bg-brand-green (#2FA968)`
+- Dark bg: `bg-green-dark (#164B36)`
+- Accent: `bg-peach (#FFB27D)`
+- Glow: `shadow-brand-green/50`
+- Glass: `bg-white/80 backdrop-blur-lg`
+
+---
+
+#### Technical Implementation
+
+**Dependencies:**
+- Framer Motion: animations
+- react-intersection-observer: scroll triggers  
+- CSS custom properties: dynamic values
+
+**Key CSS Animations:**
+```css
+/* Gradient mesh background */
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+/* Tilt effect */
+.card-3d {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+/* Glow pulse */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(47, 169, 104, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(47, 169, 104, 0.6); }
+}
+```
+
+---
+
+#### UX Considerations
+
+- Smooth scroll với inertia
+- Reduced motion support (@media prefers-reduced-motion)
+- Touch-friendly drag interactions
+- Clear visual hierarchy
+- Performance-conscious (will-change, GPU acceleration)
+
+---
+
 ## PHASE 15
 
-### ChuyenKhoaPage Redesign (Hoàn thành 2026-07-19)
+### ChuyenKhoaPage - Modern Animation Redesign (Hoàn thành 2026-07-19)
 
 **Files affected:** src/pages/ChuyenKhoaPage.tsx
 
 **Đã thực hiện:**
-- Hero section với 4 stats cards (Chuyên khoa, Bác sĩ, Giường bệnh, Phòng mổ)
-- Tab navigation thay vì scroll sections
-- Featured card lớn chiếm 1/3 width
-- Grid cards nhỏ chiếm 2/3 width còn lại
-- Smooth transitions và hover effects
+- Hero section với animated gradient mesh + floating shapes
+- Count-up animation cho stats khi scroll vào view
+- Sticky tab navigation với glass morphism effect
+- Animated gradient backgrounds cho từng department
+- Featured card với clip-path reveal + Ken Burns effect
+- 3D tilt effect on hover cho service cards
+- Glow border animation và staggered reveal
+- AnimatePresence cho smooth tab transitions
 
 **Commands:** npm run lint - Passed, npm run build - Passed
 

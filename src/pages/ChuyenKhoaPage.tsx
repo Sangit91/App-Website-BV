@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, MouseEvent } from "react";
 import { useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
-import ScrollAnimation from "../components/ui/ScrollAnimation";
-import { Activity, Scissors, Heart, Baby, Microscope, Stethoscope, Eye, Brain, Bone, Users, Bed, FlaskConical, Zap } from "lucide-react";
+import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
+import { Activity, Scissors, Stethoscope, Baby, Microscope, ArrowRight, ChevronRight } from "lucide-react";
 
 const DEPARTMENTS = [
-  { key: "ngoai-cap-cuu", title: "Ngoại & Cấp cứu", icon: Scissors, color: "bg-red-50", textColor: "text-red-600" },
-  { key: "noi-tong-quat", title: "Nội tổng quát", icon: Stethoscope, color: "bg-blue-50", textColor: "text-blue-600" },
-  { key: "san-nhi", title: "Sản & Nhi", icon: Baby, color: "bg-pink-50", textColor: "text-pink-600" },
-  { key: "can-lam-sang", title: "Cận lâm sàng", icon: Microscope, color: "bg-purple-50", textColor: "text-purple-600" }
+  { key: "ngoai-cap-cuu", title: "Ngoại & Cấp cứu", icon: Scissors, color: "from-red-500 to-rose-600", bgLight: "bg-red-50", textColor: "text-red-600" },
+  { key: "noi-tong-quat", title: "Nội tổng quát", icon: Stethoscope, color: "from-blue-500 to-cyan-600", bgLight: "bg-blue-50", textColor: "text-blue-600" },
+  { key: "san-nhi", title: "Sản & Nhi", icon: Baby, color: "from-pink-500 to-rose-600", bgLight: "bg-pink-50", textColor: "text-pink-600" },
+  { key: "can-lam-sang", title: "Cận lâm sàng", icon: Microscope, color: "from-purple-500 to-violet-600", bgLight: "bg-purple-50", textColor: "text-purple-600" }
 ];
 
 const departmentData = {
@@ -55,15 +55,191 @@ const departmentData = {
 };
 
 const stats = [
-  { value: "12", label: "Chuyên khoa", icon: Activity },
-  { value: "50+", label: "Bác sĩ", icon: Users },
-  { value: "200", label: "Giường bệnh", icon: Bed },
-  { value: "5", label: "Phòng mổ", icon: Scissors }
+  { value: 12, label: "Chuyên khoa", icon: Activity },
+  { value: 50, label: "Bác sĩ", suffix: "+" },
+  { value: 200, label: "Giường bệnh" },
+  { value: 5, label: "Phòng mổ" }
 ];
+
+function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  useEffect(() => {
+    if (!isInView) return;
+    let start = 0;
+    const duration = 2000;
+    const increment = value / (duration / 16);
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= value) {
+        setCount(value);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(start));
+      }
+    }, 16);
+    return () => clearInterval(timer);
+  }, [isInView, value]);
+
+  return <div ref={ref}>{count}{suffix}</div>;
+}
+
+function FloatingShape({ className, delay = 0 }: { className: string; delay?: number }) {
+  return (
+    <motion.div
+      className={`absolute rounded-full opacity-20 ${className}`}
+      animate={{
+        y: [0, -30, 0],
+        x: [0, 15, 0],
+        scale: [1, 1.1, 1]
+      }}
+      transition={{
+        duration: 8,
+        delay,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }}
+    />
+  );
+}
+
+interface ServiceCardProps {
+  key?: string;
+  item: {
+    name: string;
+    desc: string;
+    img: string;
+  };
+  dept: typeof DEPARTMENTS[0];
+  index: number;
+}
+
+function ServiceCard({ item, dept, index }: ServiceCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(cardRef, { once: true, margin: "-50px" });
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], [8, -8]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
+
+  return (
+    <motion.div
+      ref={cardRef}
+      initial={{ opacity: 0, y: 60 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+      style={{ perspective: "1000px" }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="group cursor-pointer"
+    >
+      <motion.div
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        animate={isHovered ? { scale: 1.02 } : { scale: 1 }}
+        className="relative bg-white rounded-3xl overflow-hidden shadow-lg border border-green-800/5 transition-all duration-300"
+      >
+        {/* Glow effect */}
+        <motion.div
+          className={`absolute inset-0 opacity-0 transition-opacity duration-500 ${isHovered ? "opacity-100" : ""}`}
+          style={{
+            background: `radial-gradient(circle at 50% 50%, ${dept.textColor === "text-red-600" ? "rgba(239,68,68,0.15)" : dept.textColor === "text-blue-600" ? "rgba(59,130,246,0.15)" : dept.textColor === "text-pink-600" ? "rgba(236,72,153,0.15)" : "rgba(147,51,234,0.15)"} 0%, transparent 70%)`
+          }}
+        />
+
+        {/* Glow border animation */}
+        <motion.div
+          className={`absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-500 ${isHovered ? "opacity-100" : ""}`}
+          style={{
+            padding: "2px",
+            background: `linear-gradient(${dept.textColor.includes("red") ? "135deg, #ef4444, #f97316" : dept.textColor.includes("blue") ? "135deg, #3b82f6, #06b6d4" : dept.textColor.includes("pink") ? "135deg, #ec4899, #f43f5e" : "135deg, #a855f7, #6366f1"}, transparent)`,
+            WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+            WebkitMaskComposite: "xor",
+            maskComposite: "exclude"
+          }}
+        />
+
+        <div className="relative h-48 overflow-hidden">
+          <motion.img
+            src={item.img}
+            alt={item.name}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+            animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
+            transition={{ duration: 0.6 }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+
+          {/* Category badge */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.1 + 0.3 }}
+            className={`absolute top-4 left-4 ${dept.bgLight} ${dept.textColor} text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm`}
+          >
+            {dept.title}
+          </motion.div>
+
+          {/* Arrow icon on hover */}
+          <motion.div
+            className="absolute top-4 right-4 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center opacity-0 transform translate-x-4 transition-all duration-300"
+            animate={isHovered ? { opacity: 1, x: 0 } : { opacity: 0, x: 10 }}
+          >
+            <ArrowRight className="w-4 h-4 text-green-dark" />
+          </motion.div>
+        </div>
+
+        <div className="p-6 relative" style={{ transform: "translateZ(30px)" }}>
+          <motion.h3
+            className="font-display font-bold text-lg text-green-dark mb-2 group-hover:text-brand-green transition-colors duration-300"
+            style={{ transform: isHovered ? "translateZ(20px)" : "translateZ(0)" }}
+          >
+            {item.name}
+          </motion.h3>
+          <motion.p
+            className="text-sm text-ink/70 leading-relaxed"
+            style={{ transform: isHovered ? "translateZ(15px)" : "translateZ(0)" }}
+          >
+            {item.desc}
+          </motion.p>
+
+          {/* Learn more link */}
+          <motion.div
+            className="flex items-center gap-1 mt-4 text-brand-green font-semibold text-sm opacity-0 transform -translate-y-2 transition-all duration-300"
+            animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: -8 }}
+          >
+            <span>Tìm hiểu thêm</span>
+            <ChevronRight className="w-4 h-4" />
+          </motion.div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 export default function ChuyenKhoaPage() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("ngoai-cap-cuu");
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"]
+  });
+  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
 
   useEffect(() => {
     if (location.hash) {
@@ -77,117 +253,274 @@ export default function ChuyenKhoaPage() {
   const currentDept = DEPARTMENTS.find(d => d.key === activeTab)!;
   const currentData = departmentData[activeTab as keyof typeof departmentData];
   const featuredItem = currentData.items.find(item => item.highlight) || currentData.items[0];
-  const otherItems = currentData.items.filter(item => item !== featuredItem);
 
   return (
     <Layout>
-      <section className="py-12 bg-gradient-to-b from-mint/30 to-white">
-        <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
-          <ScrollAnimation animation="fade-up" className="text-center mb-10">
-            <h1 className="text-4xl font-display font-bold text-green-dark mb-4">Chuyên khoa</h1>
-            <p className="text-gray-600 max-w-2xl mx-auto mb-10">
+      {/* Hero Section */}
+      <section ref={heroRef} className="relative min-h-[70vh] flex items-center overflow-hidden bg-gradient-to-br from-green-dark via-green-800 to-brand-green">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <FloatingShape className="w-96 h-96 bg-brand-green -top-20 -left-20" delay={0} />
+          <FloatingShape className="w-64 h-64 bg-peach -top-10 right-20" delay={1} />
+          <FloatingShape className="w-80 h-80 bg-mint bottom-0 left-1/3" delay={2} />
+          <FloatingShape className="w-48 h-48 bg-white/10 top-1/3 right-1/4" delay={3} />
+
+          {/* Grid pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="w-full h-full" style={{
+              backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
+              backgroundSize: "50px 50px"
+            }} />
+          </div>
+        </div>
+
+        <motion.div
+          className="relative z-10 max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10 py-20 w-full"
+          style={{ opacity: heroOpacity, scale: heroScale }}
+        >
+          <div className="text-center">
+            {/* Animated badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-5 py-2 rounded-full text-sm font-medium mb-8"
+            >
+              <Activity className="w-4 h-4" />
+              <span>Hệ thống y tế chuyên sâu</span>
+            </motion.div>
+
+            {/* Title with split animation */}
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-5xl md:text-6xl font-display font-bold text-white mb-6"
+            >
+              <motion.span
+                className="inline-block"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                Chuyên
+              </motion.span>
+              <motion.span
+                className="inline-block ml-3 text-peach"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                Khoa
+              </motion.span>
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="text-white/80 text-lg max-w-2xl mx-auto mb-12"
+            >
               Hệ thống chuyên khoa đa dạng, trang thiết bị hiện đại, đội ngũ bác sĩ chuyên môn cao
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-              {stats.map((stat, idx) => {
-                const Icon = stat.icon;
-                return (
-                  <div key={stat.label} className="opacity-0 animate-fade-in-up" style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'forwards' }}>
-                    <div className="bg-white rounded-2xl p-5 shadow-sm border border-green-800/5 hover:shadow-md transition-shadow">
-                      <Icon className="w-6 h-6 text-brand-green mx-auto mb-2" />
-                      <div className="text-2xl font-display font-bold text-green-dark">{stat.value}</div>
-                      <div className="text-xs text-ink/60 font-medium">{stat.label}</div>
-                    </div>
+            </motion.p>
+
+            {/* Stats */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
+            >
+              {stats.map((stat, idx) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.7 + idx * 0.1 }}
+                  className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-white/20 transition-colors"
+                >
+                  <div className="text-3xl md:text-4xl font-display font-bold text-white mb-1">
+                    <AnimatedCounter value={stat.value} suffix={stat.suffix} />
                   </div>
-                );
-              })}
-            </div>
-          </ScrollAnimation>
+                  <div className="text-white/70 text-sm font-medium">{stat.label}</div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Scroll indicator */}
+        <motion.div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center pt-2">
+            <motion.div
+              className="w-1.5 h-3 bg-white rounded-full"
+              animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          </div>
+        </motion.div>
+      </section>
+
+      {/* Tab Navigation */}
+      <section className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-green-800/5 shadow-sm">
+        <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
+          <div className="flex overflow-x-auto scrollbar-hide py-4 gap-2">
+            {DEPARTMENTS.map(dept => {
+              const Icon = dept.icon;
+              const isActive = activeTab === dept.key;
+              return (
+                <motion.button
+                  key={dept.key}
+                  onClick={() => setActiveTab(dept.key)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold text-sm whitespace-nowrap transition-all cursor-pointer ${
+                    isActive
+                      ? `bg-gradient-to-r ${dept.color} text-white shadow-lg`
+                      : "bg-gray-100 text-ink/70 hover:bg-gray-200"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{dept.title}</span>
+                </motion.button>
+              );
+            })}
+          </div>
         </div>
       </section>
 
-      <section className="pb-16">
+      {/* Content Section */}
+      <section className="py-16 bg-gradient-to-b from-gray-50/50 to-white">
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
-          <ScrollAnimation animation="fade-up" className="mb-8">
-            <div className="flex flex-wrap justify-center gap-2 bg-mint/20 p-2 rounded-2xl">
-              {DEPARTMENTS.map(dept => {
-                const Icon = dept.icon;
-                const isActive = activeTab === dept.key;
-                return (
-                  <button
-                    key={dept.key}
-                    onClick={() => setActiveTab(dept.key)}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm transition-all cursor-pointer ${
-                      isActive
-                        ? "bg-brand-green text-white shadow-md"
-                        : "bg-white text-ink/70 hover:bg-mint hover:text-green-dark"
-                    }`}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+            >
+              {/* Featured Item */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6 }}
+                className="mb-12"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+                  style={{
+                    background: `linear-gradient(135deg, ${currentDept.textColor.includes("red") ? "rgba(239,68,68,0.05)" : currentDept.textColor.includes("blue") ? "rgba(59,130,246,0.05)" : currentDept.textColor.includes("pink") ? "rgba(236,72,153,0.05)" : "rgba(147,51,234,0.05)"} 0%, transparent 50%)`,
+                    borderRadius: "24px"
+                  }}
+                >
+                  {/* Featured Image */}
+                  <motion.div
+                    className="relative h-80 lg:h-96 overflow-hidden rounded-3xl"
+                    initial={{ clipPath: "inset(100% 0 0 0)" }}
+                    animate={{ clipPath: "inset(0% 0 0 0)" }}
+                    transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
                   >
-                    <Icon className="w-4 h-4" />
-                    <span>{dept.title}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </ScrollAnimation>
-
-          <ScrollAnimation animation="fade-up" delay={100}>
-            <img
-              src={currentData.heroImage}
-              alt={currentDept.title}
-              className="w-full h-48 object-cover rounded-[20px] shadow-md mb-8"
-              referrerPolicy="no-referrer"
-            />
-          </ScrollAnimation>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <ScrollAnimation animation="fade-up" delay={150} className="lg:col-span-1">
-              <div className="bg-white border border-green-800/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group cursor-pointer hover:border-brand-green/30 h-full">
-                <div className="relative h-64 overflow-hidden">
-                  <img
-                    src={featuredItem.img}
-                    alt={featuredItem.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-5">
-                    <span className={`inline-flex items-center gap-1 ${currentDept.color} ${currentDept.textColor} text-xs font-bold px-3 py-1 rounded-full mb-2`}>
-                      {currentDept.title}
-                    </span>
-                    <h3 className="font-display font-bold text-xl text-white leading-tight">{featuredItem.name}</h3>
-                    <p className="text-white/80 text-sm mt-1">{featuredItem.desc}</p>
-                  </div>
-                </div>
-              </div>
-            </ScrollAnimation>
-
-            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-              {otherItems.map((item, idx) => (
-                <div key={item.name} className="opacity-0 animate-fade-in-up" style={{ animationDelay: `${200 + idx * 50}ms`, animationFillMode: 'forwards' }}>
-                  <div className="bg-white border border-green-800/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col group cursor-pointer hover:border-brand-green/30 h-full">
-                    <div className="relative h-36 overflow-hidden">
-                      <img
-                        src={item.img}
-                        alt={item.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        referrerPolicy="no-referrer"
-                      />
-                      <div className={`absolute top-3 right-3 ${currentDept.color} ${currentDept.textColor} text-[10px] font-bold px-2 py-1 rounded-full shadow-sm`}>
+                    <motion.img
+                      src={featuredItem.img}
+                      alt={featuredItem.name}
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                      initial={{ scale: 1.2 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-8">
+                      <motion.span
+                        className={`inline-flex ${currentDept.bgLight} ${currentDept.textColor} text-xs font-bold px-4 py-1.5 rounded-full mb-4`}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 }}
+                      >
                         {currentDept.title}
-                      </div>
+                      </motion.span>
+                      <motion.h2
+                        className="text-3xl font-display font-bold text-white mb-3"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                      >
+                        {featuredItem.name}
+                      </motion.h2>
+                      <motion.p
+                        className="text-white/80 text-sm"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.7 }}
+                      >
+                        {featuredItem.desc}
+                      </motion.p>
                     </div>
-                    <div className="p-4 flex-grow flex flex-col justify-between text-left">
-                      <div>
-                        <h3 className="font-display font-bold text-[15px] text-green-dark mb-1 group-hover:text-brand-green transition-colors duration-200">{item.name}</h3>
-                        <p className="text-[12px] text-ink/70 leading-relaxed">{item.desc}</p>
-                      </div>
-                    </div>
+                  </motion.div>
+
+                  {/* Featured Content */}
+                  <div className="flex flex-col justify-center p-8">
+                    <motion.h3
+                      initial={{ opacity: 0, x: 30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="text-2xl font-display font-bold text-green-dark mb-4"
+                    >
+                      Dịch vụ nổi bật
+                    </motion.h3>
+                    <motion.p
+                      initial={{ opacity: 0, x: 30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 }}
+                      className="text-ink/70 leading-relaxed mb-6"
+                    >
+                      Với đội ngũ bác sĩ chuyên môn cao và trang thiết bị hiện đại,
+                      chúng tôi cung cấp các dịch vụ y tế chất lượng cao, an toàn và hiệu quả.
+                    </motion.p>
+                    <motion.div
+                      initial={{ opacity: 0, x: 30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 }}
+                      className="space-y-3"
+                    >
+                      {["Đội ngũ bác sĩ giàu kinh nghiệm", "Trang thiết bị hiện đại", "Quy trình chuẩn quốc tế", "Chăm sóc tận tâm 24/7"].map((item, idx) => (
+                        <motion.div
+                          key={item}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.6 + idx * 0.1 }}
+                          className="flex items-center gap-3"
+                        >
+                          <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${currentDept.color}`} />
+                          <span className="text-ink/80 font-medium">{item}</span>
+                        </motion.div>
+                      ))}
+                    </motion.div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              </motion.div>
+
+              {/* Services Grid */}
+              <motion.h3
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-xl font-display font-bold text-green-dark mb-6"
+              >
+                Các khoa khác
+              </motion.h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {currentData.items.filter(item => !item.highlight).map((item, idx) => (
+                  <ServiceCard key={item.name} item={item} dept={currentDept} index={idx} />
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </section>
     </Layout>
