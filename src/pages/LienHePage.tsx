@@ -61,7 +61,7 @@ export default function LienHePage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-ink mb-1">Địa chỉ</h3>
-                        <p className="text-gray-600">123 Đường XYZ, Phường ABC, TP. Quảng Nam</p>
+                        <p className="text-gray-600">107 Quang Trung, Xã Đại Lộc, TP. Đà Nẵng</p>
                       </div>
                     </div>
 

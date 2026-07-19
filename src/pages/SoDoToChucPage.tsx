@@ -4,9 +4,9 @@ import Organization from "../components/public/Organization";
 
 export default function SoDoToChucPage() {
   const directors = [
-    { name: "Gs.Ts. Nguyễn Văn A", role: "Giám đốc", img: "/images/doctors/giamdoc-1.jpeg" },
-    { name: "Bs.Ts. Trần Thị B", role: "Phó Giám đốc", img: "/images/doctors/phogiamdoc-1.jpeg" },
-    { name: "Bs.Ts. Lê Văn C", role: "Phó Giám đốc", img: "/images/doctors/phogiamdoc-2.jpeg" }
+    { name: "BS CKII Nguyễn Thống Nhất", role: "Giám đốc", img: "/images/doctors/giamdoc-1.jpeg" },
+    { name: "BSCK II Lê Minh Dũng", role: "Phó Giám đốc", img: "/images/doctors/phogiamdoc-1.jpeg" },
+    { name: "BS CKII Nguyễn Đình Hoàng", role: "Phó Giám đốc", img: "/images/doctors/phogiamdoc-2.jpeg" }
   ];
 
   const departments = [

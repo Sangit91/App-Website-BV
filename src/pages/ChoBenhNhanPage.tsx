@@ -35,7 +35,7 @@ export default function ChoBenhNhanPage() {
         },
         {
           name: "Cơ sở điều trị",
-          desc: "2 cơ sở: 123 Đường XYZ (CS1) và 456 Đường ABC (CS2)",
+          desc: "Cơ sở: 107 Quang Trung, Xã Đại Lộc, TP. Đà Nẵng",
           action: "Bản đồ",
           icon: MapPin,
           img: "/images/pages/coso-1.jpeg"

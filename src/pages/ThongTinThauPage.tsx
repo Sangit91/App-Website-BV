@@ -357,7 +357,7 @@ export default function ThongTinThauPage() {
                     </h2>
                   </div>
                   <p className="text-ink/70 text-sm leading-relaxed mb-6">
-                    Bệnh viện Quảng Nam đăng tải công khai các thông báo mời thầu trên website.
+                    Bệnh Viện Đa Khoa Khu Vực Miền Núi Phía Bắc Quảng Nam đăng tải công khai các thông báo mời thầu trên website.
                     Nhà thầu vui lòng tải hồ sơ mời thầu có chữ ký số và đóng dấu đỏ của bệnh viện.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
@@ -382,7 +382,7 @@ export default function ThongTinThauPage() {
                       <span className="text-brand-green">📞</span> 02353.747.432
                     </span>
                     <span className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm">
-                      <span className="text-brand-green">📍</span> 123 Đường XYZ, TP. Quảng Nam
+                      <span className="text-brand-green">📍</span> 107 Quang Trung, Xã Đại Lộc, TP. Đà Nẵng
                     </span>
                   </div>
                 </div>

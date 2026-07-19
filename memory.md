@@ -1,6 +1,24 @@
 # Refactoring Memory - BVĐK Website
 
-## 📌 Tổng Quan Dự Án
+## 📌 THÔNG TIN BỆNH VIỆN
+
+## Tên đầy đủ
+**Bệnh Viện Đa Khoa Khu Vực Miền Núi Phía Bắc Quảng Nam**
+
+## Địa chỉ
+107 Quang Trung, Xã Đại Lộc, Thành Phố Đà Nẵng
+
+## Lãnh đạo
+
+| Chức vụ | Họ tên |
+|---------|--------|
+| Giám đốc | Nhà Thuốc Ưu Tú. BS CKII Nguyễn Thống Nhất |
+| Phó Giám đốc | BSCK II Lê Minh Dũng |
+| Phó Giám đốc | BS CKII Nguyễn Đình Hoàng |
+
+---
+
+# 📌 Tổng Quan Dự Án
 
 Dự án Website BVĐK sử dụng:
 
@@ -496,6 +514,26 @@ Cleanup đã thực hiện:
 - Thay text mô tả bằng thông tin chung (không phải quy trình)
 - 3 cards lưu ý: Chữ ký số + Cổng đấu thầu quốc gia + Liên hệ hỗ trợ
 - Giữ nguyên contact info
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
+### Cập nhật Thông Tin Bệnh Viện (2026-07-19)
+
+**Files affected:**
+- src/pages/ThongTinThauPage.tsx
+- src/pages/SoDoToChucPage.tsx
+- src/pages/GioiThieuPage.tsx
+- src/pages/LienHePage.tsx
+- src/pages/ChoBenhNhanPage.tsx
+- src/components/public/Organization.tsx
+
+**Đã sửa:**
+- Tên bệnh viện: "Bệnh Viện Đa Khoa Khu Vực Miền Núi Phía Bắc Quảng Nam"
+- Địa chỉ: "107 Quang Trung, Xã Đại Lộc, TP. Đà Nẵng"
+- Giám đốc: "BS CKII Nguyễn Thống Nhất"
+- Phó Giám đốc: "BSCK II Lê Minh Dũng", "BS CKII Nguyễn Đình Hoàng"
 
 **Commands:** npm run lint - Passed, npm run build - Passed
 

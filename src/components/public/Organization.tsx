@@ -65,28 +65,28 @@ export default function Organization() {
 
 const directors: Member[] = [
     {
-      name: "PGS. TS. BS. Trần Văn Trình",
-      title: "Thầy thuốc Nhân dân - Giám đốc Bệnh viện",
+      name: "BS CKII Nguyễn Thống Nhất",
+      title: "Giám đốc Bệnh viện Đa Khoa Khu Vực Miền Núi Phía Bắc Quảng Nam",
       role: "Chỉ đạo chung, phụ trách Chiến lược phát triển, Nhân sự cấp cao và Hợp tác quốc tế.",
       image: "/images/components/org-1.jpeg",
       quote: "Đặt y đức và sự hài lòng của bệnh nhân làm kim chỉ nam cho mọi hoạt động điều trị.",
-      email: "tranvantrinh.director@mnpb.gov.vn"
+      email: "bvdk.mientruibac@gmail.com"
     },
     {
-      name: "BSCKII. Nguyễn Thị Minh Tuyết",
-      title: "Thầy thuốc Ưu tú - Phó Giám đốc Lâm sàng",
+      name: "BSCK II Lê Minh Dũng",
+      title: "Phó Giám đốc",
       role: "Phụ trách chuyên môn điều trị, Đội ngũ Y bác sĩ, Hội đồng Khoa học và Kiểm soát nhiễm khuẩn.",
       image: "/images/components/org-2.jpeg",
       quote: "Chất lượng lâm sàng quyết định sự sống còn và uy tín của một cơ sở y tế.",
-      email: "minhtuyet.clinical@mnpb.gov.vn"
+      email: "bvdk.mientruibac@gmail.com"
     },
     {
-      name: "ThS. BS. Lê Phan Quốc Bảo",
-      title: "Phó Giám đốc Kế hoạch - Hành chính & Vật tư",
+      name: "BS CKII Nguyễn Đình Hoàng",
+      title: "Phó Giám đốc",
       role: "Phụ trách cơ sở vật chất, Trang thiết bị y tế hiện đại, Công nghệ thông tin và Công tác xã hội.",
       image: "/images/components/org-3.jpeg",
       quote: "Hạ tầng hiện đại, quy trình tinh gọn là bệ đỡ vững chắc cho các y bác sĩ cứu người.",
-      email: "quocbao.admin@mnpb.gov.vn"
+      email: "bvdk.mientruibac@gmail.com"
     }
   ];
 
