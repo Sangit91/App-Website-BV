@@ -845,6 +845,18 @@ Fixed broken local image references:
 
 ---
 
+### ThongTinThauPage Toggle Animation Fix (2026-07-19)
+
+- Sửa animation rotation của nút thu gọn/b-expand department
+- Thay `rotate: isExpanded ? 180 : 0` → `rotate: isExpanded ? 90 : 0`
+- 180 độ khiến icon bị lộn ngược hoàn toàn
+
+Files affected: src/pages/ThongTinThauPage.tsx
+
+Commands: npm run lint - Passed, npm run build - Passed
+
+---
+
 ### TinTucPage Image Fixes (2026-07-19)
 
 - Sửa 2 đường dẫn ảnh bị sai trong TinTucPage.tsx

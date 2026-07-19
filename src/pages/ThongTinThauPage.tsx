@@ -211,7 +211,7 @@ export default function ThongTinThauPage() {
                       </div>
                       {hasTenders ? (
                         <motion.div
-                          animate={{ rotate: isExpanded ? 180 : 0 }}
+                          animate={{ rotate: isExpanded ? 90 : 0 }}
                           transition={{ duration: 0.3 }}
                           className="flex items-center gap-2 text-ink/50"
                         >
