@@ -503,6 +503,26 @@ Cleanup đã thực hiện:
 
 ## PHASE 16
 
+### TinTucPage - Modern Animation Redesign (Hoàn thành 2026-07-19)
+
+**Files affected:**
+- src/pages/TinTucPage.tsx
+- src/components/public/News.tsx
+
+**Đã thực hiện:**
+- Hero section với animated gradient mesh + floating shapes
+- Count-up animation cho stats (Bài viết, Chuyên khoa, Lượt xem, Giờ cập nhật)
+- Stagger animation cho news cards và tender cards
+- 3D tilt effect on hover cho các cards trong News component
+- Image zoom animation khi hover
+- Loại bỏ 2 cards cũ (Tin tuyển dụng, Thông tin đấu thầu) vì đã có trong News component
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
+## PHASE 15
+
 ### DichVuPage & ChoBenhNhanPage - Modern Animation Redesign (Hoàn thành 2026-07-19)
 
 **Files affected:**

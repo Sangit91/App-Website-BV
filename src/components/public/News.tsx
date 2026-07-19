@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef, MouseEvent, ElementType } from "react";
+import { motion, useInView, useMotionValue } from "framer-motion";
 import { Calendar, ArrowRight, X, Printer, Download, Eye, FileText, Clock, Share2, Layers, ShieldCheck, AlertCircle, CheckCircle, Phone, MapPin } from "lucide-react";
 import { useHospital } from "../../context/HospitalContext";
 import { NewsItem, TenderStatus } from "../../types";
@@ -48,6 +49,64 @@ function getStatusBadge(status: TenderStatus) {
     case "Đã đóng":
       return { bg: "bg-gray-400", text: "text-white", label: "ĐÃ KẾT THÚC" };
   }
+}
+
+interface AnimatedCardProps {
+  key?: string;
+  children: React.ReactNode;
+  index: number;
+}
+
+function AnimatedCard({ children, index }: AnimatedCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(cardRef, { once: true, margin: "-50px" });
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
+
+  const handleMouseMoveInner = (e: MouseEvent<HTMLDivElement>) => {
+    handleMouseMove(e);
+    rotateX.set((e.nativeEvent.offsetY / (cardRef.current?.offsetHeight || 1) - 0.5) * 8);
+    rotateY.set((e.nativeEvent.offsetX / (cardRef.current?.offsetWidth || 1) - 0.5) * -8);
+  };
+
+  return (
+    <motion.div
+      ref={cardRef}
+      initial={{ opacity: 0, y: 60 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+      style={{ perspective: "1000px" }}
+      onMouseMove={handleMouseMoveInner}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => { setIsHovered(false); rotateX.set(0); rotateY.set(0); }}
+      className="group cursor-pointer"
+    >
+      <motion.div
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: "preserve-3d"
+        }}
+        animate={isHovered ? { scale: 1.02 } : { scale: 1 }}
+        className="h-full"
+      >
+        {children}
+      </motion.div>
+    </motion.div>
+  );
 }
 
 export default function News() {
@@ -179,28 +238,30 @@ export default function News() {
 
         {activeMainTab === "news" ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {news.filter(item => !item.isTender).map((item) => {
+            {news.filter(item => !item.isTender).map((item, idx) => {
               const isTender = isTenderPost(item);
               return (
-                <article
-                  key={item.id}
-                  onClick={() => handleOpenReader(item)}
-                  className="bg-white border border-green-800/5 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col group h-full text-left cursor-pointer hover:border-brand-green/30"
-                >
-                  <div className="relative aspect-[16/10] overflow-hidden bg-mint/20 shrink-0">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      referrerPolicy="no-referrer"
-                    />
-                    {isTender && (
-                      <div className="absolute top-3 left-3 bg-[#164B36] text-[#EAF7EE] font-mono text-[10px] font-bold py-1 px-3 rounded-full flex items-center gap-1.5 shadow">
-                        <span className="w-2 h-2 bg-peach rounded-full animate-pulse"></span>
-                        MỜI THẦU / KHẨN
-                      </div>
-                    )}
-                  </div>
+                <AnimatedCard key={item.id} index={idx}>
+                  <article
+                    onClick={() => handleOpenReader(item)}
+                    className="bg-white border border-green-800/5 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col group h-full text-left cursor-pointer hover:border-brand-green/30"
+                  >
+                    <div className="relative aspect-[16/10] overflow-hidden bg-mint/20 shrink-0">
+                      <motion.img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ duration: 0.5 }}
+                      />
+                      {isTender && (
+                        <div className="absolute top-3 left-3 bg-[#164B36] text-[#EAF7EE] font-mono text-[10px] font-bold py-1 px-3 rounded-full flex items-center gap-1.5 shadow">
+                          <span className="w-2 h-2 bg-peach rounded-full animate-pulse"></span>
+                          MỜI THẦU / KHẨN
+                        </div>
+                      )}
+                    </div>
 
                   <div className="p-6 flex-grow flex flex-col justify-between">
                     <div className="space-y-3">
@@ -229,6 +290,7 @@ export default function News() {
                     </div>
                   </div>
                 </article>
+                </AnimatedCard>
               );
             })}
           </div>
@@ -287,21 +349,23 @@ export default function News() {
 
               {tendersWithStatus.filter(n => n.tenderDept === activeTenderDept).length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {tendersWithStatus.filter(n => n.tenderDept === activeTenderDept).map((item) => {
+                  {tendersWithStatus.filter(n => n.tenderDept === activeTenderDept).map((item, idx) => {
                     const statusBadge = getStatusBadge(item.tenderStatus);
                     return (
-                      <article
-                        key={item.id}
-                        onClick={() => handleOpenReader(item)}
-                        className="bg-white border border-green-800/5 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col group text-left cursor-pointer hover:border-brand-green/30"
-                      >
-                        <div className="relative aspect-[16/10] overflow-hidden bg-mint/20 shrink-0">
-                          <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            referrerPolicy="no-referrer"
-                          />
+                      <AnimatedCard key={item.id} index={idx}>
+                        <article
+                          onClick={() => handleOpenReader(item)}
+                          className="bg-white border border-green-800/5 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col group text-left cursor-pointer hover:border-brand-green/30"
+                        >
+                          <div className="relative aspect-[16/10] overflow-hidden bg-mint/20 shrink-0">
+                            <motion.img
+                              src={item.image}
+                              alt={item.title}
+                              className="w-full h-full object-cover"
+                              referrerPolicy="no-referrer"
+                              whileHover={{ scale: 1.05 }}
+                              transition={{ duration: 0.5 }}
+                            />
                           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
                             <span className={`${statusBadge.bg} ${statusBadge.text} font-mono text-[9px] font-bold py-1 px-2.5 rounded-full flex items-center gap-1 shadow`}>
                               {item.tenderStatus === "Đang mở" && <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>}
@@ -339,6 +403,7 @@ export default function News() {
                           </div>
                         </div>
                       </article>
+                      </AnimatedCard>
                     );
                   })}
                 </div>
