@@ -29,7 +29,7 @@ export default function TinTucPage() {
               <div className="bg-white border border-green-800/5 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer hover:border-brand-green/30">
                 <div className="relative h-48 overflow-hidden">
                   <img
-                    src="/images/pages/news-placeholder.jpeg"
+                    src="/images/components/news-placeholder.jpeg"
                     alt="Tin tuyển dụng"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
@@ -56,7 +56,7 @@ export default function TinTucPage() {
               >
                 <div className="relative h-48 overflow-hidden">
                   <img
-                    src="/images/pages/chi-phi-1.jpeg"
+                    src="/images/pages/chiphi-1.jpeg"
                     alt="Thông tin đấu thầu"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
