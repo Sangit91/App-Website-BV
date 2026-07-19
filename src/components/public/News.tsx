@@ -185,7 +185,7 @@ export default function News() {
                 <article
                   key={item.id}
                   onClick={() => handleOpenReader(item)}
-                  className="bg-white border border-green-800/[0.04] rounded-[20px] overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group h-full text-left cursor-pointer"
+                  className="bg-white border border-green-800/5 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col group h-full text-left cursor-pointer hover:border-brand-green/30"
                 >
                   <div className="relative aspect-[16/10] overflow-hidden bg-mint/20 shrink-0">
                     <img
@@ -293,7 +293,7 @@ export default function News() {
                       <article
                         key={item.id}
                         onClick={() => handleOpenReader(item)}
-                        className="bg-white border border-green-800/[0.04] rounded-[20px] overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col group text-left cursor-pointer"
+                        className="bg-white border border-green-800/5 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col group text-left cursor-pointer hover:border-brand-green/30"
                       >
                         <div className="relative aspect-[16/10] overflow-hidden bg-mint/20 shrink-0">
                           <img

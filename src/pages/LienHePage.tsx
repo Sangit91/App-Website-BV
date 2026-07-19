@@ -44,7 +44,7 @@ export default function LienHePage() {
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <ScrollAnimation animation="slide-right">
-              <div className="bg-white border border-green-800/[0.04] rounded-[20px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+              <div className="bg-white border border-green-800/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
                 <img
                   src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&h=600&fit=crop"
                   alt="Bệnh viện mặt tiền"
@@ -102,7 +102,7 @@ export default function LienHePage() {
             </ScrollAnimation>
 
             <ScrollAnimation animation="slide-left">
-              <div className="bg-white border border-green-800/[0.04] rounded-[20px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+              <div className="bg-white border border-green-800/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
                 <div className="relative h-48 overflow-hidden bg-mint/30">
                   <img
                     src="https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=800&h=600&fit=crop"
@@ -204,7 +204,7 @@ export default function LienHePage() {
           </div>
 
           <ScrollAnimation animation="fade-up" className="mt-12">
-            <div className="bg-white border border-green-800/[0.04] rounded-[20px] p-8 shadow-sm">
+            <div className="bg-white border border-green-800/5 rounded-2xl p-8 shadow-sm">
               <h2 className="font-display font-bold text-xl text-green-dark mb-4 text-center">Bản đồ vị trí</h2>
               <div className="bg-mint/30 rounded-xl overflow-hidden h-64 flex items-center justify-center">
                 <img

@@ -120,7 +120,7 @@ export default function ChuyenKhoaPage() {
                   <ScrollAnimation
                     animation="fade-up"
                     delay={idx * 50}
-                    className="bg-white border border-green-800/[0.04] rounded-[20px] overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col group"
+                    className="bg-white border border-green-800/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col group cursor-pointer hover:border-brand-green/30"
                   >
                     <div className="relative h-48 overflow-hidden">
                       <img

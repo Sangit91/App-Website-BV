@@ -26,7 +26,7 @@ export default function TinTucPage() {
 
           <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
             <ScrollAnimation animation="fade-up" delay={100}>
-              <div className="bg-white border border-green-800/[0.04] rounded-[20px] overflow-hidden hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
+              <div className="bg-white border border-green-800/5 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer hover:border-brand-green/30">
                 <div className="relative h-48 overflow-hidden">
                   <img
                     src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop"
@@ -52,7 +52,7 @@ export default function TinTucPage() {
             <ScrollAnimation animation="fade-up" delay={200}>
               <Link
                 to="/thong-tin-thau"
-                className="block bg-white border border-green-800/[0.04] rounded-[20px] overflow-hidden hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300"
+                className="block bg-white border border-green-800/5 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer hover:border-brand-green/30"
               >
                 <div className="relative h-48 overflow-hidden">
                   <img

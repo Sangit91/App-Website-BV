@@ -74,7 +74,7 @@ export default function SoDoToChucPage() {
               {departments.map((dept, idx) => (
                 <div key={dept.name}>
                   <ScrollAnimation animation="fade-up" delay={idx * 100}>
-                    <div className="bg-white border border-green-800/[0.04] rounded-[20px] overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col group">
+                    <div className="bg-white border border-green-800/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col group cursor-pointer hover:border-brand-green/30">
                       <div className="relative h-40 overflow-hidden">
                         <img
                           src={dept.img}

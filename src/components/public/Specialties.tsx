@@ -103,7 +103,7 @@ export default function Specialties() {
             return (
               <div
                 key={spec.id}
-                className="bg-white border border-green-800/[0.04] p-6 rounded-[20px] shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between text-left group"
+                className="bg-white border border-green-800/5 p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between text-left group cursor-pointer hover:border-brand-green/30"
               >
                 <div>
                   {/* Squircle Badge icon container (Radius Small - 14px, size 50px) */}

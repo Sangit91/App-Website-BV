@@ -163,7 +163,7 @@ export default function GioiThieuPage() {
             {facilities.map((facility, idx) => (
               <div key={facility.title}>
                 <ScrollAnimation animation="fade-up" delay={idx * 100}>
-                  <div className="bg-white border border-green-800/[0.04] rounded-[20px] overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col group">
+                  <div className="bg-white border border-green-800/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col group cursor-pointer hover:border-brand-green/30">
                     <div className="relative h-48 overflow-hidden">
                       <img
                         src={facility.image}
@@ -228,7 +228,7 @@ export default function GioiThieuPage() {
             ].map((item, idx) => (
               <div key={item.num}>
                 <ScrollAnimation animation="fade-up" delay={idx * 100}>
-                  <div className="bg-white border border-green-800/[0.04] rounded-[20px] overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col group">
+                  <div className="bg-white border border-green-800/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col group cursor-pointer hover:border-brand-green/30">
                     <div className="relative h-48 overflow-hidden">
                       <img src={item.img} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
                     </div>

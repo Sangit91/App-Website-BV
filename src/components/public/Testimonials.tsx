@@ -29,7 +29,7 @@ export default function Testimonials() {
           {TESTIMONIALS.map((testi) => (
             <div
               key={testi.id}
-              className="bg-white border border-green-800/[0.03] p-6 rounded-[20px] shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between text-left relative group overflow-hidden"
+              className="bg-white border border-green-800/5 p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between text-left relative group overflow-hidden cursor-pointer hover:border-brand-green/30"
             >
               {/* Quote Icon Background Accent */}
               <Quote className="absolute right-6 top-6 text-mint/50 w-12 h-12 -z-10 group-hover:scale-110 transition-transform duration-300" />

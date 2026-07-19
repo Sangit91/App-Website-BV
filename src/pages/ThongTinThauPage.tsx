@@ -176,7 +176,7 @@ export default function ThongTinThauPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="bg-white border border-green-800/[0.04] rounded-[20px] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
+                    className="bg-white border border-green-800/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
                   >
                     <button
                       onClick={() => toggleDept(dept.id)}
