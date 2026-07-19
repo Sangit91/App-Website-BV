@@ -51,6 +51,108 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
     }, 150);
   };
 
+  const menuRoutes: Record<string, string> = {
+    "gioi-thieu": "/gioi-thieu",
+    "chuyen-khoa": "/chuyen-khoa",
+    "dich-vu": "/dich-vu",
+    "benh-nhan": "/cho-benh-nhan",
+    "tin-tuc": "/tin-tuc"
+  };
+
+  // Link to section mapping for mega menu navigation
+  const linkSections: Record<string, string> = {
+    // Gioi Thieu
+    "Tại sao lại chọn Bệnh viện": "/gioi-thieu#ve-chung-toi",
+    "Đối tác của Bệnh viện": "/gioi-thieu#ve-chung-toi",
+    "Ban Giám Đốc": "/so-do-to-chuc",
+    "Sơ đồ tổ chức": "/so-do-to-chuc",
+    "Cơ sở – Trang thiết bị": "/gioi-thieu#co-so-vat-chat",
+    "Hình ảnh bệnh viện": "/gioi-thieu#co-so-vat-chat",
+    "Tiện nghi – sang trọng": "/gioi-thieu#co-so-vat-chat",
+    "Quy trình chăm sóc khép kín": "/gioi-thieu#quy-trinh-cham-soc",
+    "Hướng dẫn đặt khám nhanh": "/gioi-thieu#quy-trinh-cham-soc",
+    "Hỗ trợ bảo hiểm trực tiếp": "/gioi-thieu#quy-trinh-cham-soc",
+    // Chuyen Khoa
+    "Ngoại & Cấp cứu": "/chuyen-khoa#ngoai-cap-cuu",
+    "Khoa Ngoại chung": "/chuyen-khoa#ngoai-cap-cuu",
+    "Khoa Răng Hàm Mặt": "/chuyen-khoa#ngoai-cap-cuu",
+    "Khoa Tai – Mũi – Họng": "/chuyen-khoa#ngoai-cap-cuu",
+    "Khoa Hồi sức tích cực ICU": "/chuyen-khoa#ngoai-cap-cuu",
+    "Khoa ung bướu": "/chuyen-khoa#ngoai-cap-cuu",
+    "Nội tổng quát": "/chuyen-khoa#noi-tong-quat",
+    "Khoa Nội chung": "/chuyen-khoa#noi-tong-quat",
+    "Khoa Tim mạch": "/chuyen-khoa#noi-tong-quat",
+    "Khoa Nội tiết": "/chuyen-khoa#noi-tong-quat",
+    "Khoa Thận nhân tạo": "/chuyen-khoa#noi-tong-quat",
+    "Khoa Cơ Xương Khớp": "/chuyen-khoa#noi-tong-quat",
+    "Khoa Da Liễu": "/chuyen-khoa#noi-tong-quat",
+    "Khoa Tâm lý & Sức khỏe": "/chuyen-khoa#noi-tong-quat",
+    "Sản & Nhi": "/chuyen-khoa#san-nhi",
+    "Khoa Sản phụ khoa": "/chuyen-khoa#san-nhi",
+    "Khoa Nhi & Sơ sinh": "/chuyen-khoa#san-nhi",
+    "Khoa Thẩm mỹ và chăm sóc trị liệu": "/chuyen-khoa#san-nhi",
+    "Cận lâm sàng": "/chuyen-khoa#can-lam-sang",
+    "Khoa Dược": "/chuyen-khoa#can-lam-sang",
+    "Khoa Mắt": "/chuyen-khoa#can-lam-sang",
+    "Khoa Xét nghiệm và Giải phẫu": "/chuyen-khoa#can-lam-sang",
+    "Khoa Y tế dự phòng": "/chuyen-khoa#can-lam-sang",
+    "Khoa Chẩn đoán hình ảnh": "/chuyen-khoa#can-lam-sang",
+    // Dich Vu
+    "Dịch vụ trọn gói": "/dich-vu#dich-vu-tron-goi",
+    "Kiến thức thai sản": "/dich-vu#dich-vu-tron-goi",
+    "Điều trị vô sinh, hiếm muộn": "/dich-vu#dich-vu-tron-goi",
+    "Dịch vụ thai sản và sinh trọn gói": "/dich-vu#dich-vu-tron-goi",
+    "Tại nhà & Vận chuyển": "/dich-vu#tai-nha-van-chuyen",
+    "Dịch vụ khám tại nhà": "/dich-vu#tai-nha-van-chuyen",
+    "Dịch vụ vận chuyển cấp cứu": "/dich-vu#tai-nha-van-chuyen",
+    "Khám bệnh và xét nghiệm tại nhà": "/dich-vu#tai-nha-van-chuyen",
+    "Tiêm chủng": "/dich-vu#tiem-chung",
+    "Tiêm chủng – Vaccine": "/dich-vu#tiem-chung",
+    "Dịch vụ tiêm chủng": "/dich-vu#tiem-chung",
+    "Tiêm vaccine tại Bệnh viện": "/dich-vu#tiem-chung",
+    "Tư vấn tiêm chủng trẻ em": "/dich-vu#tiem-chung",
+    "Bảo hiểm & VIP": "/dich-vu#bao-hiem-vip",
+    "Bảo hiểm Bệnh viện": "/dich-vu#bao-hiem-vip",
+    "Dịch vụ VIP": "/dich-vu#bao-hiem-vip",
+    "Trung tâm Khám bệnh Quốc tế IMC": "/dich-vu#bao-hiem-vip",
+    "Tour Du lịch – Sức khỏe": "/dich-vu#bao-hiem-vip",
+    "Thẩm mỹ & Spa da liễu": "/dich-vu#bao-hiem-vip",
+    "Gói khám": "/dich-vu#goi-kham",
+    "Gói khám sức khỏe định kỳ": "/dich-vu#goi-kham",
+    "Khám sức khỏe công ty": "/dich-vu#goi-kham",
+    "Khám sức khỏe tổng quát cá nhân": "/dich-vu#goi-kham",
+    "Khám xuất khẩu lao động": "/dich-vu#goi-kham",
+    // Cho benh nhan
+    "Chi phí & Địa điểm": "/cho-benh-nhan#chi-phi-dia-diem",
+    "Chi phí điều trị công khai": "/cho-benh-nhan#chi-phi-dia-diem",
+    "Cơ sở điều trị": "/cho-benh-nhan#chi-phi-dia-diem",
+    "Danh mục thuốc BHYT": "/cho-benh-nhan#chi-phi-dia-diem",
+    "Hướng dẫn tiện ích": "/cho-benh-nhan#huong-dan-tien-ich",
+    "Dịch vụ điều trị": "/cho-benh-nhan#huong-dan-tien-ich",
+    "Dành cho bệnh nhân nội trú": "/cho-benh-nhan#huong-dan-tien-ich",
+    "Dành cho thăm khám ngoại trú": "/cho-benh-nhan#huong-dan-tien-ich",
+    "Cổng thông tin": "/cho-benh-nhan#cong-thong-tin",
+    "Tra cứu bệnh sử online": "/cho-benh-nhan#cong-thong-tin",
+    "Yêu cầu trích sao hồ sơ": "/cho-benh-nhan#cong-thong-tin",
+    "Góp ý chất lượng phục vụ": "/cho-benh-nhan#cong-thong-tin",
+    // Tin tuc
+    "Tin tuyển dụng nhân sự": "/tin-tuc",
+    "Thông tin sự kiện bệnh viện": "/tin-tuc",
+    "Ưu đãi – Giảm giá khám": "/tin-tuc",
+    "Lời khuyên cho sức khỏe": "/tin-tuc",
+    "Bác sĩ tư vấn trực tuyến": "/tin-tuc",
+    "Thư viện ảnh Gallery": "/tin-tuc",
+    "Thông báo thầu & Mua sắm công": "/thong-tin-thau",
+  };
+
+  const getLinkRoute = (link: string): string => {
+    return linkSections[link] || menuRoutes[hoveredMenu] || "/";
+  };
+
+  const getMobileLinkRoute = (link: string, menuId: string): string => {
+    return linkSections[link] || menuRoutes[menuId] || "/";
+  };
+
   const toggleMobileExpanded = (menuId: string) => {
     setMobileExpanded(prev => ({
       ...prev,
@@ -162,12 +264,12 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
   };
 
   const navItems = [
-    { label: "Trang chủ", id: "trang-chu", hasMega: false },
-    { label: "Giới thiệu", id: "gioi-thieu", hasMega: true, targetId: "gioi-thieu" },
-    { label: "Chuyên khoa", id: "chuyen-khoa", hasMega: true, targetId: "chuyen-khoa" },
-    { label: "Dịch vụ", id: "dich-vu", hasMega: true, targetId: "dich-vu" },
-    { label: "Cho bệnh nhân", id: "benh-nhan", hasMega: true, targetId: "hospital-header" },
-    { label: "Tin tức", id: "tin-tuc", hasMega: true, targetId: "tin-tuc" }
+    { label: "Trang chủ", id: "trang-chu", hasMega: false, route: "/" },
+    { label: "Giới thiệu", id: "gioi-thieu", hasMega: true, route: "/gioi-thieu" },
+    { label: "Chuyên khoa", id: "chuyen-khoa", hasMega: true, route: "/chuyen-khoa" },
+    { label: "Dịch vụ", id: "dich-vu", hasMega: true, route: "/dich-vu" },
+    { label: "Cho bệnh nhân", id: "benh-nhan", hasMega: true, route: "/cho-benh-nhan" },
+    { label: "Tin tức", id: "tin-tuc", hasMega: true, route: "/tin-tuc" }
   ];
 
   return (
@@ -182,8 +284,8 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
       <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10 flex justify-between items-center relative">
         
         {/* Logo and Hospital Name */}
-        <div 
-          onClick={() => handleLinkClick("trang-chu")} 
+        <div
+          onClick={() => handleLinkClick("/")}
           className="flex items-center space-x-2.5 cursor-pointer group select-none shrink-0 ml-1"
         >
           <HospitalLogo className="w-10 h-10 xl:w-11 xl:h-11 shrink-0 group-hover:scale-105 transition-transform duration-300" />
@@ -207,7 +309,7 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
               className="relative py-1.5"
             >
               <button
-                onClick={() => handleLinkClick(item.targetId || item.id)}
+                onClick={() => handleLinkClick(item.route || "/")}
                 className={`px-3 py-1.5 rounded-full text-[13px] xl:text-[14px] font-sans font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer flex items-center gap-1 ${
                   activeSection === item.id || hoveredMenu === item.id
                     ? "bg-[#EAF7EE] text-brand-green font-bold"
@@ -311,20 +413,12 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
                         <li key={linkIdx}>
                           <button
                             onClick={() => {
-                              // If it matches a category/section, scroll to it
-                              if (link === "Ban Giám Đốc" || link === "Sơ đồ tổ chức") {
-                                handleLinkClick("gioi-thieu");
-                              } else if (link.includes("Khoa") || link.includes("Chuyên khoa")) {
-                                handleLinkClick("chuyen-khoa");
-                              } else if (link.includes("thầu") || link.includes("Tin tức")) {
-                                handleLinkClick("tin-tuc");
-                              } else if (link.includes("Đặt khám") || link.includes("đặt khám")) {
+                              if (link.includes("Đặt khám") || link.includes("đặt khám")) {
                                 onOpenBooking();
                               } else if (link.includes("bệnh sử") || link.includes("Tra cứu")) {
-                                handleLinkClick("hospital-header");
                                 onOpenAI();
                               } else {
-                                handleLinkClick(hoveredMenu);
+                                handleLinkClick(getLinkRoute(link));
                               }
                             }}
                             className="font-sans text-[13px] text-gray-600 hover:text-brand-green font-medium flex items-center gap-1 transition-colors hover:translate-x-0.5 transform duration-150 cursor-pointer text-left w-full"
@@ -393,16 +487,12 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
                                 <button
                                   onClick={() => {
                                     setIsOpen(false);
-                                    if (link === "Ban Giám Đốc" || link === "Sơ đồ tổ chức") {
-                                      onNavClick("gioi-thieu");
-                                    } else if (link.includes("Khoa")) {
-                                      onNavClick("chuyen-khoa");
-                                    } else if (link.includes("đặt khám") || link.includes("Đặt khám")) {
+                                    if (link.includes("Đặt khám") || link.includes("đặt khám")) {
                                       onOpenBooking();
-                                    } else if (link.includes("bệnh sử")) {
+                                    } else if (link.includes("bệnh sử") || link.includes("Tra cứu")) {
                                       onOpenAI();
                                     } else {
-                                      onNavClick(item.targetId || item.id);
+                                      onNavClick(getMobileLinkRoute(link, item.id));
                                     }
                                   }}
                                   className="text-left w-full py-1 text-[12.5px] text-gray-600 hover:text-brand-green font-sans font-medium"

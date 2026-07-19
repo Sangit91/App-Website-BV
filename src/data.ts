@@ -156,6 +156,7 @@ export const NEWS: NewsItem[] = [
   },
   {
     id: "tender-1",
+    tenderNumber: "TB-2026-001/CNTT",
     title: "Yêu cầu báo giá: Nâng cấp hệ thống Switch trung tâm và tủ Rack bảo mật thông tin",
     summary: "Phòng CNTT thông báo mời thầu và nhận báo giá gói thầu nâng cấp hệ thống mạng switch trung tâm cho toàn viện.",
     tag: "Thông báo",
@@ -163,13 +164,20 @@ export const NEWS: NewsItem[] = [
     image: "https://images.pexels.com/photos/60504/security-protection-anti-virus-software-60504.jpeg?auto=compress&cs=tinysrgb&w=800",
     content: "Kính gửi: Các đơn vị cung ứng giải pháp và hạ tầng mạng viễn thông.\n\nPhòng Công nghệ thông tin - Bệnh viện Đa khoa Khu vực Miền Núi Phía Bắc Quảng Nam xin thông báo mời báo giá cho gói thầu mua sắm, lắp đặt và cấu hình hệ thống Switch trung tâm (Core Switch) phục vụ mở rộng mạng LAN nội bộ.\n\nYêu cầu kỹ thuật: Thiết bị chính hãng mới 100%, bảo hành tối thiểu 24 tháng, hỗ trợ kết nối quang đa sợi tốc độ 10Gbps.\n\nMọi chi tiết xin vui lòng xem tài liệu kỹ thuật đính kèm bên dưới.",
     isTender: true,
+    tenderMethod: "Mua sắm trực tiếp",
+    tenderEstimateValue: "350.000.000 VNĐ",
     tenderStartDate: "09:00:00 ngày 15/07/2026",
     tenderEndDate: "17:00:00 ngày 25/07/2026",
     tenderDept: "PHÒNG CNTT",
-    tenderFile: { name: "Yêu_cầu_báo_giá_Switch_CNTT_2026.pdf", size: "1.8 MB" }
+    tenderReceivedLocation: "Phòng Công nghệ thông tin - Tầng 3 Nhà A",
+    tenderContact: "Nguyễn Văn Minh",
+    tenderContactPhone: "02353.747.432 (máy lẻ 301)",
+    tenderFile: { name: "Yêu_cầu_báo_giá_Switch_CNTT_2026.pdf", size: "1.8 MB" },
+    tenderDownloadCount: 24
   },
   {
     id: "tender-2",
+    tenderNumber: "TB-2026-002/VTTBYT",
     title: "Mời thầu mua sắm: Hệ thống phẫu thuật nội soi khớp và dao mổ siêu âm thế hệ mới",
     summary: "Phòng Vật tư Thiết bị Y tế thông báo mời thầu gói cung cấp trang thiết bị phẫu thuật nội soi hiện đại năm 2026.",
     tag: "Thông báo",
@@ -177,13 +185,20 @@ export const NEWS: NewsItem[] = [
     image: "https://images.pexels.com/photos/4225880/pexels-photo-4225880.jpeg?auto=compress&cs=tinysrgb&w=800",
     content: "Kính gửi: Các nhà thầu cung cấp trang thiết bị y tế đủ năng lực hành nghề pháp lý.\n\nPhòng Vật tư Thiết bị Y tế thông báo mời thầu rộng rãi gói thầu mua sắm 'Hệ thống phẫu thuật nội soi khớp gối và dao mổ siêu âm hỗ trợ điều trị ngoại khoa'.\n\nNguồn vốn: Ngân sách nhà nước và quỹ phát triển hoạt động sự nghiệp của bệnh viện.\n\nHồ sơ dự thầu cần nộp trực tiếp tại phòng Vật tư trước thời điểm khóa thầu quy định.",
     isTender: true,
+    tenderMethod: "Đấu thầu rộng rãi",
+    tenderEstimateValue: "2.850.000.000 VNĐ",
     tenderStartDate: "08:00:00 ngày 14/07/2026",
     tenderEndDate: "11:30:00 ngày 28/07/2026",
     tenderDept: "PHÒNG VTTBYT",
-    tenderFile: { name: "HSMT_ThietBi_NoiSoi_2026.pdf", size: "3.2 MB" }
+    tenderReceivedLocation: "Phòng Vật tư Thiết bị Y tế - Tầng 2 Nhà B",
+    tenderContact: "Trần Thị Hương",
+    tenderContactPhone: "02353.747.432 (máy lẻ 201)",
+    tenderFile: { name: "HSMT_ThietBi_NoiSoi_2026.pdf", size: "3.2 MB" },
+    tenderDownloadCount: 42
   },
   {
     id: "tender-3",
+    tenderNumber: "TB-2026-003/XN",
     title: "Mời thầu: Cung ứng hóa chất xét nghiệm miễn dịch tự động và sinh phẩm chẩn đoán",
     summary: "Khoa Xét nghiệm kính mời báo giá cung cấp hóa chất và sinh phẩm xét nghiệm phục vụ điều trị lâm sàng.",
     tag: "Thông báo",
@@ -191,13 +206,20 @@ export const NEWS: NewsItem[] = [
     image: "https://images.pexels.com/photos/2280571/pexels-photo-2280571.jpeg?auto=compress&cs=tinysrgb&w=800",
     content: "Kính gửi: Các doanh nghiệp cung cấp hóa chất, vật tư xét nghiệm lâm sàng.\n\nKhoa Xét nghiệm tổ chức tiếp nhận báo giá và hồ sơ năng lực của các đơn vị đối với danh mục 42 loại hóa chất xét nghiệm miễn dịch tự động thế hệ mới.\n\nThời gian nộp hồ sơ xin tuân thủ đúng quy định mở thầu và đóng thầu của bệnh viện miền núi phía Bắc Quảng Nam.",
     isTender: true,
+    tenderMethod: "Mua sắm trực tiếp",
+    tenderEstimateValue: "680.000.000 VNĐ",
     tenderStartDate: "08:30:00 ngày 15/07/2026",
     tenderEndDate: "17:00:00 ngày 30/07/2026",
     tenderDept: "XÉT NGHIỆM",
-    tenderFile: { name: "Danh_muc_hoa_chat_xet_nghiem.pdf", size: "2.1 MB" }
+    tenderReceivedLocation: "Khoa Xét nghiệm - Tầng 1 Nhà C",
+    tenderContact: "BS. Lê Thị Lan",
+    tenderContactPhone: "02353.747.432 (máy lẻ 101)",
+    tenderFile: { name: "Danh_muc_hoa_chat_xet_nghiem.pdf", size: "2.1 MB" },
+    tenderDownloadCount: 18
   },
   {
     id: "tender-4",
+    tenderNumber: "TB-2026-004/DƯỢC",
     title: "Thông báo mời thầu: Cung cấp thuốc biệt dược và dịch truyền y khoa đợt III",
     summary: "Khoa Dược thông báo đấu thầu rộng rãi danh mục thuốc thiết yếu và dịch truyền chất lượng cao.",
     tag: "Thông báo",
@@ -205,10 +227,16 @@ export const NEWS: NewsItem[] = [
     image: "https://images.pexels.com/photos/3652103/pexels-photo-3652103.jpeg?auto=compress&cs=tinysrgb&w=800",
     content: "Kính gửi: Các công ty dược phẩm, cơ sở phân phối dược chất lượng cao trong nước.\n\nKhoa Dược - Bệnh viện Đa khoa Khu vực Miền Núi Phía Bắc Quảng Nam thông báo kế hoạch lựa chọn nhà thầu cung ứng thuốc biệt dược gốc, dịch truyền y khoa năm tài chính 2026.\n\nYêu cầu hồ sơ chứng minh xuất xứ nguồn gốc sản phẩm, giấy phép lưu hành hợp lệ do Bộ Y tế Việt Nam cấp phép còn hiệu lực.",
     isTender: true,
+    tenderMethod: "Đấu thầu rộng rãi",
+    tenderEstimateValue: "1.250.000.000 VNĐ",
     tenderStartDate: "09:00:00 ngày 12/07/2026",
     tenderEndDate: "15:00:00 ngày 26/07/2026",
     tenderDept: "DƯỢC",
-    tenderFile: { name: "HSMT_Thuoc_DichTruyen_Dot3.pdf", size: "4.5 MB" }
+    tenderReceivedLocation: "Khoa Dược - Tầng 1 Nhà A",
+    tenderContact: "DS. Phạm Văn Hùng",
+    tenderContactPhone: "02353.747.432 (máy lẻ 102)",
+    tenderFile: { name: "HSMT_Thuoc_DichTruyen_Dot3.pdf", size: "4.5 MB" },
+    tenderDownloadCount: 31
   }
 ];
 

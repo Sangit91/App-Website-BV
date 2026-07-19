@@ -4,7 +4,7 @@
 @theme {
   --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
-  
+
   --color-cream-white: #FCFBF7;
   --color-brand-green: #2FA968;
   --color-green-dark: #164B36;
@@ -32,3 +32,75 @@ body {
 .blob-mask {
   border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
 }
+
+/* Scroll Animation Classes */
+.scroll-fade-up {
+  transform: translateY(30px);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease-out;
+}
+
+.scroll-fade-in {
+  opacity: 0;
+  transition: opacity 0.6s ease-out;
+}
+
+.scroll-slide-left {
+  transform: translateX(40px);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease-out;
+}
+
+.scroll-slide-right {
+  transform: translateX(-40px);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease-out;
+}
+
+.scroll-scale-up {
+  transform: scale(0.95);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease-out;
+}
+
+.animate-in.scroll-fade-up,
+.animate-in.scroll-slide-left,
+.animate-in.scroll-slide-right,
+.animate-in.scroll-scale-up {
+  opacity: 1;
+  transform: translateY(0) translateX(0) scale(1);
+}
+
+.animate-in.scroll-fade-in {
+  opacity: 1;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Page transition overrides */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease-out, transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.page-transition-exit {
+  opacity: 1;
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 200ms ease-in, transform 200ms ease-in;
+}
+
+/* Stagger animation delays */
+.stagger-1 { transition-delay: 100ms; }
+.stagger-2 { transition-delay: 200ms; }
+.stagger-3 { transition-delay: 300ms; }
+.stagger-4 { transition-delay: 400ms; }
+.stagger-5 { transition-delay: 500ms; }

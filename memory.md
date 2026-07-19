@@ -4,9 +4,79 @@
 Dự án bệnh viện React với TypeScript + Vite + Tailwind CSS, được refactor để cải thiện maintainability và structure.
 
 ## Backup Location
-- **Path:** `D:\Coding\App Website BV_backup_20260717_075747`
-- **Files backed up:** 31 files (src/, server.ts, config files, .gitignore)
+- **Path:** `D:\Coding\code backup\App Website BV_20260718_192527`
+- **Files backed up:** src/, server/, public/, dist/, config files
 - **Note:** Không backup node_modules (có thể recreate bằng `npm install`)
+
+### All Backups
+- `D:\Coding\code backup\App Website BV_20260719_131807` (latest - before tender fix)
+- `D:\Coding\code backup\App Website BV_20260718_192527`
+- `D:\Coding\code backup\App Website BV_20260718_182929`
+- `D:\Coding\code backup\App Website BV_20260718_181829`
+- `D:\Coding\App Website BV_backup_20260717_075747`
+
+---
+
+## 🚧 PHASE 10: Routing Refactor + Animations (ĐÃ HOÀN THÀNH)
+
+### Mục tiêu
+Tách homepage thành các trang con riêng biệt, thêm sections tương ứng với mega menu, và hiệu ứng animation mượt mà.
+
+### Routing Structure
+
+| Route | Component | Sections |
+|-------|-----------|----------|
+| `/` | HomePage | Hero + QuickActions + All sections |
+| `/gioi-thieu` | GioiThieuPage | #ve-chung-toi, #co-so-vat-chat, #quy-trinh-cham-soc |
+| `/chuyen-khoa` | ChuyenKhoaPage | #ngoai-cap-cuu, #noi-tong-quat, #san-nhi, #can-lam-sang |
+| `/dich-vu` | DichVuPage | #dich-vu-tron-goi, #tai-nha-van-chuyen, #tiem-chung, #bao-hiem-vip, #goi-kham |
+| `/dich-vu/thong-tin-thau` | ThongTinThauPage | - |
+| `/cho-benh-nhan` | ChoBenhNhanPage | #chi-phi-dia-diem, #huong-dan-tien-ich, #cong-thong-tin |
+| `/tin-tuc` | TinTucPage | - |
+| `/so-do-to-chuc` | SoDoToChucPage | - |
+| `/lien-he` | LienHePage | - |
+| `/admin` | AdminPage | - |
+
+### Mega Menu Link-to-Section Navigation
+Navbar mega menu links navigate to correct page + section hash. Full mapping in Navbar.tsx `linkSections` object.
+
+### PHASE 10b: Image Additions (2026-07-18)
+Thêm hình ảnh placeholder (picsum.photos) vào tất cả các trang:
+
+| Trang | Hình ảnh đã thêm |
+|-------|------------------|
+| GioiThieuPage | Hero image, 3 facility images, 3 director avatars, 3 process images |
+| ChuyenKhoaPage | 4 department hero images, 20+ department images |
+| DichVuPage | 5 category hero images, 20+ service images |
+| ChoBenhNhanPage | 3 section hero images, 9 info item images |
+| SoDoToChucPage | 3 director avatars, 3 department images |
+| LienHePage | Hospital exterior, map image, contact form header |
+| TinTucPage | Recruitment image, tender image |
+| ThongTinThauPage | 3 tender images, bidding guide header |
+
+### Files tạo mới
+- `src/pages/HomePage.tsx` - Homepage với đầy đủ sections + navigation links
+- `src/pages/GioiThieuPage.tsx` - 3 sections: Về chúng tôi, Cơ sở vật chất, Quy trình chăm sóc
+- `src/pages/ChuyenKhoaPage.tsx` - 4 sections: Ngoại & Cấp cứu, Nội tổng quát, Sản & Nhi, Cận lâm sàng
+- `src/pages/DichVuPage.tsx` - 5 sections: Trọn gói, Tại nhà & Vận chuyển, Tiêm chủng, Bảo hiểm & VIP, Gói khám
+- `src/pages/ThongTinThauPage.tsx`
+- `src/pages/ChoBenhNhanPage.tsx` - 3 sections: Chi phí & Địa điểm, Hướng dẫn tiện ích, Cổng thông tin
+- `src/pages/TinTucPage.tsx`
+- `src/pages/SoDoToChucPage.tsx`
+- `src/pages/LienHePage.tsx`
+- `src/components/layout/Layout.tsx` - Shared layout wrapper
+- `src/components/layout/PageTransition.tsx` - Page transition animations
+- `src/components/ui/ScrollAnimation.tsx` - Scroll-triggered animations với Intersection Observer
+
+### Files sửa
+- `src/App.tsx` - Thêm routes mới
+- `src/components/layout/Navbar.tsx` - Đổi từ scroll sang navigate + link-to-section mapping
+- `src/components/layout/Layout.tsx` - Hash navigation support
+- `src/index.css` - Thêm scroll animation CSS classes
+
+### Homepage Content (v2)
+- Hero, QuickActions, Specialties, WhyChooseUs, Organization, Doctors, Testimonials, News, CTABanner
+- Plus "Khám phá thêm" section với links đến các trang chi tiết
 
 ---
 
@@ -128,6 +198,28 @@ Dự án bệnh viện React với TypeScript + Vite + Tailwind CSS, được re
 - Thêm margin vào logo để tránh overflow
 - Thêm nút Back-to-Top button
 
+### Tender Card Styling (2026-07-19)
+- Đổi aspect ratio từ `aspect-[4/5]` sang `aspect-square` để cân đối hình vuông
+- Áp dụng design: `bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border border-green-800/5 hover:border-brand-green/30 group`
+- Điều chỉnh padding, font sizes, icon sizes phù hợp với square layout
+- File: `src/pages/ThongTinThauPage.tsx`
+
+### Tender Information Full Overhaul (2026-07-19)
+**Files fixed:**
+- `src/types/models/news.ts` - Thêm TenderStatus, TenderMethod types và các trường: tenderNumber, tenderMethod, tenderEstimateValue, tenderReceivedLocation, tenderContact, tenderContactPhone, tenderDownloadCount
+- `src/data.ts` - Cập nhật NEWS data với đầy đủ thông tin tender (số hiệu thầu, giá trị, hình thức, người liên hệ, địa điểm)
+- `src/components/public/News.tsx` - Fix timer đếm ngược thực từ tenderEndDate, status badge chính xác, loại bỏ hardcoded text, tăng font size, thay alert() bằng toast notification
+- `src/pages/ThongTinThauPage.tsx` - Tăng font size tối thiểu 11px, hiển thị tenderNumber thay vì database ID, thêm thông tin đầy đủ, cải thiện UI/UX cards
+
+**Các vấn đề đã fix:**
+1. Timer đếm ngược dùng mock data random → tính toán thực từ tenderEndDate
+2. Font size 8-10px quá nhỏ → tăng lên tối thiểu 11-13px
+3. Database ID lộ cho người dùng → hiển thị tenderNumber chuyên nghiệp
+4. Hardcoded text khắp nơi → dùng data thực từ item
+5. Status badge luôn hiện "ĐANG MỞ THẦU" → kiểm tra trạng thái thực theo thời gian
+6. alert() trong production → thay bằng toast notification
+7. Thiếu thông tin quan trọng (số hiệu, giá trị, hình thức, người liên hệ) → bổ sung đầy đủ
+
 ---
 
 ## Git History
@@ -153,21 +245,47 @@ c593409 - feat: update organization chart with full department structure
 
 ---
 
+## Files Created
+
+- `AGENT.md` - Comprehensive agent instructions (v2 - updated 2026-07-18)
+- PHASE 10 pages (2026-07-18):
+  - `src/pages/HomePage.tsx` (v2 - full content)
+  - `src/pages/GioiThieuPage.tsx` (v2 - 3 sections)
+  - `src/pages/ChuyenKhoaPage.tsx` (v2 - 4 department categories)
+  - `src/pages/DichVuPage.tsx` (v2 - 5 service categories)
+  - `src/pages/ThongTinThauPage.tsx`
+  - `src/pages/ChoBenhNhanPage.tsx` (v2 - 3 info sections)
+  - `src/pages/TinTucPage.tsx`
+  - `src/pages/SoDoToChucPage.tsx`
+  - `src/pages/LienHePage.tsx`
+  - `src/components/layout/Layout.tsx`
+  - `src/components/layout/PageTransition.tsx`
+  - `src/components/ui/ScrollAnimation.tsx`
+  - `src/index.css` (updated with animation classes)
+
 ## Current Project Structure
 
 ```
 src/
 ├── components/
-│   ├── ui/                 # Button, Input, Select, Modal, Card, Badge, Spinner, ErrorBoundary
-│   ├── layout/             # Topbar, Navbar, Footer, HospitalLogo
-│   ├── public/             # Hero, Specialties, Doctors, News, Testimonials, Organization, etc.
+│   ├── ui/                 # Button, Input, Select, Modal, Card, Badge, Spinner, ErrorBoundary, ScrollAnimation
+│   ├── layout/             # Topbar, Navbar, Footer, HospitalLogo, Layout, PageTransition
+│   ├── public/             # Hero, Specialties, Doctors, News, Testimonials, Organization, QuickActions, CTABanner
 │   ├── booking/            # BookingForm
 │   ├── ai/                 # AIAdvisor
 │   ├── test-lookup/        # TestLookup
 │   └── admin/              # AdminDashboard
 ├── pages/
-│   ├── PublicPage.tsx
-│   └── AdminPage.tsx
+│   ├── HomePage.tsx        # Route: /
+│   ├── GioiThieuPage.tsx   # Route: /gioi-thieu
+│   ├── ChuyenKhoaPage.tsx  # Route: /chuyen-khoa
+│   ├── DichVuPage.tsx      # Route: /dich-vu
+│   ├── ThongTinThauPage.tsx # Route: /dich-vu/thong-tin-thau
+│   ├── ChoBenhNhanPage.tsx # Route: /cho-benh-nhan
+│   ├── TinTucPage.tsx      # Route: /tin-tuc
+│   ├── SoDoToChucPage.tsx  # Route: /so-do-to-chuc
+│   ├── LienHePage.tsx      # Route: /lien-he
+│   └── AdminPage.tsx       # Route: /admin
 ├── context/
 │   └── HospitalContext.tsx
 ├── types/
@@ -178,7 +296,7 @@ src/
 ├── lib/
 │   ├── env.ts             # Environment validation
 │   └── index.ts
-├── App.tsx
+├── App.tsx                 # Router setup với 10 routes
 ├── main.tsx
 ├── index.css
 └── vite-env.d.ts
@@ -188,8 +306,7 @@ server/
 ├── routes/                 # API routes
 ├── services/              # Business logic
 ├── db/database.ts          # In-memory database
-├── middleware/             # Error handling
-└── tsconfig.json
+└── middleware/             # Error handling
 ```
 
 ---
@@ -215,7 +332,7 @@ git reset --hard <commit-hash>
 ## Rollback Procedure
 
 Nếu cần rollback toàn bộ:
-1. `git reset --hard 5a2af96` (commit trước khi refactor)
-2. Hoặc copy files từ backup folder: `D:\Coding\App Website BV_backup_20260717_075747`
+1. `git reset --hard <commit-hash>` (xem git log)
+2. Hoặc copy files từ backup folder: `D:\Coding\code backup\App Website BV_20260718_182929`
 
-**Backup folder:** `D:\Coding\App Website BV_backup_20260717_075747`
+**Backup folder:** `D:\Coding\code backup\App Website BV_20260718_182929` (trước PHASE 10)
