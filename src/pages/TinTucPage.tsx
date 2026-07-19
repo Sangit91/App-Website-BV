@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import Layout from "../components/layout/Layout";
 import News from "../components/public/News";
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion";
-import { Newspaper, FileText, Users, Shield, ArrowRight, Calendar, Heart, Stethoscope } from "lucide-react";
+import { Newspaper, FileText, Users, Shield, ArrowRight, Calendar, Heart, Stethoscope, Gavel, FileCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect } from "react";
 import { useHospital } from "../context/HospitalContext";
@@ -200,6 +200,32 @@ export default function TinTucPage() {
                     </div>
                   </div>
                 </motion.div>
+
+                <Link to="/thong-tin-thau" className="block mb-12 group">
+                  <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
+                    className="relative overflow-hidden bg-gradient-to-r from-green-dark via-emerald-700 to-teal-600 rounded-2xl p-6 md:p-8 hover:shadow-2xl transition-all duration-300 cursor-pointer">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="relative z-10 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-white/30 transition-colors">
+                          <Gavel className="w-7 h-7 text-white" />
+                        </div>
+                        <div>
+                          <span className="inline-flex items-center gap-2 bg-peach/20 text-peach text-xs font-bold px-3 py-1 rounded-full mb-2">
+                            <FileCheck size={12} /> Thông báo
+                          </span>
+                          <h3 className="text-xl md:text-2xl font-display font-bold text-white mb-1">Thông báo thầu và mua sắm công</h3>
+                          <p className="text-white/70 text-sm">Cập nhật thông tin đấu thầu, mua sắm công của Bệnh viện</p>
+                        </div>
+                      </div>
+                      <div className="hidden md:flex items-center gap-2 bg-white/20 hover:bg-white/30 px-5 py-3 rounded-full text-white font-semibold text-sm transition-colors shrink-0">
+                        <span>Xem chi tiết</span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </motion.div>
+                </Link>
 
                 {hospitalNews.length > 1 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
