@@ -24,13 +24,13 @@ export default function ChuyenKhoaPage() {
       icon: Scissors,
       color: "bg-red-50",
       textColor: "text-red-600",
-      heroImage: "https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=800&h=400&fit=crop",
+      heroImage: "/images/pages/hero-chuyenkhoa.jpeg",
       items: [
-        { name: "Khoa Ngoại chung", desc: "Phẫu thuật tổng quát, cấp cứu ngoại", img: "https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=400&h=300&fit=crop" },
-        { name: "Khoa Răng Hàm Mặt", desc: "Phẫu thuật răng, hàm, mặt", img: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=400&h=300&fit=crop" },
-        { name: "Khoa Tai – Mũi – Họng", desc: "Phẫu thuật tai, mũi, họng", img: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400&h=300&fit=crop" },
-        { name: "Khoa Hồi sức tích cực ICU", desc: "Hồi sức cấp cứu 24/7", img: "https://images.unsplash.com/photo-1516549655169-df83a0774514?w=400&h=300&fit=crop" },
-        { name: "Khoa ung bướu", desc: "Phẫu thuật, hóa trị, xạ trị", img: "https://images.unsplash.com/photo-1631815589968-fdb2fc1e0303?w=400&h=300&fit=crop" }
+        { name: "Khoa Ngoại chung", desc: "Phẫu thuật tổng quát, cấp cứu ngoại", img: "/images/pages/ngoai-1.jpeg" },
+        { name: "Khoa Răng Hàm Mặt", desc: "Phẫu thuật răng, hàm, mặt", img: "/images/pages/ranghamach-1.jpeg" },
+        { name: "Khoa Tai – Mũi – Họng", desc: "Phẫu thuật tai, mũi, họng", img: "/images/pages/taimuihong-1.jpeg" },
+        { name: "Khoa Hồi sức tích cực ICU", desc: "Hồi sức cấp cứu 24/7", img: "/images/pages/icu-1.jpeg" },
+        { name: "Khoa ung bướu", desc: "Phẫu thuật, hóa trị, xạ trị", img: "/images/pages/ungbuou-1.jpeg" }
       ]
     },
     "noi-tong-quat": {
@@ -38,15 +38,15 @@ export default function ChuyenKhoaPage() {
       icon: Stethoscope,
       color: "bg-blue-50",
       textColor: "text-blue-600",
-      heroImage: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&h=400&fit=crop",
+      heroImage: "/images/pages/hero-tongquat.jpeg",
       items: [
-        { name: "Khoa Nội chung", desc: "Khám và điều trị các bệnh nội khoa", img: "https://images.unsplash.com/photo-1530026405186-ed1f139313f3?w=400&h=300&fit=crop" },
-        { name: "Khoa Tim mạch", desc: "Tim mạch can thiệp, phẫu thuật", img: "https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&h=300&fit=crop" },
-        { name: "Khoa Nội tiết", desc: "Đái tháo đường, tuyến giáp", img: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop" },
-        { name: "Khoa Thận nhân tạo", desc: "Lọc máu, chạy thận nhân tạo", img: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=300&fit=crop" },
-        { name: "Khoa Cơ Xương Khớp", desc: "Xương khớp, phục hồi chức năng", img: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=300&fit=crop" },
-        { name: "Khoa Da Liễu", desc: "Da liễu, thẩm mỹ da", img: "https://images.unsplash.com/photo-1576021182211-9ea8dced3690?w=400&h=300&fit=crop" },
-        { name: "Khoa Tâm lý & Sức khỏe", desc: "Tâm thần, tâm lý trị liệu", img: "https://images.unsplash.com/photo-1493836512294-502baa1986e2?w=400&h=300&fit=crop" }
+        { name: "Khoa Nội chung", desc: "Khám và điều trị các bệnh nội khoa", img: "/images/pages/noi-1.jpeg" },
+        { name: "Khoa Tim mạch", desc: "Tim mạch can thiệp, phẫu thuật", img: "/images/pages/timmach-1.jpeg" },
+        { name: "Khoa Nội tiết", desc: "Đái tháo đường, tuyến giáp", img: "/images/pages/timmach-1.jpeg" },
+        { name: "Khoa Thận nhân tạo", desc: "Lọc máu, chạy thận nhân tạo", img: "/images/pages/timmach-1.jpeg" },
+        { name: "Khoa Cơ Xương Khớp", desc: "Xương khớp, phục hồi chức năng", img: "/images/pages/noi-1.jpeg" },
+        { name: "Khoa Da Liễu", desc: "Da liễu, thẩm mỹ da", img: "/images/pages/thammy-1.jpeg" },
+        { name: "Khoa Tâm lý & Sức khỏe", desc: "Tâm thần, tâm lý trị liệu", img: "/images/pages/tamly-1.jpeg" }
       ]
     },
     "san-nhi": {
@@ -54,11 +54,11 @@ export default function ChuyenKhoaPage() {
       icon: Baby,
       color: "bg-pink-50",
       textColor: "text-pink-600",
-      heroImage: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&h=400&fit=crop",
+      heroImage: "/images/pages/hero-thaisan.jpeg",
       items: [
-        { name: "Khoa Sản phụ khoa", desc: "Mangled sản, phụ khoa", img: "https://images.unsplash.com/photo-1518584303990-7892c8e5f9f5?w=400&h=300&fit=crop" },
-        { name: "Khoa Nhi & Sơ sinh", desc: "Nhi khoa, sơ sinh", img: "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=400&h=300&fit=crop" },
-        { name: "Khoa Thẩm mỹ và chăm sóc trị liệu", desc: "Thẩm mỹ, spa y tế", img: "https://images.unsplash.com/photo-1598524374912-6e92af34e484?w=400&h=300&fit=crop" }
+        { name: "Khoa Sản phụ khoa", desc: "Mangled sản, phụ khoa", img: "/images/pages/sanphukhoa-1.jpeg" },
+        { name: "Khoa Nhi & Sơ sinh", desc: "Nhi khoa, sơ sinh", img: "/images/pages/nhi-1.jpeg" },
+        { name: "Khoa Thẩm mỹ và chăm sóc trị liệu", desc: "Thẩm mỹ, spa y tế", img: "/images/pages/thammy-1.jpeg" }
       ]
     },
     "can-lam-sang": {
@@ -66,13 +66,13 @@ export default function ChuyenKhoaPage() {
       icon: Microscope,
       color: "bg-purple-50",
       textColor: "text-purple-600",
-      heroImage: "https://images.unsplash.com/photo-1579154204601-01588f351e67?w=800&h=400&fit=crop",
+      heroImage: "/images/pages/hero-chuyenkhoa.jpeg",
       items: [
-        { name: "Khoa Dược", desc: "Cung ứng thuốc, tư vấn dược", img: "https://images.unsplash.com/photo-1585435557343-3b092031a831?w=400&h=300&fit=crop" },
-        { name: "Khoa Mắt", desc: "Mắt, phẫu thuật khúc xạ", img: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop" },
-        { name: "Khoa Xét nghiệm và Giải phẫu", desc: "Xét nghiệm, giải phẫu bệnh", img: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop" },
-        { name: "Khoa Y tế dự phòng", desc: "Phòng bệnh, tiêm chủng", img: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=400&h=300&fit=crop" },
-        { name: "Khoa Chẩn đoán hình ảnh", desc: "MRI, CT, X-quang, siêu âm", img: "https://images.unsplash.com/photo-1551076805-e1869033e561?w=400&h=300&fit=crop" }
+        { name: "Khoa Dược", desc: "Cung ứng thuốc, tư vấn dược", img: "/images/pages/duoc-1.jpeg" },
+        { name: "Khoa Mắt", desc: "Mắt, phẫu thuật khúc xạ", img: "/images/pages/mat-1.jpeg" },
+        { name: "Khoa Xét nghiệm và Giải phẫu", desc: "Xét nghiệm, giải phẫu bệnh", img: "/images/pages/xetnghiem-1.jpeg" },
+        { name: "Khoa Y tế dự phòng", desc: "Phòng bệnh, tiêm chủng", img: "/images/pages/tiemchung-1.jpeg" },
+        { name: "Khoa Chẩn đoán hình ảnh", desc: "MRI, CT, X-quang, siêu âm", img: "/images/pages/xetnghiem-1.jpeg" }
       ]
     }
   };

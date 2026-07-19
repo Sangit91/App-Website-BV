@@ -22,9 +22,9 @@ export default function GioiThieuPage() {
   }, [location]);
 
   const directors = [
-    { name: "Gs.Ts. Nguyễn Văn A", role: "Giám đốc", img: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&fit=crop" },
-    { name: "Bs.Ts. Trần Thị B", role: "Phó Giám đốc", img: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&h=200&fit=crop" },
-    { name: "Bs.Ts. Lê Văn C", role: "Phó Giám đốc", img: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&h=200&fit=crop" }
+    { name: "Gs.Ts. Nguyễn Văn A", role: "Giám đốc", img: "/images/doctors/giamdoc-1.jpeg" },
+    { name: "Bs.Ts. Trần Thị B", role: "Phó Giám đốc", img: "/images/doctors/phogiamdoc-1.jpeg" },
+    { name: "Bs.Ts. Lê Văn C", role: "Phó Giám đốc", img: "/images/doctors/phogiamdoc-2.jpeg" }
   ];
 
   const partners = ["BHYT Quảng Nam", "Bảo Việt", "PTI", "PJICO", "Manulife", "Prudential"];
@@ -33,7 +33,7 @@ export default function GioiThieuPage() {
     {
       title: "Cơ sở – Trang thiết bị",
       icon: Building2,
-      image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&h=300&fit=crop",
+      image: "/images/pages/coso-1.jpeg",
       items: ["5 phòng mổ hiện đại", "200 giường bệnh", "Thiết bị MRI, CT Scanner", "Phòng ICU với 20 giường"]
     },
     {
@@ -45,7 +45,7 @@ export default function GioiThieuPage() {
     {
       title: "Tiện nghi – Sang trọng",
       icon: Heart,
-      image: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=400&h=300&fit=crop",
+      image: "/images/pages/coso-2.jpeg",
       items: ["Wifi miễn phí toàn bệnh viện", "Nhà hàng cao cấp", "Khu vui chơi trẻ em", "Bãi đỗ xe rộng rãi"]
     }
   ];
@@ -95,7 +95,7 @@ export default function GioiThieuPage() {
                 </ul>
                 <div className="mt-6">
                   <img
-                    src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop"
+                    src="/images/pages/khamtongquat-1.jpeg"
                     alt="Bệnh viện hiện đại"
                     className="w-full h-48 object-cover rounded-xl"
                   />
@@ -211,19 +211,19 @@ export default function GioiThieuPage() {
                 num: "1",
                 title: "Quy trình chăm sóc khép kín",
                 desc: "Từ tiếp nhận đến xuất viện, mỗi bước đều được theo dõi và chăm sóc tận tình",
-                img: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop"
+                img: "/images/pages/khamtongquat-1.jpeg"
               },
               {
                 num: "2",
                 title: "Hướng dẫn đặt khám nhanh",
                 desc: "Đặt lịch khám trực tuyến qua website hoặc hotline, tiết kiệm thời gian chờ đợi",
-                img: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop"
+                img: "/images/pages/timmach-1.jpeg"
               },
               {
                 num: "3",
                 title: "Hỗ trợ bảo hiểm trực tiếp",
                 desc: "Bệnh viện liên kết với nhiều công ty bảo hiểm, hỗ trợ thanh toán trực tiếp",
-                img: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&h=300&fit=crop"
+                img: "/images/pages/daliem-1.jpeg"
               }
             ].map((item, idx) => (
               <div key={item.num}>

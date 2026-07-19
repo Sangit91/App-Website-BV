@@ -76,7 +76,7 @@ export default function Hero({ onOpenBooking, onScrollToSection }: HeroProps) {
           {/* Main Wave Organic Blob holding image */}
           <div className="relative w-[300px] h-[300px] sm:w-[380px] sm:h-[380px] md:w-[420px] md:h-[420px] overflow-hidden bg-gradient-to-br from-mint via-brand-green/20 to-peach/20 blob-mask shadow-2xl group">
             <img 
-              src="https://images.pexels.com/photos/3985161/pexels-photo-3985161.jpeg?auto=compress&cs=tinysrgb&w=800"
+              src="/images/hero/hero.jpeg"
               alt="Đội ngũ bác sĩ BVĐK Miền Núi Phía Bắc Quảng Nam"
               className="w-full h-full object-cover brightness-[1.03] group-hover:scale-105 transition-transform duration-500"
               referrerPolicy="no-referrer"

@@ -4,9 +4,9 @@ import Organization from "../components/public/Organization";
 
 export default function SoDoToChucPage() {
   const directors = [
-    { name: "Gs.Ts. Nguyễn Văn A", role: "Giám đốc", img: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop" },
-    { name: "Bs.Ts. Trần Thị B", role: "Phó Giám đốc", img: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&h=300&fit=crop" },
-    { name: "Bs.Ts. Lê Văn C", role: "Phó Giám đốc", img: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=300&h=300&fit=crop" }
+    { name: "Gs.Ts. Nguyễn Văn A", role: "Giám đốc", img: "/images/doctors/giamdoc-1.jpeg" },
+    { name: "Bs.Ts. Trần Thị B", role: "Phó Giám đốc", img: "/images/doctors/phogiamdoc-1.jpeg" },
+    { name: "Bs.Ts. Lê Văn C", role: "Phó Giám đốc", img: "/images/doctors/phogiamdoc-2.jpeg" }
   ];
 
   const departments = [
@@ -14,19 +14,19 @@ export default function SoDoToChucPage() {
       name: "Khối Hành Chính",
       head: "Ths. Hoàng Văn D",
       staff: 9,
-      img: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&h=300&fit=crop"
+      img: "/images/components/org-1.jpeg"
     },
     {
       name: "Khối Lâm Sàng",
       head: "Gs.Ts. Phạm Thị E",
       staff: 21,
-      img: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop"
+      img: "/images/components/org-2.jpeg"
     },
     {
       name: "Khối Cận Lâm Sàng",
       head: "Bs.Ts. Ngô Văn F",
       staff: 6,
-      img: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop"
+      img: "/images/components/org-3.jpeg"
     }
   ];
 

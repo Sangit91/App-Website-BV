@@ -24,7 +24,7 @@ export default function WhyChooseUs() {
           <div className="lg:col-span-6 relative">
             <div className="w-full h-[320px] md:h-[400px] overflow-hidden rounded-[28px] shadow-lg">
               <img
-                src="https://images.pexels.com/photos/4173239/pexels-photo-4173239.jpeg?auto=compress&cs=tinysrgb&w=800"
+                src="/images/components/why-choose-1.jpeg"
                 alt="Đội ngũ bác sĩ chuyên môn tận tâm"
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                 referrerPolicy="no-referrer"
@@ -110,7 +110,7 @@ export default function WhyChooseUs() {
           <div className="lg:col-span-6 lg:order-2 relative">
             <div className="w-full h-[320px] md:h-[400px] overflow-hidden rounded-[28px] shadow-lg">
               <img
-                src="https://images.pexels.com/photos/2280571/pexels-photo-2280571.jpeg?auto=compress&cs=tinysrgb&w=800"
+                src="/images/components/why-choose-2.jpeg"
                 alt="Trang thiết bị y tế hiện đại hàng đầu tại bệnh viện"
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                 referrerPolicy="no-referrer"

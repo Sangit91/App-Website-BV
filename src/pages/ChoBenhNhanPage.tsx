@@ -24,28 +24,28 @@ export default function ChoBenhNhanPage() {
       title: "Chi phí & Địa điểm",
       icon: MapPin,
       color: "from-blue-50 to-indigo-50",
-      heroImage: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&h=400&fit=crop",
+      heroImage: "/images/pages/hero-chi-phi.jpeg",
       items: [
         {
           name: "Chi phí điều trị công khai",
           desc: "Bảng giá dịch vụ y tế niêm yết công khai",
           action: "Xem bảng giá",
           icon: DollarSign,
-          img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop"
+          img: "/images/pages/chiphi-1.jpeg"
         },
         {
           name: "Cơ sở điều trị",
           desc: "2 cơ sở: 123 Đường XYZ (CS1) và 456 Đường ABC (CS2)",
           action: "Bản đồ",
           icon: MapPin,
-          img: "https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=400&h=300&fit=crop"
+          img: "/images/pages/coso-1.jpeg"
         },
         {
           name: "Danh mục thuốc BHYT",
           desc: "Danh mục thuốc được bảo hiểm y tế chi trả",
           action: "Tra cứu",
           icon: Pill,
-          img: "https://images.unsplash.com/photo-1585435557343-3b092031a831?w=400&h=300&fit=crop"
+          img: "/images/pages/duoc-1.jpeg"
         }
       ]
     },
@@ -54,28 +54,28 @@ export default function ChoBenhNhanPage() {
       title: "Hướng dẫn tiện ích",
       icon: Users,
       color: "from-emerald-50 to-teal-50",
-      heroImage: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&h=400&fit=crop",
+      heroImage: "/images/pages/hero-tongquat.jpeg",
       items: [
         {
           name: "Dịch vụ điều trị",
           desc: "Hướng dẫn các dịch vụ y tế tại bệnh viện",
           action: "Tìm hiểu thêm",
           icon: FileText,
-          img: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop"
+          img: "/images/pages/khamtongquat-1.jpeg"
         },
         {
           name: "Dành cho bệnh nhân nội trú",
           desc: "Quy định nhập viện, thăm nom, ăn ở",
           action: "Xem hướng dẫn",
           icon: Bed,
-          img: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&h=300&fit=crop"
+          img: "/images/pages/coso-2.jpeg"
         },
         {
           name: "Dành cho thăm khám ngoại trú",
           desc: "Quy trình đăng ký, khám bệnh, nhận kết quả",
           action: "Xem hướng dẫn",
           icon: Calendar,
-          img: "https://images.unsplash.com/photo-1587613865765-5e33e4bd57f9?w=400&h=300&fit=crop"
+          img: "/images/pages/bacsi-1.jpeg"
         }
       ]
     },
@@ -84,28 +84,28 @@ export default function ChoBenhNhanPage() {
       title: "Cổng thông tin",
       icon: Search,
       color: "from-purple-50 to-pink-50",
-      heroImage: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&h=400&fit=crop",
+      heroImage: "/images/pages/hero-congthongtin.jpeg",
       items: [
         {
           name: "Tra cứu bệnh sử online",
           desc: "Xem lịch sử khám bệnh, kết quả xét nghiệm",
           action: "Đăng nhập",
           icon: Clipboard,
-          img: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop"
+          img: "/images/pages/timmach-1.jpeg"
         },
         {
           name: "Yêu cầu trích sao hồ sơ",
           desc: "Lấy bản sao hồ sơ y tế, giấy chứng nhận",
           action: "Gửi yêu cầu",
           icon: FileText,
-          img: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?w=400&h=300&fit=crop"
+          img: "/images/pages/hoso-1.jpeg"
         },
         {
           name: "Góp ý chất lượng phục vụ",
           desc: "Đóng góp ý kiến để cải thiện dịch vụ",
           action: "Gửi góp ý",
           icon: Phone,
-          img: "https://images.unsplash.com/photo-1530026405186-ed1f139313f3?w=400&h=300&fit=crop"
+          img: "/images/pages/bacsi-1.jpeg"
         }
       ]
     }

@@ -63,12 +63,12 @@ export default function Organization() {
     setIsExpanded(prev => ({ ...prev, [division]: !prev[division] }));
   };
 
-  const directors: Member[] = [
+const directors: Member[] = [
     {
       name: "PGS. TS. BS. Trần Văn Trình",
       title: "Thầy thuốc Nhân dân - Giám đốc Bệnh viện",
       role: "Chỉ đạo chung, phụ trách Chiến lược phát triển, Nhân sự cấp cao và Hợp tác quốc tế.",
-      image: "https://images.pexels.com/photos/3279196/pexels-photo-3279196.jpeg?auto=compress&cs=tinysrgb&w=600",
+      image: "/images/components/org-1.jpeg",
       quote: "Đặt y đức và sự hài lòng của bệnh nhân làm kim chỉ nam cho mọi hoạt động điều trị.",
       email: "tranvantrinh.director@mnpb.gov.vn"
     },
@@ -76,7 +76,7 @@ export default function Organization() {
       name: "BSCKII. Nguyễn Thị Minh Tuyết",
       title: "Thầy thuốc Ưu tú - Phó Giám đốc Lâm sàng",
       role: "Phụ trách chuyên môn điều trị, Đội ngũ Y bác sĩ, Hội đồng Khoa học và Kiểm soát nhiễm khuẩn.",
-      image: "https://images.pexels.com/photos/4173251/pexels-photo-4173251.jpeg?auto=compress&cs=tinysrgb&w=600",
+      image: "/images/components/org-2.jpeg",
       quote: "Chất lượng lâm sàng quyết định sự sống còn và uy tín của một cơ sở y tế.",
       email: "minhtuyet.clinical@mnpb.gov.vn"
     },
@@ -84,11 +84,11 @@ export default function Organization() {
       name: "ThS. BS. Lê Phan Quốc Bảo",
       title: "Phó Giám đốc Kế hoạch - Hành chính & Vật tư",
       role: "Phụ trách cơ sở vật chất, Trang thiết bị y tế hiện đại, Công nghệ thông tin và Công tác xã hội.",
-      image: "https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg?auto=compress&cs=tinysrgb&w=600",
+      image: "/images/components/org-3.jpeg",
       quote: "Hạ tầng hiện đại, quy trình tinh gọn là bệ đỡ vững chắc cho các y bác sĩ cứu người.",
       email: "quocbao.admin@mnpb.gov.vn"
     }
-];
+  ];
 
   return (
     <section id="gioi-thieu" className="py-20 bg-cream-white border-b border-green-800/10 relative overflow-hidden">

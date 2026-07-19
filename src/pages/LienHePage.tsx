@@ -46,7 +46,7 @@ export default function LienHePage() {
             <ScrollAnimation animation="slide-right">
               <div className="bg-white border border-green-800/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
                 <img
-                  src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&h=600&fit=crop"
+                  src="/images/pages/coso-1.jpeg"
                   alt="Bệnh viện mặt tiền"
                   className="w-full h-56 object-cover"
                   referrerPolicy="no-referrer"
@@ -105,7 +105,7 @@ export default function LienHePage() {
               <div className="bg-white border border-green-800/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
                 <div className="relative h-48 overflow-hidden bg-mint/30">
                   <img
-                    src="https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=800&h=600&fit=crop"
+                    src="/images/pages/coso-2.jpeg"
                     alt="Bản đồ bệnh viện"
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
@@ -208,7 +208,7 @@ export default function LienHePage() {
               <h2 className="font-display font-bold text-xl text-green-dark mb-4 text-center">Bản đồ vị trí</h2>
               <div className="bg-mint/30 rounded-xl overflow-hidden h-64 flex items-center justify-center">
                 <img
-                  src="https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=800&h=600&fit=crop"
+                  src="/images/pages/coso-2.jpeg"
                   alt="Bản đồ toàn khu vực"
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
