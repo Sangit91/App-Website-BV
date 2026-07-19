@@ -31,6 +31,40 @@ export default function Layout({ children }: LayoutProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const handleOpenBooking = () => {
+      setPrepopulatedDoctor("");
+      setPrepopulatedSpecialtyId("");
+      setBookingOpen(true);
+    };
+
+    const handleOpenBookingWithDoctor = (e: CustomEvent) => {
+      setPrepopulatedDoctor(e.detail.doctorName);
+      setPrepopulatedSpecialtyId(e.detail.specialtyId);
+      setBookingOpen(true);
+    };
+
+    const handleOpenTestLookup = () => {
+      setTestOpen(true);
+    };
+
+    const handleOpenAI = () => {
+      setAiOpen(true);
+    };
+
+    window.addEventListener("bvdk:open-booking", handleOpenBooking);
+    window.addEventListener("bvdk:open-booking-with-doctor", handleOpenBookingWithDoctor as EventListener);
+    window.addEventListener("bvdk:open-test-lookup", handleOpenTestLookup);
+    window.addEventListener("bvdk:open-ai", handleOpenAI);
+
+    return () => {
+      window.removeEventListener("bvdk:open-booking", handleOpenBooking);
+      window.removeEventListener("bvdk:open-booking-with-doctor", handleOpenBookingWithDoctor as EventListener);
+      window.removeEventListener("bvdk:open-test-lookup", handleOpenTestLookup);
+      window.removeEventListener("bvdk:open-ai", handleOpenAI);
+    };
+  }, []);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };

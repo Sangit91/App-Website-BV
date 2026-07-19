@@ -12,18 +12,50 @@ import CTABanner from "../components/public/CTABanner";
 import { ArrowRight } from "lucide-react";
 
 export default function HomePage() {
+  const handleOpenBooking = () => {
+    window.dispatchEvent(new CustomEvent("bvdk:open-booking"));
+  };
+
+  const handleScrollToSection = (sectionId: string) => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const handleOpenTestLookup = () => {
+    window.dispatchEvent(new CustomEvent("bvdk:open-test-lookup"));
+  };
+
+  const handleOpenAI = () => {
+    window.dispatchEvent(new CustomEvent("bvdk:open-ai"));
+  };
+
+  const handleScrollToDoctors = () => {
+    const el = document.getElementById("bac-si");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const handleOpenBookingWithDoctor = (doctorName: string, specialtyId: string) => {
+    window.dispatchEvent(new CustomEvent("bvdk:open-booking-with-doctor", {
+      detail: { doctorName, specialtyId }
+    }));
+  };
+
   return (
     <Layout>
       <Hero
-        onOpenBooking={() => {}}
-        onScrollToSection={() => {}}
+        onOpenBooking={handleOpenBooking}
+        onScrollToSection={handleScrollToSection}
       />
 
       <QuickActions
-        onOpenBooking={() => {}}
-        onOpenTestLookup={() => {}}
-        onOpenAI={() => {}}
-        onScrollToDoctors={() => {}}
+        onOpenBooking={handleOpenBooking}
+        onOpenTestLookup={handleOpenTestLookup}
+        onOpenAI={handleOpenAI}
+        onScrollToDoctors={handleScrollToDoctors}
       />
 
       <Specialties />
@@ -32,13 +64,13 @@ export default function HomePage() {
 
       <Organization />
 
-      <Doctors onOpenBookingWithDoctor={() => {}} />
+      <Doctors onOpenBookingWithDoctor={handleOpenBookingWithDoctor} />
 
       <Testimonials />
 
       <News />
 
-      <CTABanner onOpenBooking={() => {}} />
+      <CTABanner onOpenBooking={handleOpenBooking} />
 
       <section className="py-12 bg-mint/30">
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
