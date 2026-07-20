@@ -1020,6 +1020,100 @@ interface GetClinicalTestsRequest { patientId: string; readToken: string; ... }
 
 ---
 
+## PHASE 34 - InfoCard Modal System (2026-07-20)
+
+### Mục tiêu
+Tất cả InfoCard trong 3 sections đều clickable, mở modal thay vì scroll inline.
+
+### Cấu trúc Modal System
+
+**Modal Components (5 files):**
+
+| Modal | File | Khi click vào |
+|-------|------|---------------|
+| MapModal | MapModal.tsx | "Cơ sở điều trị" (tab Chi phí) |
+| DrugLookupModal | DrugLookupModal.tsx | "Danh mục thuốc BHYT" (tab Chi phí) |
+| InpatientGuideModal | InpatientGuideModal.tsx | "Dành cho bệnh nhân nội trú" (tab Hướng dẫn) |
+| OutpatientGuideModal | OutpatientGuideModal.tsx | "Dành cho thăm khám ngoại trú" (tab Hướng dẫn) |
+| ServicesModal | ServicesModal.tsx | "Dịch vụ điều trị" (tab Hướng dẫn) |
+
+### Modal Details
+
+**MapModal:**
+```tsx
+- Google Maps iframe embed
+- Hospital address: 107 Quang Trung, Xã Đại Lộc, TP Đà Nẵng
+- Hotline: 1900 xxxx
+- Working hours display
+- Button to open Google Maps externally
+```
+
+**DrugLookupModal:**
+```tsx
+- Search input với debounce
+- Mock drug database (5 drugs)
+- BHYT coverage badge
+- Drug details: name, active ingredient, dosage, price, notes
+- Empty state khi không có kết quả
+```
+
+**InpatientGuideModal:**
+```tsx
+- 4 sections: Nhập viện, Thăm nom, Ăn uống, An ninh
+- Icon + title cho mỗi section
+- Bulleted checklist format
+- Emergency hotline note
+- Print button
+```
+
+**OutpatientGuideModal:**
+```tsx
+- 4 steps: Đăng ký, Chờ khám, Khám bệnh, Nhận kết quả
+- Step number overlay (01, 02, 03, 04)
+- Timeline-style layout
+- Working hours info
+- CTA button to book appointment
+```
+
+**ServicesModal:**
+```tsx
+- 9 departments grid (3x3)
+- Department icon, name, description
+- Hover effect on cards
+- CTA to book appointment
+```
+
+### Actions Mapping
+
+```typescript
+const getItemOnAction = (itemName: string) => {
+  if (activeTab === "chi-phi-dia-diem") {
+    if (itemName === "Cơ sở điều trị") return handleOpenMap;
+    if (itemName === "Danh mục thuốc BHYT") return handleOpenDrugLookup;
+  }
+  if (activeTab === "huong-dan-tien-ich") {
+    if (itemName === "Dịch vụ điều trị") return handleOpenServices;
+    if (itemName === "Dành cho bệnh nhân nội trú") return handleOpenInpatientGuide;
+    if (itemName === "Dành cho thăm khám ngoại trú") return handleOpenOutpatientGuide;
+  }
+  return undefined;
+};
+```
+
+### Removed Inline Sections
+- `#map-section` - inline map display (replaced by MapModal)
+- `#drug-lookup-section` - inline drug lookup (replaced by DrugLookupModal)
+
+### Benefits
+1. Page không bị kéo dài bởi inline content
+2. Clean UX - modal đóng là quay về page
+3. Tất cả InfoCards đều có action
+4. Content được tổ chức gọn gàng trong modals
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## Earlier Phases
 
 See `memory.md` for detailed history of Phase 0 - Phase 17.
