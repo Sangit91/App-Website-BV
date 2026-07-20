@@ -4,6 +4,8 @@ import Layout from "../components/layout/Layout";
 import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
 import { FileText, MapPin, Pill, Users, Search, Clipboard, DollarSign, Bed, Calendar, Phone, ExternalLink, Check, Heart, Map, FileSearch } from "lucide-react";
 import PatientPortalSection from "../components/public/PatientPortalSection";
+import RecordRequestModal from "../components/public/RecordRequestModal";
+import FeedbackModal from "../components/public/FeedbackModal";
 
 const SECTIONS = [
   { key: "chi-phi-dia-diem", title: "Chi phí & Địa điểm", icon: MapPin, color: "from-blue-500 to-indigo-600", bgLight: "bg-blue-50", textColor: "text-blue-600" },
@@ -84,8 +86,14 @@ function FloatingShape({ className, delay = 0 }: { className: string; delay?: nu
 }
 
 interface InfoCardProps {
-  key?: string;
-  item: { name: string; desc: string; action: string; icon: ElementType; img: string };
+  item: {
+    name: string;
+    desc: string;
+    action: string;
+    icon: ElementType;
+    img: string;
+    onAction?: () => void;
+  };
   dept: typeof SECTIONS[0];
   index: number;
 }
@@ -186,9 +194,10 @@ function InfoCard({ item, dept, index }: InfoCardProps) {
             </div>
           </div>
           <motion.button
+            onClick={item.onAction}
             animate={isHovered ? { y: 0, opacity: 1 } : { y: 8, opacity: 0.8 }}
             transition={{ duration: 0.3 }}
-            className={`mt-auto inline-flex items-center gap-2 ${dept.textColor} font-semibold text-sm hover:gap-3 transition-all`}
+            className={`mt-auto inline-flex items-center gap-2 ${dept.textColor} font-semibold text-sm hover:gap-3 transition-all cursor-pointer`}
           >
             {item.action}
             <ExternalLink className="w-4 h-4" />
@@ -202,7 +211,11 @@ function InfoCard({ item, dept, index }: InfoCardProps) {
 export default function ChoBenhNhanPage() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("chi-phi-dia-diem");
+  const [isRecordRequestOpen, setIsRecordRequestOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [scrollToPortal, setScrollToPortal] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
+  const portalRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
@@ -215,6 +228,26 @@ export default function ChoBenhNhanPage() {
       }
     }
   }, [location]);
+
+  useEffect(() => {
+    if (scrollToPortal && portalRef.current) {
+      portalRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setScrollToPortal(false);
+    }
+  }, [scrollToPortal]);
+
+  const handleTraCuuBenhSu = () => {
+    setActiveTab("cong-thong-tin");
+    setScrollToPortal(true);
+  };
+
+  const handleRecordRequest = () => {
+    setIsRecordRequestOpen(true);
+  };
+
+  const handleFeedback = () => {
+    setIsFeedbackOpen(true);
+  };
 
   const currentSection = SECTIONS.find(d => d.key === activeTab)!;
   const currentData = sectionData[activeTab as keyof typeof sectionData];
@@ -313,7 +346,7 @@ export default function ChoBenhNhanPage() {
           <AnimatePresence mode="wait">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
               {activeTab === "cong-thong-tin" ? (
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }}>
+                <motion.div ref={portalRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }}>
                   <div className="bg-white rounded-3xl border border-green-800/5 p-6 mb-6">
                     <div className="flex items-center gap-4 mb-2">
                       <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
@@ -326,6 +359,15 @@ export default function ChoBenhNhanPage() {
                     </div>
                   </div>
                   <PatientPortalSection />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    {[
+                      { name: "Yêu cầu trích sao hồ sơ", desc: "Lấy bản sao hồ sơ y tế, giấy chứng nhận", action: "Gửi yêu cầu", icon: FileSearch, img: "/images/pages/hoso-1.jpeg", onAction: handleRecordRequest },
+                      { name: "Góp ý chất lượng phục vụ", desc: "Đóng góp ý kiến để cải thiện dịch vụ", action: "Gửi góp ý", icon: Phone, img: "/images/pages/bacsi-1.jpeg", onAction: handleFeedback }
+                    ].map((item, idx) => (
+                      <InfoCard item={item} dept={currentSection} index={idx} />
+                    ))}
+                  </div>
                 </motion.div>
               ) : (
                 <>
@@ -373,7 +415,7 @@ export default function ChoBenhNhanPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {currentData.items.filter(item => !item.highlight).map((item, idx) => (
-                      <InfoCard key={item.name} item={item} dept={currentSection} index={idx} />
+                      <InfoCard item={item} dept={currentSection} index={idx} />
                     ))}
                   </div>
                 </>
@@ -382,6 +424,16 @@ export default function ChoBenhNhanPage() {
           </AnimatePresence>
         </div>
       </section>
+
+      <RecordRequestModal
+        isOpen={isRecordRequestOpen}
+        onClose={() => setIsRecordRequestOpen(false)}
+      />
+
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+      />
     </Layout>
   );
 }
