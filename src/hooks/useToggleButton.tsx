@@ -18,15 +18,23 @@ export function ToggleButton({
   reducedMotion = false,
   className = "",
 }: ToggleButtonProps) {
-  const duration = reducedMotion ? 0 : 0.3;
-
   return (
     <motion.div
       style={{ rotate: rotation }}
-      transition={{ duration, type: "spring", stiffness: 100, damping: 15 }}
+      animate={isExpanded ? { scale: [1, 1.2, 1] } : { scale: [1, 1.2, 1] }}
+      transition={{ duration: reducedMotion ? 0 : 0.3, type: "spring", stiffness: 300 }}
       className={className}
     >
-      {isExpanded ? expandedIcon : collapsedIcon}
+      <motion.div
+        initial={false}
+        animate={{
+          rotate: isExpanded ? 0 : 0,
+          scale: isExpanded ? 1 : 1,
+        }}
+        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+      >
+        {isExpanded ? expandedIcon : collapsedIcon}
+      </motion.div>
     </motion.div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { motion, useInView, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, useInView, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import {
   Heart,
   Baby,
@@ -176,18 +176,38 @@ export default function Specialties() {
         </motion.div>
 
         {/* Specialties Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {displayedSpecialties.map((spec: Specialty, index: number) => (
-            <div key={spec.id} className="flex">
-              <SpecialtyCard
-                spec={spec}
-                index={index}
-                badge={getIconBadge(spec.iconType)}
-                icon={getIcon(spec.iconType)}
-              />
-            </div>
-          ))}
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            layout
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
+          >
+            {displayedSpecialties.map((spec: Specialty, index: number) => (
+              <motion.div
+                key={spec.id}
+                className="flex"
+                layout
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{
+                  duration: prefersReducedMotion ? 0 : 0.4,
+                  delay: prefersReducedMotion ? 0 : (showAll ? index * 0.05 : 0),
+                }}
+              >
+                <SpecialtyCard
+                  spec={spec}
+                  index={index}
+                  badge={getIconBadge(spec.iconType)}
+                  icon={getIcon(spec.iconType)}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
 
         {/* View All Toggle Button */}
         <motion.div
@@ -196,14 +216,23 @@ export default function Specialties() {
           transition={{ duration: 0.5, delay: 0.6 }}
           className="text-center mt-12"
         >
-          <button
+          <motion.button
             onClick={() => setShowAll(!showAll)}
-            className="group inline-flex items-center gap-3 bg-gradient-to-r from-brand-green to-green-dark hover:from-green-dark hover:to-brand-green text-white font-display text-[15px] font-bold px-8 py-3.5 rounded-full cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-brand-green/30 active:scale-95"
+            className="group inline-flex items-center gap-3 text-white font-display text-[15px] font-bold px-8 py-3.5 rounded-full cursor-pointer shadow-lg"
+            style={{
+              background: showAll
+                ? "linear-gradient(135deg, #164B36 0%, #2FA968 100%)"
+                : "linear-gradient(135deg, #2FA968 0%, #164B36 100%)",
+            }}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
           >
             <motion.span
               key={showAll ? "collapse" : "expand"}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
               transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
             >
               {showAll ? "Thu gọn bớt" : "Xem tất cả chuyên khoa"}
@@ -215,7 +244,7 @@ export default function Specialties() {
               rotation={rotation}
               reducedMotion={prefersReducedMotion}
             />
-          </button>
+          </motion.button>
         </motion.div>
       </div>
     </section>
