@@ -827,6 +827,39 @@ GET /api/patients/:id/treatment-histories
 
 ---
 
+## PHASE 26
+
+### Link Portal Actions trong Cổng Thông Tin (Hoàn thành 2026-07-20)
+
+**Files affected:** 3 files
+
+**Mục tiêu:**
+Liên kết các items trong "Cổng thông tin" để mở đúng modal/section thay vì redirect nhầm.
+
+**Đã thực hiện - Task 1: Update InfoCard**
+- Thêm `onAction` callback vào item props
+- Button gọi `item.onAction()` khi bấm
+
+**Đã thực hiện - Task 2: RecordRequestModal**
+- Form yêu cầu trích sao hồ sơ y tế
+- 4 loại: Hồ sơ y tế, Giấy chứng nhận, Kết quả khám, Đơn thuốc
+- Chọn ngày, phương thức nhận (tái khám/quầy/bưu điện)
+- Success state với mã yêu cầu
+
+**Đã thực hiện - Task 3: FeedbackModal**
+- Form góp ý chất lượng dịch vụ
+- Chọn loại dịch vụ, rating 5 sao, nội dung
+- Success state
+
+**Đã thực hiện - Task 4: Wire up click handlers**
+- Tra cứu bệnh sử online → scroll đến PatientPortalSection + set active tab
+- Yêu cầu trích sao hồ sơ → mở RecordRequestModal
+- Góp ý chất lượng dịch vụ → mở FeedbackModal
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## TECHNICAL DEBT
 
 ### prefers-reduced-motion Support (Chưa hoàn thành)
