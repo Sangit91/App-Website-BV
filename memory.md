@@ -1115,6 +1115,52 @@ getItemOnAction(itemName) {
 
 ---
 
+## PHASE 35
+
+### Redesign Specialties Section (Hoàn thành 2026-07-20)
+
+**Files affected:** 1 file
+
+**Mục tiêu:**
+Biến section "Chuyên khoa nổi bật" từ đơn điệu thành hiện đại, ưa nhìn.
+
+**Đã thực hiện:**
+
+**1. 3D Tilt Cards:**
+- Perspective 1000px với `rotateX` và `rotateY`
+- Spring physics cho smooth interaction (`useSpring`, `damping: 20, stiffness: 300`)
+- `translateZ` để tăng chiều sâu
+
+**2. Reveal Animations:**
+- Staggered delays (index * 0.1s)
+- Scale 0.9 → 1 khi vào viewport
+- `useInView` với `once: true, margin: "-50px"`
+
+**3. Hover Effects:**
+- Scale 1.03 khi hover
+- Gradient overlay fade in (`opacity-0` → `opacity-100`)
+- Icon scale và rotate
+- Arrow indicator reveal (opacity, translateX)
+- Border và shadow enhancement
+
+**4. Modern Typography:**
+- Gradient heading (text-brand-green cho từ "Nổi Bật")
+- Animated underline (scaleX 0 → 1)
+- Badge với icon
+
+**5. Background Decoration:**
+- Two blur circles (green và peach)
+- Opacity 30%
+
+**6. Modern Button:**
+- Gradient background (brand-green → green-dark)
+- Hover: scale, shadow, translateY
+- Rotating Plus/Minus icon
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## TECHNICAL DEBT
 
 ### prefers-reduced-motion Support (Chưa hoàn thành)

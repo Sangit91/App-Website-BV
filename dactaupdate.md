@@ -1114,6 +1114,82 @@ const getItemOnAction = (itemName: string) => {
 
 ---
 
+## PHASE 35 - Redesign Specialties Section (2026-07-20)
+
+### Mục tiêu
+Biến section "Chuyên khoa nổi bật" từ đơn điệu thành hiện đại, ưa nhìn.
+
+### Design Changes
+
+**1. 3D Tilt Cards**
+```tsx
+// Perspective wrapper
+<div style={{ perspective: "1000px" }}>
+  <motion.div
+    style={{
+      rotateX, rotateY,
+      transformStyle: "preserve-3d"
+    }}
+    whileHover={{ scale: 1.03 }}
+  >
+```
+
+**2. Spring Physics for Smooth Interaction**
+```tsx
+const springConfig = { damping: 20, stiffness: 300 };
+const rotateX = useSpring(
+  useTransform(mouseY, [-0.5, 0.5], [8, -8]),
+  springConfig
+);
+```
+
+**3. Hover Effects**
+- Scale 1.03 với shadow nâng cao
+- Gradient overlay fade in
+- Icon transform (scale + rotate)
+- Arrow indicator reveal
+- Border glow effect
+
+**4. Reveal Animations**
+```tsx
+<motion.div
+  initial={{ opacity: 0, y: 60, scale: 0.9 }}
+  animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+  transition={{ duration: 0.6, delay: index * 0.1 }}
+/>
+```
+
+**5. Modern Typography**
+- Gradient heading với animation
+- Animated underline (scaleX)
+- Badge với icon
+
+**6. Background Decoration**
+```tsx
+<div className="absolute inset-0 opacity-30">
+  <div className="absolute top-20 left-10 w-72 h-72 bg-brand-green/10 rounded-full blur-3xl" />
+  <div className="absolute bottom-10 right-10 w-96 h-96 bg-peach/10 rounded-full blur-3xl" />
+</div>
+```
+
+**7. Modern CTA Button**
+- Gradient background với hover transition
+- Shadow lift + translateY
+- Rotating Plus/Minus icon
+
+### Components Changed
+- Specialties.tsx: Complete redesign với animation
+
+### Benefits
+1. Eye-catching với 3D tilt effect
+2. Smooth interactions với spring physics
+3. Professional medical aesthetic
+4. Increased engagement với hover effects
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## Earlier Phases
 
 See `memory.md` for detailed history of Phase 0 - Phase 17.
