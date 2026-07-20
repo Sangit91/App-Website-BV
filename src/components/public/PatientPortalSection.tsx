@@ -474,22 +474,11 @@ export default function PatientPortalSection({
 
   if (!currentPatient) {
     return (
-      <div className="space-y-6">
-        <PatientLookupForm
-          onPatientFound={handlePatientLookup}
-          isLoading={isLookupLoading}
-          error={lookupError}
-        />
-        <div className="bg-white rounded-3xl border border-green-800/5 p-8 text-center">
-          <div className="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <User className="w-8 h-8 text-purple-400" />
-          </div>
-          <h3 className="font-display font-bold text-lg text-green-dark mb-2">Tra cứu thông tin bệnh nhân</h3>
-          <p className="text-sm text-ink/60">
-            Vui lòng nhập mã KCB, CCCD hoặc số điện thoại đã đăng ký để xem lịch sử khám bệnh
-          </p>
-        </div>
-      </div>
+      <PatientLookupForm
+        onPatientFound={handlePatientLookup}
+        isLoading={isLookupLoading}
+        error={lookupError}
+      />
     );
   }
 
