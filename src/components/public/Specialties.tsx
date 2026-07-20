@@ -299,7 +299,7 @@ function SpecialtyCard({
 
           {/* Detail footer with gradient background */}
           <motion.div
-            className={`mt-auto pt-4 border-t border-green-800/5 rounded-xl p-3 ${badge.bg.replace('bg-gradient-to-br', 'bg-gradient-to-r').replace('to-', 'to-transparent to-')}`}
+            className={`mt-auto pt-4 border-t border-green-800/5 rounded-xl p-3 bg-[length:200%_100%] bg-right bg-no-repeat ${badge.gradient}`}
             style={{ transform: "translateZ(10px)" }}
           >
             <div className="flex items-center justify-between gap-2">
