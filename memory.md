@@ -781,6 +781,52 @@ Review Admin Panel components và tabs, sửa TypeScript any types và hardcoded
 
 ---
 
+## PHASE 25
+
+### Patient Portal với HIS Integration (Hoàn thành 2026-07-20)
+
+**Files affected:** 9 files
+
+**Mục tiêu:**
+Tạo Patient Portal để bệnh nhân tra cứu thông tin bằng mã KCB/CCCD/số điện thoại, kết nối với HIS.
+
+**Đã thực hiện - Task 1: Data Models cho HIS**
+- `medical-record.ts`: MedicalRecord với diagnosis, treatment, prescriptions, followUpDate
+- `clinical-test.ts`: ClinicalTest với 12 loại CLS (xét nghiệm máu, X-quang, siêu âm, ECG, CT, MRI...)
+- `treatment-history.ts`: TreatmentHistory với các loại điều trị (nội trú, ngoại trú, thủ thuật, phẫu thuật)
+
+**Đã thực hiện - Task 2: PatientLookupForm Component**
+- 3 loại tra cứu: Mã KCB, CCCD/CMND, Số điện thoại
+- Validation input (CCCD 9/12 số, phone 10 số)
+- Loading state, error handling
+- PatientInfoCard hiển thị thông tin bệnh nhân
+
+**Đã thực hiện - Task 3: PatientPortalSection Component**
+- 3 tabs: Lịch sử bệnh sử | CLS các lần khám | Lịch sử điều trị
+- Expandable cards với chi tiết đầy đủ
+- API callbacks interface: `onPatientLookup`, `onFetchMedicalRecords`, `onFetchClinicalTests`, `onFetchTreatmentHistories`
+- Mock mode: tự động load mock data khi không có API
+
+**Đã thực hiện - Task 4: Mock Data**
+- 3 medical records với đơn thuốc chi tiết
+- 5 clinical tests với indicators (Lipid máu, X-quang, Siêu âm, CBC, CRP)
+- 3 treatment histories (ngoại trú, nội trú, cấp cứu)
+
+**API Interface cho HIS Backend:**
+```typescript
+POST /api/patients/lookup
+  Body: { identifier: string, identifierType: 'patientCode' | 'cccd' | 'phone' }
+  Response: { patient: Patient, message?: string }
+
+GET /api/patients/:id/medical-records
+GET /api/patients/:id/clinical-tests
+GET /api/patients/:id/treatment-histories
+```
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## TECHNICAL DEBT
 
 ### prefers-reduced-motion Support (Chưa hoàn thành)
