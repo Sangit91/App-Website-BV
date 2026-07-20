@@ -16,6 +16,7 @@ export interface MedicalRecord {
   doctorTitle?: string;
   symptoms: string;
   diagnosis: string;
+  icd10_code?: string;
   treatment: string;
   prescriptions?: Prescription[];
   followUpDate?: string;
@@ -25,6 +26,7 @@ export interface MedicalRecord {
 
 export interface GetMedicalRecordsRequest {
   patientId: string;
+  readToken: string;
   startDate?: string;
   endDate?: string;
   clinicId?: string;

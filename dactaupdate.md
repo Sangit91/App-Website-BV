@@ -847,6 +847,179 @@ GET /api/patients/:id/treatment-histories
 
 ---
 
+## PHASE 32 - API Mockup HIS Integration (2026-07-20)
+
+### Mục tiêu
+Xây dựng mockup API đầy đủ theo đặc tả kỹ thuật HIS, hỗ trợ:
+- JWT Authentication + OAuth 2.0 Client Credentials
+- OTP flow cho tra cứu PHI (Protected Health Information)
+- Check trùng bệnh nhân → Đặt lịch (2 bước)
+- ICD-10, LOINC codes
+
+### Bảo mật & Quy chuẩn
+
+**Authentication:**
+- JWT Bearer Token trong HTTP Header
+- `access_token` có hiệu lực 30 phút
+- Refresh token cho gia hạn
+
+**Rate Limiting:**
+- 50 requests/second cho API tra cứu
+- 10 requests/second cho API tạo mới
+
+**Mã hóa Y tế:**
+- ICD-10 cho mã bệnh danh (`diagnosis_codes`)
+- LOINC cho mã cận lâm sàng (`loinc_code`, `indicators[].loinc_code`)
+
+### API Endpoints
+
+#### Authentication APIs (`/api/v1/auth`)
+
+```typescript
+// 1. Gửi OTP
+POST /api/v1/auth/otp/send
+Body: { patientCode: string, phone: string }
+Response: { success: boolean, sessionId: string, expiresIn: 300 }
+```
+
+```typescript
+// 2. Xác thực OTP → nhận read_token (5 phút)
+POST /api/v1/auth/otp/verify
+Body: { sessionId: string, otpCode: string }
+Response: { success: boolean, readToken: string, expiresIn: 300 }
+```
+
+```typescript
+// 3. Refresh access token
+POST /api/v1/auth/token/refresh
+Body: { refreshToken: string }
+Response: { accessToken: string, expiresIn: 1800 }
+```
+
+```typescript
+// 4. Lấy access token (Client Credentials - cho system integration)
+POST /api/v1/auth/token/access
+Body: { patientCode: string }
+Response: { accessToken: string, refreshToken: string, expiresIn: 1800 }
+```
+
+#### Patient APIs (`/api/v1/patients`)
+
+```typescript
+// 1. Tra cứu bệnh nhân
+POST /api/v1/patients/lookup
+Body: { identifier: string, identifierType: 'patientCode' | 'cccd' | 'phone' }
+Response: { patient: Patient, message: string }
+```
+
+```typescript
+// 2. Lấy bệnh sử (yêu cầu read_token)
+GET /api/v1/patients/:patientId/medical-records?readToken=xxx
+Query: { startDate?: string, endDate?: string, clinicId?: string }
+Response: { records: MedicalRecord[], total, page, pageSize }
+```
+
+```typescript
+// 3. Lấy cận lâm sàng (yêu cầu read_token)
+GET /api/v1/patients/:patientId/clinical-tests?readToken=xxx
+Query: { startDate?: string, endDate?: string, testType?: string, status?: string }
+Response: { tests: ClinicalTest[], total, page, pageSize }
+```
+
+```typescript
+// 4. Lấy lịch sử điều trị (yêu cầu read_token)
+GET /api/v1/patients/:patientId/treatment-histories?readToken=xxx
+Response: { histories: TreatmentHistory[], total, page, pageSize }
+```
+
+#### Appointment APIs (`/api/v1/appointments`)
+
+```typescript
+// 1. Check trùng bệnh nhân (Luồng 2 bước - Bước 1)
+POST /api/v1/appointments/check-patient
+Body: { identity_card: string, full_name: string, dob: string, phone: string }
+Response: { exists: boolean, patientCode?: string, message: string }
+```
+
+```typescript
+// 2. Tạo lịch hẹn (Luồng 2 bước - Bước 2)
+POST /api/v1/appointments
+Body: { patientCode: string, specialtyId: string, appointmentDate: string, appointmentTime?: string, symptoms?: string }
+Response: { success: boolean, appointment: { maKCB, queueNumber, roomNumber, ... }, message: string }
+```
+
+```typescript
+// 3. Tra cứu lịch hẹn
+GET /api/v1/appointments/search?patientCode=xxx hoặc ?phone=xxx
+Response: { appointments: Appointment[] }
+```
+
+```typescript
+// 4. Hủy lịch hẹn
+PATCH /api/v1/appointments/:maKCB/cancel
+Response: { success: boolean, appointment, message }
+```
+
+### TypeScript Types Updates
+
+**Patient Types** (`src/types/models/patient.ts`):
+```typescript
+interface PatientLookupRequest { identifier: string; identifierType: 'patientCode' | 'cccd' | 'phone' }
+interface PatientCheckRequest { identity_card: string; full_name: string; dob: string; phone: string }
+interface OTPSendRequest { patientCode: string; phone: string }
+interface OTPVerifyRequest { sessionId: string; otpCode: string }
+interface RefreshTokenRequest { refreshToken: string }
+```
+
+**MedicalRecord** (`src/types/models/medical-record.ts`):
+```typescript
+interface MedicalRecord { ..., icd10_code?: string }
+interface GetMedicalRecordsRequest { patientId: string; readToken: string; ... }
+```
+
+**ClinicalTest** (`src/types/models/clinical-test.ts`):
+```typescript
+interface ClinicalTestIndicator { name: string; loinc_code?: string; value: string; ... }
+interface ClinicalTest { ..., loinc_code?: string; indicators?: ClinicalTestIndicator[] }
+interface GetClinicalTestsRequest { patientId: string; readToken: string; ... }
+```
+
+### Server Routes Files
+
+| File | Mô tả |
+|------|-------|
+| `server/routes/patient.routes.ts` | Patient lookup + PHI access |
+| `server/routes/auth.routes.ts` | OTP flow + token management |
+| `server/routes/appointment.routes.ts` | Check patient + booking |
+| `server/app.ts` | Updated with `/api/v1/*` routes |
+
+### Mock Data
+
+**3 mock patients** với đầy đủ profile:
+- BN-2020-00001: Nguyễn Văn Minh (1965)
+- BN-2021-00042: Trần Thị Hoa (1978)
+- BN-2022-00156: Lê Văn Sơn (1990)
+
+**Medical Records**: 3 records với ICD-10 codes (I25.10, K29.5, J03.90)
+
+**Clinical Tests**: 4 tests với LOINC codes (24331-1, 24581-2, 44500-6, 58413-6)
+
+**Treatment Histories**: 2 records với diagnosisCodes array
+
+**Appointments**: 2 appointments với maKCB format
+
+### Test Credentials
+
+**OTP Flow Test:**
+1. POST `/api/v1/auth/otp/send` với `{ patientCode: "BN-2020-00001", phone: "0912345678" }`
+2. Server returns `sessionId` (check console log cho mock OTP code)
+3. POST `/api/v1/auth/otp/verify` với sessionId + otpCode
+4. Server returns `readToken`
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## Earlier Phases
 
 See `memory.md` for detailed history of Phase 0 - Phase 17.

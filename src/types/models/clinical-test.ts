@@ -17,6 +17,7 @@ export type IndicatorStatus = 'normal' | 'high' | 'low';
 
 export interface ClinicalTestIndicator {
   name: string;
+  loinc_code?: string;
   value: string;
   unit?: string;
   normalRange: string;
@@ -28,6 +29,7 @@ export interface ClinicalTest {
   patientId: string;
   date: string;
   testType: ClinicalTestType;
+  loinc_code?: string;
   category: string;
   testName: string;
   result: string;
@@ -59,6 +61,7 @@ export const CLINICAL_TEST_TYPE_LABELS: Record<ClinicalTestType, string> = {
 
 export interface GetClinicalTestsRequest {
   patientId: string;
+  readToken: string;
   startDate?: string;
   endDate?: string;
   testType?: ClinicalTestType;
