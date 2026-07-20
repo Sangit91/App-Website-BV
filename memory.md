@@ -956,6 +956,29 @@ Bỏ header trùng lặp khi chưa tra cứu bệnh nhân.
 
 ---
 
+## PHASE 31
+
+### Rà soát toàn bộ web - Full-card Clickability (Hoàn thành 2026-07-20)
+
+**Files affected:** 1 file
+
+**Mục tiêu:**
+Kiểm tra các card có cursor-pointer nhưng chỉ có button click được.
+
+**Đã rà soát:**
+- ✅ InfoCard (ChoBenhNhanPage.tsx) - đã fix PHASE 28
+- ✅ DoctorCard (Doctors.tsx) - đã fix PHASE 31 (onClick trên outer div)
+- ✅ Organization.tsx - đã có onClick trên motion.button
+- ✅ News.tsx - đã có onClick trên article
+- ⚠️ TinTucPage.tsx, SoDoToChucPage.tsx, Specialties.tsx, Testimonials.tsx - decorative cards, cursor-pointer nhưng không có action vì chỉ hiển thị thông tin
+
+**Đã thực hiện:**
+- Thêm `onClick={() => onOpenBookingWithDoctor(doc.name, doc.specialtyId)}` vào DoctorCard
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## TECHNICAL DEBT
 
 ### prefers-reduced-motion Support (Chưa hoàn thành)
