@@ -6,6 +6,11 @@ import { FileText, MapPin, Pill, Users, Search, Clipboard, DollarSign, Bed, Cale
 import PatientPortalSection from "../components/public/PatientPortalSection";
 import RecordRequestModal from "../components/public/RecordRequestModal";
 import FeedbackModal from "../components/public/FeedbackModal";
+import MapModal from "../components/public/MapModal";
+import DrugLookupModal from "../components/public/DrugLookupModal";
+import InpatientGuideModal from "../components/public/InpatientGuideModal";
+import OutpatientGuideModal from "../components/public/OutpatientGuideModal";
+import ServicesModal from "../components/public/ServicesModal";
 
 const SECTIONS = [
   { key: "chi-phi-dia-diem", title: "Chi phí & Địa điểm", icon: MapPin, color: "from-blue-500 to-indigo-600", bgLight: "bg-blue-50", textColor: "text-blue-600" },
@@ -212,6 +217,11 @@ export default function ChoBenhNhanPage() {
   const [activeTab, setActiveTab] = useState("chi-phi-dia-diem");
   const [isRecordRequestOpen, setIsRecordRequestOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const [isDrugLookupOpen, setIsDrugLookupOpen] = useState(false);
+  const [isInpatientGuideOpen, setIsInpatientGuideOpen] = useState(false);
+  const [isOutpatientGuideOpen, setIsOutpatientGuideOpen] = useState(false);
+  const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [scrollToPortal, setScrollToPortal] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const portalRef = useRef<HTMLDivElement>(null);
@@ -249,23 +259,34 @@ export default function ChoBenhNhanPage() {
   };
 
   const handleOpenMap = () => {
-    const mapSection = document.getElementById("map-section");
-    if (mapSection) {
-      mapSection.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    setIsMapOpen(true);
   };
 
   const handleOpenDrugLookup = () => {
-    const drugSection = document.getElementById("drug-lookup-section");
-    if (drugSection) {
-      drugSection.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    setIsDrugLookupOpen(true);
+  };
+
+  const handleOpenInpatientGuide = () => {
+    setIsInpatientGuideOpen(true);
+  };
+
+  const handleOpenOutpatientGuide = () => {
+    setIsOutpatientGuideOpen(true);
+  };
+
+  const handleOpenServices = () => {
+    setIsServicesOpen(true);
   };
 
   const getItemOnAction = (itemName: string) => {
     if (activeTab === "chi-phi-dia-diem") {
       if (itemName === "Cơ sở điều trị") return handleOpenMap;
       if (itemName === "Danh mục thuốc BHYT") return handleOpenDrugLookup;
+    }
+    if (activeTab === "huong-dan-tien-ich") {
+      if (itemName === "Dịch vụ điều trị") return handleOpenServices;
+      if (itemName === "Dành cho bệnh nhân nội trú") return handleOpenInpatientGuide;
+      if (itemName === "Dành cho thăm khám ngoại trú") return handleOpenOutpatientGuide;
     }
     return undefined;
   };
@@ -487,49 +508,6 @@ export default function ChoBenhNhanPage() {
                       );
                     })}
                   </div>
-
-                  {activeTab === "chi-phi-dia-diem" && (
-                    <>
-                      <div id="map-section" className="mt-8">
-                        <h3 className="text-xl font-display font-bold text-green-dark mb-4">Bản đồ cơ sở điều trị</h3>
-                        <div className="bg-white rounded-3xl border border-green-800/5 p-4 h-[400px]">
-                          <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3833.8!2d108.2!3d16.0!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTY!5e0!3m2!1svi!2s!4v1"
-                            className="w-full h-full rounded-2xl"
-                            style={{ border: 0 }}
-                            allowFullScreen
-                            loading="lazy"
-                            referrerPolicy="no-referrer-when-downgrade"
-                            title="Bệnh viện Đa Khoa Khu Vực Miền Núi Phía Bắc Quảng Nam"
-                          />
-                        </div>
-                        <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                          <p className="text-sm text-ink/70">
-                            <span className="font-semibold text-blue-600">Địa chỉ:</span> 107 Quang Trung, Xã Đại Lộc, Thành Phố Đà Nẵng
-                          </p>
-                          <p className="text-sm text-ink/70 mt-2">
-                            <span className="font-semibold text-blue-600">Hotline:</span> 1900 xxxx
-                          </p>
-                        </div>
-                      </div>
-
-                      <div id="drug-lookup-section" className="mt-8">
-                        <h3 className="text-xl font-display font-bold text-green-dark mb-4">Danh mục thuốc BHYT</h3>
-                        <div className="bg-white rounded-3xl border border-green-800/5 p-8 text-center">
-                          <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <Pill className="w-8 h-8 text-blue-500" />
-                          </div>
-                          <h4 className="font-display font-bold text-lg text-green-dark mb-2">Tra cứu danh mục thuốc BHYT</h4>
-                          <p className="text-sm text-ink/60 mb-4">
-                            Xem danh mục thuốc được bảo hiểm y tế chi trả tại bệnh viện
-                          </p>
-                          <button className="px-6 py-3 bg-brand-green hover:bg-brand-green/90 text-white font-semibold rounded-xl text-sm shadow-md transition-all cursor-pointer">
-                            Mở tra cứu thuốc
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  )}
                 </>
               )}
             </motion.div>
@@ -545,6 +523,31 @@ export default function ChoBenhNhanPage() {
       <FeedbackModal
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
+      />
+
+      <MapModal
+        isOpen={isMapOpen}
+        onClose={() => setIsMapOpen(false)}
+      />
+
+      <DrugLookupModal
+        isOpen={isDrugLookupOpen}
+        onClose={() => setIsDrugLookupOpen(false)}
+      />
+
+      <InpatientGuideModal
+        isOpen={isInpatientGuideOpen}
+        onClose={() => setIsInpatientGuideOpen(false)}
+      />
+
+      <OutpatientGuideModal
+        isOpen={isOutpatientGuideOpen}
+        onClose={() => setIsOutpatientGuideOpen(false)}
+      />
+
+      <ServicesModal
+        isOpen={isServicesOpen}
+        onClose={() => setIsServicesOpen(false)}
       />
     </Layout>
   );
