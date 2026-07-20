@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Info, Users, Building2, Award, Handshake, Plus } from "lucide-react";
-import { SectionCard, ItemCard, EditModal, ConfirmDialog, ImageUploader } from "../ui";
+import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog, ImageUploader } from "../ui";
 import { Button } from "../../ui";
 
 interface Director {
@@ -94,11 +94,6 @@ function AboutSection() {
         onEnabledChange={setEnabled}
         badge={`${whyChooseItems.length} điểm`}
         badgeColor="green"
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
-            <Plus size={12} /> Thêm
-          </Button>
-        }
       >
         <div className="p-5">
           <div className="space-y-3">
@@ -114,6 +109,7 @@ function AboutSection() {
                 }}
               />
             ))}
+            <AddCard title="Thêm điểm nổi bật" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="green" />
           </div>
         </div>
       </SectionCard>
@@ -124,7 +120,22 @@ function AboutSection() {
         onSubmit={handleSave}
         title={editingItem && whyChooseItems.find(i => i.id === editingItem.id) ? "Chỉnh sửa điểm nổi bật" : "Thêm điểm nổi bật mới"}
         fields={[
-          { name: "text", label: "Nội dung", type: "textarea", rows: 2, required: true }
+          {
+            name: "text",
+            label: "Nội dung điểm nổi bật",
+            type: "textarea",
+            rows: 2,
+            required: true,
+            description: "Mô tả ngắn gọn điểm nổi bật",
+            hint: "Tối đa 100 ký tự, viết ngắn gọn, dễ hiểu",
+            suggestions: [
+              "Đội ngũ bác sĩ chuyên môn cao, giàu kinh nghiệm",
+              "Trang thiết bị y tế hiện đại, tiên tiến",
+              "Quy trình khám chữa bệnh chuyên nghiệp",
+              "Thái độ phục vụ tận tâm, chu đáo",
+              "Chi phí hợp lý, minh bạch"
+            ]
+          }
         ]}
         initialData={editingItem || {}}
       />
@@ -198,14 +209,9 @@ function LeadershipSection() {
         onEnabledChange={setEnabled}
         badge={`${directors.length} người`}
         badgeColor="blue"
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
-            <Plus size={12} /> Thêm
-          </Button>
-        }
       >
         <div className="p-5">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {directors.map((director, idx) => (
               <ItemCard
                 key={director.id}
@@ -221,6 +227,7 @@ function LeadershipSection() {
                 footer={director.bio ? <p className="text-xs text-ink/60 mt-2 line-clamp-2">{director.bio}</p> : undefined}
               />
             ))}
+            <AddCard title="Thêm lãnh đạo" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="blue" />
           </div>
         </div>
       </SectionCard>
@@ -232,10 +239,10 @@ function LeadershipSection() {
         title={editingDirector && directors.find(d => d.id === editingDirector.id) ? "Chỉnh sửa lãnh đạo" : "Thêm lãnh đạo mới"}
         size="lg"
         fields={[
-          { name: "name", label: "Họ tên", required: true },
-          { name: "role", label: "Chức vụ", type: "select", options: roleOptions },
-          { name: "image", label: "Ảnh", type: "image" },
-          { name: "bio", label: "Tiểu sử", type: "textarea", rows: 2 }
+          { name: "name", label: "Họ tên", required: true, description: "Họ tên đầy đủ", hint: "VD: BS CKII Nguyễn Văn A" },
+          { name: "role", label: "Chức vụ", type: "select", options: roleOptions, description: "Chức vụ hiện tại" },
+          { name: "image", label: "Ảnh lãnh đạo", type: "image", description: "Ảnh chân dung" },
+          { name: "bio", label: "Tiểu sử", type: "textarea", rows: 2, description: "Kinh nghiệm, trình độ", hint: "VD: Bác sĩ chuyên khoa II với hơn 20 năm kinh nghiệm" }
         ]}
         initialData={editingDirector || {}}
       />
@@ -302,14 +309,9 @@ function PartnersSection() {
         onEnabledChange={setEnabled}
         badge={`${partners.length} đối tác`}
         badgeColor="amber"
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
-            <Plus size={12} /> Thêm
-          </Button>
-        }
       >
         <div className="p-5">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
             {partners.map((partner, idx) => (
               <ItemCard
                 key={partner.id}
@@ -322,6 +324,7 @@ function PartnersSection() {
                 }}
               />
             ))}
+            <AddCard title="Thêm đối tác" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="amber" />
           </div>
         </div>
       </SectionCard>
@@ -417,14 +420,9 @@ function FacilitiesSection() {
         onEnabledChange={setEnabled}
         badge={`${facilities.length} mục`}
         badgeColor="purple"
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
-            <Plus size={12} /> Thêm
-          </Button>
-        }
       >
         <div className="p-5">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {facilities.map((facility, idx) => (
               <ItemCard
                 key={facility.id}
@@ -451,6 +449,7 @@ function FacilitiesSection() {
                 }
               />
             ))}
+            <AddCard title="Thêm cơ sở" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="blue" />
           </div>
         </div>
       </SectionCard>

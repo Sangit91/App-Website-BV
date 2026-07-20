@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FileText, Building2, Calendar, DollarSign, Phone, Mail, Plus, Download } from "lucide-react";
-import { SectionCard, ItemCard, EditModal, ConfirmDialog } from "../ui";
+import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog } from "../ui";
 import { Button } from "../../ui";
 
 const DEPARTMENTS = [
@@ -101,14 +101,9 @@ function TenderNoticesSection() {
         onEnabledChange={setEnabled}
         badge={`${tenders.length} thông báo`}
         badgeColor="green"
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
-            <Plus size={12} /> Thêm mới
-          </Button>
-        }
       >
         <div className="p-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {tenders.map((tender, idx) => (
               <ItemCard
                 key={tender.id}
@@ -140,6 +135,7 @@ function TenderNoticesSection() {
                 }
               />
             ))}
+            <AddCard title="Thêm thông báo" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="green" />
           </div>
         </div>
       </SectionCard>

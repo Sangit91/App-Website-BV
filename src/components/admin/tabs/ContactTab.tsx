@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Phone, MapPin, Mail, Link2, Clock, Plus } from "lucide-react";
-import { SectionCard, ItemCard, EditModal, ConfirmDialog } from "../ui";
+import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog } from "../ui";
 import { Button } from "../../ui";
 
 const QUICK_LINKS = [
@@ -198,14 +198,9 @@ function QuickLinksSection() {
         onEnabledChange={setEnabled}
         badge={`${links.length} links`}
         badgeColor="blue"
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
-            <Plus size={12} /> Thêm
-          </Button>
-        }
       >
         <div className="p-5">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
             {links.map((link, idx) => (
               <ItemCard
                 key={link.id}
@@ -218,6 +213,7 @@ function QuickLinksSection() {
                 }}
               />
             ))}
+            <AddCard title="Thêm liên kết" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="blue" />
           </div>
         </div>
       </SectionCard>
@@ -284,14 +280,9 @@ function SupportLinksSection() {
         onEnabledChange={setEnabled}
         badge={`${links.length} links`}
         badgeColor="amber"
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
-            <Plus size={12} /> Thêm
-          </Button>
-        }
       >
         <div className="p-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
             {links.map((link, idx) => (
               <ItemCard
                 key={link.id}
@@ -304,6 +295,7 @@ function SupportLinksSection() {
                 }}
               />
             ))}
+            <AddCard title="Thêm liên kết" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="amber" />
           </div>
         </div>
       </SectionCard>

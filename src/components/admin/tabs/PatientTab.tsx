@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Heart, FileText, List, Plus, CheckCircle, Calendar, Clock, User, Ambulance, Shield } from "lucide-react";
-import { SectionCard, ItemCard, EditModal, ConfirmDialog } from "../ui";
+import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog } from "../ui";
 import { Button } from "../../ui";
 
 const PROCESS_STEPS = [
@@ -114,11 +114,6 @@ function ProcessSection() {
         onEnabledChange={setEnabled}
         badge={`${steps.length} bước`}
         badgeColor="green"
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
-            <Plus size={12} /> Thêm
-          </Button>
-        }
       >
         <div className="p-5">
           <div className="flex flex-wrap gap-4">
@@ -142,6 +137,7 @@ function ProcessSection() {
                 />
               );
             })}
+            <AddCard title="Thêm bước" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="green" />
           </div>
         </div>
       </SectionCard>
@@ -209,14 +205,9 @@ function WhatToBringSection() {
         onEnabledChange={setEnabled}
         badge={`${items.length} items`}
         badgeColor="amber"
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
-            <Plus size={12} /> Thêm
-          </Button>
-        }
       >
         <div className="p-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {items.map((item, idx) => (
               <ItemCard
                 key={item.id}
@@ -235,6 +226,7 @@ function WhatToBringSection() {
                 }
               />
             ))}
+            <AddCard title="Thêm giấy tờ" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="amber" />
           </div>
         </div>
       </SectionCard>
@@ -307,11 +299,6 @@ function FaqSection() {
         onEnabledChange={setEnabled}
         badge={`${faqs.length} câu hỏi`}
         badgeColor="blue"
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
-            <Plus size={12} /> Thêm
-          </Button>
-        }
       >
         <div className="p-5">
           <div className="space-y-4">
@@ -327,6 +314,7 @@ function FaqSection() {
                 }}
               />
             ))}
+            <AddCard title="Thêm FAQ" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="blue" />
           </div>
         </div>
       </SectionCard>

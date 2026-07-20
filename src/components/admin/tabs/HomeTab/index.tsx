@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SectionCard, ItemCard, EditModal, ConfirmDialog } from "../../ui";
+import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog } from "../../ui";
 import { Home, Zap, Heart, Users, FileText, Star, Plus, Settings } from "lucide-react";
 import { Button } from "../../../ui";
 import { useHospital } from "../../../../context/HospitalContext";
@@ -227,16 +227,11 @@ function QuickActionsSection() {
         icon={<Zap size={20} />}
         enabled={enabled}
         onEnabledChange={setEnabled}
-        badge="6 items"
+        badge={`${actions.length} items`}
         badgeColor="blue"
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
-            <Plus size={12} /> Thêm
-          </Button>
-        }
       >
         <div className="p-5">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
             {actions.map((action, idx) => (
               <ItemCard
                 key={action.id}
@@ -252,6 +247,7 @@ function QuickActionsSection() {
                 }
               />
             ))}
+            <AddCard title="Thêm Action" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="blue" />
           </div>
         </div>
       </SectionCard>
@@ -342,14 +338,9 @@ function WhyChooseUsSection() {
         onEnabledChange={setEnabled}
         badge={`${reasons.length} items`}
         badgeColor="amber"
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
-            <Plus size={12} /> Thêm
-          </Button>
-        }
       >
         <div className="p-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {reasons.map((reason, idx) => (
               <ItemCard
                 key={reason.id}
@@ -367,6 +358,7 @@ function WhyChooseUsSection() {
                 }
               />
             ))}
+            <AddCard title="Thêm lý do" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="amber" />
           </div>
         </div>
       </SectionCard>
@@ -550,14 +542,9 @@ function TestimonialsSection() {
         onEnabledChange={setEnabled}
         badge={`${testimonials.length} items`}
         badgeColor="rose"
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
-            <Plus size={12} /> Thêm
-          </Button>
-        }
       >
         <div className="p-5">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {testimonials.map((item, idx) => (
               <ItemCard
                 key={item.id}
@@ -580,6 +567,7 @@ function TestimonialsSection() {
                 }
               />
             ))}
+            <AddCard title="Thêm cảm nhận" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="rose" />
           </div>
         </div>
       </SectionCard>

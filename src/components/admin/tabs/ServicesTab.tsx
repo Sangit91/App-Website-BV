@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Briefcase, List, Calendar, Home, Syringe, Shield, Heart, Truck, Plane, Plus } from "lucide-react";
-import { SectionCard, ItemCard, EditModal, ConfirmDialog, ImageUploader } from "../ui";
+import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog, ImageUploader } from "../ui";
 import { Button } from "../../ui";
 
 const ICON_MAP: Record<string, any> = {
@@ -187,7 +187,7 @@ function ServiceItemsSection() {
 
   return (
     <>
-      <SectionCard
+<SectionCard
         title={`Chi tiết dịch vụ: ${currentCategory.title}`}
         description="Các dịch vụ cụ thể trong từng danh mục"
         icon={<Briefcase size={20} />}
@@ -195,11 +195,6 @@ function ServiceItemsSection() {
         onEnabledChange={setEnabled}
         badge={`${currentServices.length} dịch vụ`}
         badgeColor="blue"
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
-            <Plus size={12} /> Thêm
-          </Button>
-        }
       >
         <div className="p-5 space-y-4">
           <div className="flex flex-wrap gap-2 mb-4">
@@ -218,7 +213,7 @@ function ServiceItemsSection() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {currentServices.map((service, idx) => (
               <ItemCard
                 key={service.id}
@@ -240,6 +235,7 @@ function ServiceItemsSection() {
                 }
               />
             ))}
+            <AddCard title="Thêm dịch vụ" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="blue" />
           </div>
         </div>
       </SectionCard>

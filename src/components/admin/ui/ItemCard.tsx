@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import { motion } from "framer-motion";
-import { GripVertical, Edit, Trash2, Eye } from "lucide-react";
+import { GripVertical, Edit, Trash2, Eye, Plus } from "lucide-react";
 
 interface ItemCardProps {
   key?: React.Key;
@@ -17,6 +17,14 @@ interface ItemCardProps {
   draggable?: boolean;
   children?: ReactNode;
   footer?: ReactNode;
+  index?: number;
+}
+
+interface AddCardProps {
+  title?: string;
+  description?: string;
+  onClick: () => void;
+  color?: "green" | "blue" | "amber" | "rose";
   index?: number;
 }
 
@@ -110,5 +118,63 @@ export default function ItemCard({
         </div>
       )}
     </motion.div>
+  );
+}
+
+const colorMap = {
+  green: {
+    bg: "bg-brand-green/5 hover:bg-brand-green/10",
+    border: "border-brand-green/20 hover:border-brand-green/40",
+    icon: "text-brand-green",
+    iconBg: "bg-brand-green/10"
+  },
+  blue: {
+    bg: "bg-blue-50/50 hover:bg-blue-100/50",
+    border: "border-blue-200 hover:border-blue-400",
+    icon: "text-blue-500",
+    iconBg: "bg-blue-100"
+  },
+  amber: {
+    bg: "bg-peach/5 hover:bg-peach/10",
+    border: "border-peach/20 hover:border-peach/40",
+    icon: "text-peach",
+    iconBg: "bg-peach/10"
+  },
+  rose: {
+    bg: "bg-rose-50/50 hover:bg-rose-100/50",
+    border: "border-rose-200 hover:border-rose-400",
+    icon: "text-rose-500",
+    iconBg: "bg-rose-100"
+  }
+};
+
+export function AddCard({
+  title = "Thêm mới",
+  description = "Nhấn để thêm item mới",
+  onClick,
+  color = "green",
+  index = 0
+}: AddCardProps) {
+  const colors = colorMap[color];
+
+  return (
+    <motion.button
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
+      onClick={onClick}
+      className={`w-full h-full min-h-[120px] ${colors.bg} ${colors.border} border-2 border-dashed rounded-xl 
+        flex flex-col items-center justify-center gap-3 cursor-pointer
+        hover:shadow-md transition-all duration-300 group`}
+    >
+      <div className={`w-14 h-14 ${colors.iconBg} rounded-2xl flex items-center justify-center 
+        group-hover:scale-110 transition-transform duration-300`}>
+        <Plus size={28} className={colors.icon} />
+      </div>
+      <div className="text-center">
+        <p className="font-display font-bold text-sm text-green-dark">{title}</p>
+        <p className="text-xs text-ink/50 mt-0.5">{description}</p>
+      </div>
+    </motion.button>
   );
 }
