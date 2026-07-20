@@ -935,6 +935,27 @@ Fix cấu trúc JSX bị wrapped 2 lần không cần thiết.
 
 ---
 
+## PHASE 30
+
+### Remove Redundant Header in PatientPortalSection (Hoàn thành 2026-07-20)
+
+**Files affected:** 1 file
+
+**Mục tiêu:**
+Bỏ header trùng lặp khi chưa tra cứu bệnh nhân.
+
+**Vấn đề:**
+- `PatientLookupForm` đã có header với Search icon
+- Phía dưới lại thêm 1 info card với User icon - trùng lặp
+
+**Đã thực hiện:**
+- Bỏ info card thừa với User icon
+- Chỉ hiển thị `PatientLookupForm` khi chưa tra cứu
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## TECHNICAL DEBT
 
 ### prefers-reduced-motion Support (Chưa hoàn thành)
