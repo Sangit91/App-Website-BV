@@ -690,18 +690,17 @@ Cleanup đã thực hiện:
 
 ## PHASE 21
 
-### Page Transition Animation Fix (Hoàn thành 2026-07-20)
+### Page Transition Animation (Đã revert 2026-07-20)
 
 **Files affected:**
 - src/App.tsx
 
 **Vấn đề:**
-PageTransition component đã được tạo ở Phase 10 nhưng chưa được tích hợp vào App.tsx.
+PageTransition gây delay 1s khi chuyển trang, trải nghiệm người dùng xấu.
 
 **Đã thực hiện:**
-- Import PageTransition vào App.tsx
-- Bọc Routes trong PageTransition component
-- Animation: fade + slide (opacity 0→1, y 20→0), duration 0.3s
+- Loại bỏ PageTransition wrapper khỏi App.tsx
+- Chuyển trang sẽ load ngay lập tức không có animation
 
 **Commands:** npm run lint - Passed, npm run build - Passed
 
