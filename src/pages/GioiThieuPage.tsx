@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, MouseEvent } from "react";
 import { useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
-import { motion, useInView, useMotionValue, AnimatePresence } from "framer-motion";
-import { Info, Users, Building2, Award, Heart, ArrowRight, Check, Activity } from "lucide-react";
+import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
+import { Info, Users, Building2, Award, Heart, ArrowRight, Check, Activity, type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const stats = [
@@ -119,7 +119,7 @@ const careProcesses = [
 interface FeatureCardProps {
   item: {
     title: string;
-    icon: any;
+    icon: LucideIcon;
     image: string;
     items: string[];
   };
@@ -151,6 +151,9 @@ function FeatureCard({ item, index, color }: FeatureCardProps) {
 
   const colors = colorMap[color] || colorMap.green;
 
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], [8, -8]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
+
   return (
     <motion.div
       ref={cardRef}
@@ -164,6 +167,8 @@ function FeatureCard({ item, index, color }: FeatureCardProps) {
       className="group cursor-pointer"
     >
       <motion.div
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        animate={isHovered ? { scale: 1.02 } : { scale: 1 }}
         className="relative bg-white rounded-3xl overflow-hidden shadow-lg border border-green-800/5 transition-all duration-300 h-full flex flex-col"
       >
         {/* Image container with reveal animation */}
@@ -249,6 +254,9 @@ function ProcessCard({ item, index }: ProcessCardProps) {
     mouseY.set(y);
   };
 
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], [8, -8]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
+
   return (
     <motion.div
       ref={cardRef}
@@ -262,6 +270,8 @@ function ProcessCard({ item, index }: ProcessCardProps) {
       className="group cursor-pointer"
     >
       <motion.div
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        animate={isHovered ? { scale: 1.02 } : { scale: 1 }}
         className="relative bg-white rounded-3xl overflow-hidden shadow-lg border border-green-800/5 transition-all duration-300 h-full flex flex-col"
       >
         <div className="relative h-48 overflow-hidden">
@@ -311,6 +321,13 @@ function ProcessCard({ item, index }: ProcessCardProps) {
 
 export default function GioiThieuPage() {
   const location = useLocation();
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"]
+  });
+  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
 
   useEffect(() => {
     if (location.hash) {
@@ -326,7 +343,7 @@ export default function GioiThieuPage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative min-h-[70vh] flex items-center overflow-hidden bg-gradient-to-br from-green-dark via-green-800 to-brand-green">
+      <section ref={heroRef} className="relative min-h-[70vh] flex items-center overflow-hidden bg-gradient-to-br from-green-dark via-green-800 to-brand-green">
         {/* Animated gradient mesh */}
         <div className="absolute inset-0 opacity-30">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-300 via-green-400 to-transparent" />
@@ -348,7 +365,10 @@ export default function GioiThieuPage() {
           }}
         />
 
-        <div className="relative max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10 py-20 w-full">
+        <motion.div
+          className="relative max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10 py-20 w-full"
+          style={{ opacity: heroOpacity, scale: heroScale }}
+        >
           <div className="max-w-3xl mx-auto text-center">
             {/* Badge */}
             <motion.div
@@ -419,7 +439,7 @@ export default function GioiThieuPage() {
               ))}
             </motion.div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Scroll indicator */}
         <motion.div
@@ -636,31 +656,98 @@ export default function GioiThieuPage() {
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl font-display font-bold text-green-dark text-center mb-12">Tại sao chọn chúng tôi?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {whyChooseItems.slice(0, 4).map((item, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="bg-white rounded-2xl p-6 text-center shadow-sm border border-green-800/5"
-                >
-                  <div className={`w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center ${
-                    idx === 0 ? "bg-brand-green/10" :
-                    idx === 1 ? "bg-blue-50" :
-                    idx === 2 ? "bg-peach/20" :
-                    "bg-purple-50"
-                  }`}>
-                    {idx === 0 && <Activity className="w-7 h-7 text-brand-green" />}
-                    {idx === 1 && <Users className="w-7 h-7 text-blue-600" />}
-                    {idx === 2 && <Heart className="w-7 h-7 text-peach" />}
-                    {idx === 3 && <Building2 className="w-7 h-7 text-purple-600" />}
-                  </div>
-                  <p className="font-medium text-green-dark">{item}</p>
-                </motion.div>
-              ))}
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-display font-bold text-green-dark mb-4">Tại sao chọn chúng tôi?</h2>
+              <div className="w-20 h-1 bg-brand-green mx-auto rounded-full" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                {
+                  image: "/images/components/why-choose-1.jpeg",
+                  icon: Activity,
+                  title: "Đội ngũ bác sĩ chuyên môn cao",
+                  desc: "100% bác sĩ có trình độ sau đại học, giàu kinh nghiệm và y đức"
+                },
+                {
+                  image: "/images/components/why-choose-2.jpeg",
+                  icon: Building2,
+                  title: "Trang thiết bị hiện đại",
+                  desc: "Hệ thống MRI, CT Scanner, máy nội soi Olympus thế hệ mới"
+                },
+                {
+                  image: "/images/pages/coso-1.jpeg",
+                  icon: Heart,
+                  title: "Quy trình chuyên nghiệp",
+                  desc: "Quy trình khám chữa bệnh chuẩn quốc tế, an toàn và hiệu quả"
+                },
+                {
+                  image: "/images/pages/khamtongquat-1.jpeg",
+                  icon: Users,
+                  title: "Thái độ phục vụ tận tâm",
+                  desc: "Chăm sóc người bệnh như người nhà, 24/7 mọi lúc mọi nơi"
+                }
+              ].map((item, idx) => {
+                const Icon = item.icon;
+                const colors = [
+                  "from-brand-green/80 to-green-800/90",
+                  "from-blue-600/80 to-blue-800/90",
+                  "from-peach/80 to-orange-700/90",
+                  "from-purple-600/80 to-purple-800/90"
+                ];
+                const iconBg = ["bg-brand-green/20", "bg-blue-100", "bg-peach/30", "bg-purple-100"];
+                const iconColor = ["text-brand-green", "text-blue-600", "text-peach", "text-purple-600"];
+
+                return (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.1, duration: 0.5 }}
+                    whileHover={{ y: -6, scale: 1.01 }}
+                    className="group relative overflow-hidden rounded-3xl shadow-lg cursor-pointer"
+                  >
+                    {/* Background Image */}
+                    <div className="absolute inset-0">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        referrerPolicy="no-referrer"
+                      />
+                      {/* Gradient Overlay */}
+                      <div className={`absolute inset-0 bg-gradient-to-br ${colors[idx]} opacity-90 transition-opacity duration-300 group-hover:opacity-80`} />
+                    </div>
+
+                    {/* Content */}
+                    <div className="relative p-8 min-h-[280px] flex flex-col justify-end">
+                      {/* Icon */}
+                      <div className={`absolute top-6 left-6 w-14 h-14 ${iconBg[idx]} rounded-2xl flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
+                        <Icon className={`w-7 h-7 ${iconColor[idx]}`} />
+                      </div>
+
+                      {/* Badge */}
+                      <div className="absolute top-6 right-6 bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full">
+                        0{idx + 1}
+                      </div>
+
+                      {/* Text */}
+                      <div>
+                        <h3 className="font-display font-bold text-xl text-white mb-2 group-hover:text-peach transition-colors duration-300">
+                          {item.title}
+                        </h3>
+                        <p className="text-white/90 text-sm leading-relaxed">
+                          {item.desc}
+                        </p>
+                      </div>
+
+                      {/* Bottom decorative line */}
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
 

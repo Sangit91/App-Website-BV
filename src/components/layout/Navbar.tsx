@@ -9,6 +9,18 @@ interface NavbarProps {
   onOpenAdmin: () => void;
 }
 
+interface MegaMenuColumn {
+  title: string;
+  links: string[];
+}
+
+interface MegaMenuItem {
+  title: string;
+  columns: MegaMenuColumn[];
+}
+
+type MegaMenuData = Record<string, MegaMenuItem>;
+
 export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmin }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -167,7 +179,7 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
   };
 
   // Mega Menu Catalog contents
-  const megaMenuData: Record<string, any> = {
+  const megaMenuData: MegaMenuData = {
     "gioi-thieu": {
       title: "GIỚI THIỆU",
       columns: [
@@ -312,7 +324,7 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
                 onClick={() => handleLinkClick(item.route || "/")}
                 className={`px-3 py-1.5 rounded-full text-[13px] xl:text-[14px] font-sans font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer flex items-center gap-1 ${
                   activeSection === item.id || hoveredMenu === item.id
-                    ? "bg-[#EAF7EE] text-brand-green font-bold"
+                    ? "bg-mint text-brand-green font-bold"
                     : "text-ink hover:text-brand-green hover:bg-mint/50"
                 }`}
               >
@@ -330,30 +342,30 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
           {/* Hotline Button with Pulsing Signal */}
           <a
             href="tel:02353747432"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-mint border border-[#2FA968]/20 text-green-dark hover:bg-[#d5f2dd] transition-colors duration-200 group whitespace-nowrap"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-mint border border-brand-green/20 text-green-dark hover:bg-mint transition-colors duration-200 group whitespace-nowrap"
           >
             <div className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-peach opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-peach"></span>
             </div>
             <Phone size={12} className="text-brand-green group-hover:rotate-12 transition-transform duration-200" />
-            <span className="font-display font-bold text-[11px] xl:text-[11.5px] text-[#164B36]">Cấp cứu: 02353.747.432</span>
+            <span className="font-display font-bold text-[11px] xl:text-[11.5px] text-green-dark">Cấp cứu: 02353.747.432</span>
           </a>
 
           {/* Admin Portal Button */}
           <button
             onClick={onOpenAdmin}
-            className="flex items-center gap-1.5 border border-[#2FA968]/20 hover:border-[#2FA968]/50 bg-[#EAF7EE] hover:bg-[#d5f2dd] text-[#164B36] font-sans text-[12px] xl:text-[12.5px] 2xl:text-[13px] font-semibold px-4 py-2 rounded-full cursor-pointer transition-all duration-300 whitespace-nowrap"
+            className="flex items-center gap-1.5 border border-brand-green/20 hover:border-brand-green/50 bg-mint hover:bg-mint text-green-dark font-sans text-[12px] xl:text-[12.5px] 2xl:text-[13px] font-semibold px-4 py-2 rounded-full cursor-pointer transition-all duration-300 whitespace-nowrap"
             title="Cổng thông tin quản lý lâm sàng"
           >
-            <span className="w-1.5 h-1.5 bg-[#2FA968] rounded-full animate-pulse"></span>
+            <span className="w-1.5 h-1.5 bg-brand-green rounded-full animate-pulse"></span>
             <span>Cổng Quản Trị</span>
           </button>
 
           {/* Booking CTA Button */}
           <button
             onClick={onOpenBooking}
-            className="flex items-center gap-1.5 bg-[#2FA968] hover:bg-[#258752] text-white font-sans text-[12px] xl:text-[12.5px] 2xl:text-[13px] font-semibold px-5 py-2 rounded-full cursor-pointer shadow-sm hover:shadow-md hover:translate-y-[-1px] transition-all duration-300 whitespace-nowrap"
+            className="flex items-center gap-1.5 bg-brand-green hover:bg-green-dark text-white font-sans text-[12px] xl:text-[12.5px] 2xl:text-[13px] font-semibold px-5 py-2 rounded-full cursor-pointer shadow-sm hover:shadow-md hover:translate-y-[-1px] transition-all duration-300 whitespace-nowrap"
           >
             <Calendar size={12} />
             <span>Đặt lịch khám</span>
@@ -386,7 +398,7 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
           <div
             onMouseEnter={() => handleMouseEnter(hoveredMenu)}
             onMouseLeave={handleMouseLeave}
-            className="absolute left-0 right-0 top-full mt-0.5 bg-white border border-[#2FA968]/20 shadow-xl rounded-b-[24px] overflow-hidden z-50 animate-fade-in py-8 px-10 hidden xl:block"
+            className="absolute left-0 right-0 top-full mt-0.5 bg-white border border-brand-green/20 shadow-xl rounded-b-[24px] overflow-hidden z-50 animate-fade-in py-8 px-10 hidden xl:block"
           >
             <div className="max-w-[1180px] mx-auto">
               <div className="flex items-center gap-2 pb-4 mb-6 border-b border-green-800/[0.08]">
@@ -402,10 +414,10 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
                 megaMenuData[hoveredMenu].columns.length === 4 ? "grid-cols-4" :
                 megaMenuData[hoveredMenu].columns.length === 3 ? "grid-cols-3" : "grid-cols-2"
               }`}>
-                {megaMenuData[hoveredMenu].columns.map((col: any, idx: number) => (
+                {megaMenuData[hoveredMenu].columns.map((col: MegaMenuColumn, idx: number) => (
                   <div key={idx} className="space-y-4">
-                    <h4 className="font-display font-bold text-[13.5px] text-green-dark border-b border-[#2FA968]/10 pb-1 flex items-center gap-1">
-                      <span className="text-[#FFA265] text-sm">✦</span>
+                    <h4 className="font-display font-bold text-[13.5px] text-green-dark border-b border-brand-green/10 pb-1 flex items-center gap-1">
+                      <span className="text-peach text-sm">✦</span>
                       {col.title}
                     </h4>
                     <ul className="space-y-2">
@@ -476,7 +488,7 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
                   {/* Mobile Accordion Child list */}
                   {item.hasMega && isExpanded && megaMenuData[item.id] && (
                     <div className="mt-1 pl-4 pr-2 py-2 bg-mint/40 rounded-xl space-y-4">
-                      {megaMenuData[item.id].columns.map((col: any, cidx: number) => (
+                      {megaMenuData[item.id].columns.map((col: MegaMenuColumn, cidx: number) => (
                         <div key={cidx} className="space-y-1.5">
                           <h4 className="font-display font-bold text-[12.5px] text-green-dark border-b border-green-800/[0.06] pb-0.5">
                             {col.title}
@@ -548,9 +560,9 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
                 setIsOpen(false);
                 onOpenAdmin();
               }}
-              className="flex items-center justify-center gap-1.5 w-full bg-[#EAF7EE] text-[#164B36] font-sans font-bold py-2 px-4 rounded-full shadow-md border border-[#2FA968]/30 text-xs"
+              className="flex items-center justify-center gap-1.5 w-full bg-mint text-green-dark font-sans font-bold py-2 px-4 rounded-full shadow-md border border-brand-green/30 text-xs"
             >
-              <span className="w-1.5 h-1.5 bg-[#2FA968] rounded-full animate-ping"></span>
+              <span className="w-1.5 h-1.5 bg-brand-green rounded-full animate-ping"></span>
               <span>Cổng Quản Trị Hệ Thống (Admin)</span>
             </button>
           </div>

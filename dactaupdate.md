@@ -585,3 +585,155 @@ Each page follows the same pattern but uses different data sources.
 - [ ] Add swipe gestures for tab navigation on mobile
 - [ ] Implement lazy loading for images
 - [ ] Add service worker for offline support
+
+---
+
+# 📝 CHANGE LOG
+
+## PHASE 20 - EditModal Fields Enhancement (2026-07-20)
+
+**Mục tiêu:** Cải thiện UX của EditModal bằng cách thêm description, hint, suggestions cho tất cả fields, giúp người dùng admin hiểu rõ cần nhập gì.
+
+**Files affected:**
+- src/components/admin/tabs/HomeTab/index.tsx
+- src/components/admin/tabs/AboutTab.tsx
+- src/components/admin/tabs/ServicesTab.tsx
+- src/components/admin/tabs/PatientTab.tsx
+- src/components/admin/tabs/TenderTab.tsx
+- src/components/admin/tabs/ContactTab.tsx
+
+### Chi tiết từng Tab
+
+**HomeTab (5 sections):**
+| Section | Field | Enhancement |
+|---------|-------|-------------|
+| HeroSection | title | hint: "VD: Chăm sóc sức khỏe toàn diện" |
+| HeroSection | ctaLink | hint: "VD: /dat-lich, /chuyen-khoa, /lien-he" |
+| HeroSection | backgroundImage | description: "Ảnh hero section" |
+| QuickActions | title | hint: "VD: Đặt lịch khám, Chuyên khoa" |
+| QuickActions | link | hint: "Bắt đầu bằng /" |
+| QuickActions | icon | description: "Icon hiển thị trên nút" |
+| QuickActions | color | description: "Màu gradient của nút" |
+| WhyChooseUs | title | hint: "VD: Đội ngũ bác sĩ giỏi" |
+| WhyChooseUs | description | hint: "Mô tả ngắn 1-2 câu" |
+| Statistics | value | hint: "VD: 100+, 50+, 1M+" |
+| Statistics | label | hint: "VD: Năm kinh nghiệm, Bác sĩ chuyên khoa" |
+| Testimonials | name | hint: "VD: Nguyễn Văn A" |
+| Testimonials | role | hint: "VD: Bệnh nhân, Người nhà bệnh nhân" |
+| Testimonials | content | hint: "Viết cảm nhận thực tế, ngắn gọn 2-3 câu" |
+
+**AboutTab:**
+| Section | Field | Enhancement |
+|---------|-------|-------------|
+| WhyChooseSection | text | suggestions: [5 mẫu có sẵn] |
+| LeadershipSection | name | hint: "VD: BS CKII Nguyễn Văn A" |
+| LeadershipSection | role | description: "Chức vụ hiện tại" |
+| LeadershipSection | bio | hint: "VD: Bác sĩ chuyên khoa II với hơn 20 năm kinh nghiệm" |
+| PartnersSection | name | hint: "VD: BHYT Quảng Nam, Bảo Việt, Prudential" |
+| PartnersSection | website | hint: "VD: https://bhytquangnam.vn" |
+| FacilitiesSection | title | hint: "VD: Cơ sở vật chất, Hình ảnh bệnh viện" |
+| FacilitiesSection | description | hint: "Mô tả 1-2 câu về cơ sở vật chất" |
+
+**ServicesTab:**
+| Section | Field | Enhancement |
+|---------|-------|-------------|
+| ServiceCategories | title | hint: "VD: Dịch vụ trọn gói, Tiêm chủng, Gói khám" |
+| ServiceCategories | color | description: "Màu gradient hiển thị" |
+| ServiceItems | name | hint: "VD: Dịch vụ trọn gói, Kiến thức thai sản" |
+| ServiceItems | price | hint: "VD: Từ 500.000đ, Miễn phí" |
+
+**PatientTab:**
+| Section | Field | Enhancement |
+|---------|-------|-------------|
+| ProcessSection | title | hint: "VD: Đăng ký lịch hẹn, Đến bệnh viện" |
+| ProcessSection | desc | hint: "Mô tả ngắn gọn action cần thực hiện" |
+| FaqSection | question | hint: "VD: Giờ làm việc?, Làm sao đặt lịch khám?" |
+| FaqSection | answer | hint: "Trả lời ngắn gọn, dễ hiểu (1-3 câu)" |
+
+**TenderTab:**
+| Section | Field | Enhancement |
+|---------|-------|-------------|
+| TenderNotices | title | hint: "VD: Mua sắm vật tư y tế năm 2026" |
+| TenderNotices | tenderNumber | hint: "VD: BHYT-2026-001" |
+| TenderNotices | estimateValue | hint: "VD: 500.000.000đ" |
+| TenderNotices | endDate | hint: "VD: 30/08/2026" |
+
+**ContactTab:**
+| Section | Field | Enhancement |
+|---------|-------|-------------|
+| ContactInfo | address | hint: "VD: 107 Quang Trung, ..." |
+| ContactInfo | phone | hint: "VD: 0236 1234 567" |
+| ContactInfo | hotline | hint: "VD: 1900 1234" |
+| ContactInfo | email | hint: "VD: bvdk@quangnam.gov.vn" |
+| QuickLinks | label | hint: "VD: Trang chủ, Giới thiệu" |
+| QuickLinks | link | hint: "Bắt đầu bằng /" |
+| SupportLinks | label | hint: "VD: Đặt lịch khám, Bảng giá dịch vụ" |
+| SupportLinks | link | hint: "Bắt đầu bằng /" |
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
+## PHASE 19 - Admin UI Enhancements (2026-07-20)
+
+### EditModal.tsx Improvements
+- Header gradient với icon và helper text
+- Image preview với hover effect  
+- Prefix/suffix support cho input fields
+- Auto-close modal sau submit
+- Select dropdown với custom chevron icon
+- Better focus states và error styling
+- Keyboard navigation cho suggestions (Arrow Up/Down, Enter, Escape)
+
+### ItemCard.tsx - AddCard Component
+- Export `AddCard` component cho "Add new" actions
+- Color variants: green, blue, amber, rose
+- Hover scale animation, dashed border
+- Animation delay theo index
+
+### Tabs Integration
+Thay "actions" button bằng AddCard trong content area:
+
+| Tab | Section | Grid Change |
+|-----|---------|-------------|
+| HomeTab | QuickActions | lg:6 → lg:7 |
+| HomeTab | WhyChooseUs | lg:4 → lg:5 |
+| HomeTab | Testimonials | lg:3 → lg:4 |
+| AboutTab | Leadership | lg:3 → lg:4 |
+| AboutTab | Partners | lg:6 → lg:7 |
+| AboutTab | Facilities | lg:3 → lg:4 |
+| ContactTab | QuickLinks | lg:6 → lg:7 |
+| ContactTab | SupportLinks | lg:5 → lg:6 |
+| PatientTab | WhatToBring | lg:3 → lg:4 |
+| ServicesTab | ServiceItems | lg:3 → lg:4 |
+| TenderTab | TenderNotices | lg:3 → lg:4 |
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
+## PHASE 18 - Admin Panel Redesign (2026-07-19)
+
+### Base UI Components
+- **SectionCard:** Wrapper cho mỗi section với enable/disable toggle, collapsible, header actions
+- **ItemCard:** Display item với image, title, description, drag handle, action buttons  
+- **EditModal:** Reusable form modal với field types (text, textarea, select, image)
+- **ConfirmDialog:** Delete confirmation với variants (danger, warning, info)
+- **ImageUploader:** Drag-drop + paste image URL support
+
+### Content Tabs (9 tabs)
+- OverviewTab, BookingsTab, PatientsTab, ShiftsTab
+- SpecialtiesTab, DoctorsTab, NewsTab, OrganizationTab, LogsTab
+
+### Navigation Structure
+- Quản lý Nội dung: Home, About, Specialties, Services, Patient, News, Tender, Contact
+- Quản lý Nhân sự: Doctors, Phân ca
+- Quản lý Hoạt động: Đặt lịch, Bệnh nhân, Nhật ký
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
+## Earlier Phases
+
+See `memory.md` for detailed history of Phase 0 - Phase 17.

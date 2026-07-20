@@ -245,19 +245,6 @@ gap-[19px]
 
 ---
 
-## Border Radius
-
-Chỉ sử dụng:
-
-```text
-rounded-sm
-rounded-md
-rounded-lg
-rounded-xl
-```
-
----
-
 ## Shadow
 
 Chỉ sử dụng:
@@ -278,10 +265,97 @@ Không dùng:
 
 ```tsx
 text-[#123456]
-bg-[#87ffab]
+bg-[#123456]
 ```
 
 Phải dùng design token hoặc biến hệ thống.
+
+### Design Tokens (CSS Variables)
+
+Định nghĩa trong `src/index.css`:
+
+```css
+--color-brand-green: #2FA968;   /* text-brand-green, bg-brand-green */
+--color-green-dark: #164B36;     /* text-green-dark, bg-green-dark */
+--color-mint: #EAF7EE;           /* bg-mint, text-mint */
+--color-cream-white: #FCFBF7;   /* bg-cream-white */
+--color-peach: #FFA265;          /* text-peach, bg-peach */
+--color-ink: #22302A;            /* text-ink */
+
+--radius-pill: 999px;            /* rounded-full */
+--radius-lg: 28px;               /* rounded-3xl */
+--radius-md: 20px;              /* rounded-2xl */
+--radius-sm: 14px;              /* rounded-lg */
+```
+
+### Border Radius
+
+Chỉ sử dụng:
+
+```text
+rounded-sm      (7px)
+rounded-md      (14px)
+rounded-lg      (14px - theo radius-sm)
+rounded-xl      (16px)
+rounded-2xl     (20px - theo radius-md)
+rounded-3xl     (28px - theo radius-lg)
+rounded-full    (999px - theo radius-pill)
+```
+
+---
+
+## 🎬 ANIMATION PATTERN
+
+### Modern Page Design Pattern (Section 19.1 v2.7)
+
+Áp dụng cho các trang: ChuyenKhoaPage, DichVuPage, ChoBenhNhanPage, GioiThieuPage, TinTucPage, ThongTinThauPage.
+
+**Cấu trúc 5 khối:**
+
+1. **Hero Section** - Full viewport với parallax
+   - Nền: gradient chéo 3 tông (green-dark → green-800 → brand-green)
+   - 4 FloatingShape tự trôi nổi (chu kỳ 8s, easeInOut)
+   - Text chia 2 phần bay lên + fade (so le 100ms)
+   - Stats cards với AnimatedCounter (2 giây, useInView once: true)
+   - Scroll indicator bouncing ở đáy
+   - Parallax: opacity 1→0, scale 1→1.1 khi scroll
+
+2. **Sticky Tab Navigation** - Glassmorphism
+   - Sticky top-0, z-50
+   - Nền trắng 80% + backdrop-blur
+   - Hover: scale 1.02, bấm: scale 0.98
+   - Tab đang chọn: gradient theo màu nhóm
+
+3. **Featured Card** - Clip-path reveal + Ken Burns
+   - Ảnh: clip-path inset(100% 0 0 0) → inset(0% 0 0 0) trong 0.8s
+   - Ken Burns: scale 1.2× → 1.0× trong 1.2s
+   - Content trượt vào từ phải, so le từng dòng
+
+4. **Services Grid** - 3D Tilt Cards
+   - 3D tilt: ±8°, perspective 1000px
+   - Hover: scale 1.02, glow effect, border gradient
+   - Image zoom 1.1× khi hover
+   - translateZ khi hover để tăng chiều sâu
+
+5. **Tab Transitions** - AnimatePresence
+   - Exit: opacity 0, y -20
+   - Enter: opacity 1, y 0
+   - Duration: 0.4s, mode "wait"
+
+### prefers-reduced-motion
+
+Theo section 19.1.6 v2.7, mọi animation phải tôn trọng `prefers-reduced-motion`:
+
+```tsx
+const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+
+transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6 }}
+```
+
+Khi bật:
+- Tắt parallax, floating, tilt effects
+- Chỉ giữ fade transitions tối thiểu
+- Giữ nguyên nội dung và chức năng
 
 ---
 

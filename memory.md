@@ -727,6 +727,56 @@ PageTransition gây delay 1s khi chuyển trang, trải nghiệm người dùng 
 
 ---
 
+## PHASE 23
+
+### System Review & Cleanup (Hoàn thành 2026-07-20)
+
+**Files affected:** Nhiều files
+
+**Mục tiêu:**
+Review toàn bộ hệ thống theo đặc tả v2.7, sửa TypeScript any types và hardcoded colors.
+
+**Đã thực hiện - Task 1: Fix TypeScript any types**
+- GioiThieuPage.tsx: `icon: any` → `icon: LucideIcon`
+- TestLookup.tsx, AIAdvisor.tsx, BookingForm.tsx: `catch (err: any)` → `catch (err: unknown)`
+- EditModal.tsx: handleChange value type cụ thể hơn
+- OrganizationTab.tsx: Thêm interface Department, Division; thay `any` bằng typed collections
+- Navbar.tsx: Thêm interface MegaMenuColumn, MegaMenuItem, MegaMenuData; thay `any` bằng typed arrays
+
+**Đã thực hiện - Task 2: Fix hardcoded colors**
+- Navbar.tsx: ~15 instances (#2FA968, #164B36, #EAF7EE, #FFA265) → Tailwind semantic classes
+- News.tsx: ~33 instances → Tailwind semantic classes
+- Organization.tsx: ~35 instances → Tailwind semantic classes  
+- ThongTinThauPage.tsx: ~5 instances → Tailwind semantic classes
+- BookingForm.tsx: ~1 instance → Tailwind semantic classes
+- Footer.tsx: ~1 instance → Tailwind semantic classes
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
+## TECHNICAL DEBT
+
+### prefers-reduced-motion Support (Chưa hoàn thành)
+
+**Mô tả:**
+Theo đặc tả v2.7 section 19.1.6, tất cả animations phải tôn trọng `prefers-reduced-motion`. Khi user bật chế độ giảm chuyển động trong OS/browser, animations phải:
+- Tắt hoặc rút ngắn hiệu ứng
+- Chỉ giữ fade transitions tối thiểu
+- Giữ nguyên nội dung và chức năng
+
+**Files cần cập nhật:**
+- Tạo useReducedMotion hook
+- FloatingShape components
+- AnimatedCounter components
+- Hero parallax effects
+- 3D tilt effects trên cards
+- AnimatePresence transitions
+
+**Ưu tiên:** Thấp - enhancement, không phải bug
+
+---
+
 ## PHASE 15
 
 ### ChuyenKhoaPage - Modern Redesign với Animation Ấn Tượng (2026-07-19) - ĐANG THIẾT KẾ

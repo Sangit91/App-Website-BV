@@ -160,8 +160,8 @@ export default function BookingForm({ isOpen, onClose, prepopulatedDoctor = "", 
       setDoctorName("");
       setDate("");
       setTimeSlot("");
-    } catch (err: any) {
-      setValidationError(err.message || "Không thể gửi dữ liệu lên máy chủ. Hãy thử lại.");
+    } catch (err: unknown) {
+      setValidationError(err instanceof Error ? err.message : "Không thể gửi dữ liệu lên máy chủ. Hãy thử lại.");
     } finally {
       setIsSubmitting(false);
     }
@@ -336,7 +336,7 @@ export default function BookingForm({ isOpen, onClose, prepopulatedDoctor = "", 
                           <AlertTriangle size={12} /> Bác sĩ nghỉ trực vào ngày này.
                         </span>
                       ) : (
-                        <span className="text-[11px] font-bold text-[#164B36] flex items-center gap-1 bg-[#EAF7EE] p-1.5 rounded-lg border border-[#2FA968]/30 animate-pulse">
+                        <span className="text-[11px] font-bold text-green-dark flex items-center gap-1 bg-mint p-1.5 rounded-lg border border-brand-green/30 animate-pulse">
                           ✓ Bác sĩ trực {doctorShift === "Ca Sáng" ? "Sáng (07h-11h)" : "Chiều (13h30-16h30)"}
                         </span>
                       )}

@@ -128,7 +128,7 @@ function TenderCard({ item, dept, index, onClick }: TenderCardProps) {
               {statusBadge.label}
             </span>
             {item.tenderNumber && (
-              <span className="bg-[#164B36]/90 text-white font-mono text-[8px] font-bold py-0.5 px-2 rounded-md">
+              <span className="bg-green-dark/90 text-white font-mono text-[8px] font-bold py-0.5 px-2 rounded-md">
                 {item.tenderNumber}
               </span>
             )}
@@ -188,7 +188,7 @@ export default function ThongTinThauPage() {
     <Layout>
       {downloadToast && (
         <div className="fixed top-24 right-4 z-[200] bg-green-dark text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium animate-fade-in-down">
-          <CheckCircle size={16} className="text-[#2FA968]" />
+          <CheckCircle size={16} className="text-brand-green" />
           {downloadToast}
         </div>
       )}
@@ -278,8 +278,8 @@ export default function ThongTinThauPage() {
               <h2 className="text-2xl font-display font-bold text-green-dark">{currentDept.name}</h2>
               <p className="text-sm text-ink/60">Danh sách các thông báo mua sắm, mời thầu do {currentDept.name} đăng tải</p>
             </div>
-            <div className="hidden sm:flex items-center gap-1.5 bg-[#EAF7EE] text-[#164B36] py-1.5 px-4 rounded-full border border-[#2FA968]/20 text-xs font-bold">
-              <ShieldCheck size={14} className="text-[#2FA968]" />
+            <div className="hidden sm:flex items-center gap-1.5 bg-mint text-green-dark py-1.5 px-4 rounded-full border border-brand-green/20 text-xs font-bold">
+              <ShieldCheck size={14} className="text-brand-green" />
               <span>Chính xác & Công khai</span>
             </div>
           </div>
@@ -294,7 +294,7 @@ export default function ThongTinThauPage() {
                 </div>
               ) : (
                 <div className="bg-white border border-green-800/[0.04] rounded-3xl p-16 text-center">
-                  <div className="w-16 h-16 bg-[#FCFBF7] rounded-full flex items-center justify-center border border-green-800/5 text-gray-400 mx-auto mb-4">
+                  <div className="w-16 h-16 bg-cream-white rounded-full flex items-center justify-center border border-green-800/5 text-gray-400 mx-auto mb-4">
                     <AlertCircle size={24} />
                   </div>
                   <h5 className="font-display font-extrabold text-base text-green-dark mb-2">Chưa có thông báo mời thầu mới</h5>

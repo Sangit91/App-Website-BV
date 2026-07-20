@@ -4,14 +4,31 @@ import { useAdmin } from "../../../context/AdminContext";
 import { Card, Button } from "../../ui";
 import { Plus, Edit, Trash2, RefreshCw, Search } from "lucide-react";
 
+interface Department {
+  id: string;
+  name: string;
+  leader: string;
+  phone: string;
+  staffCount: number;
+  description?: string;
+  details?: string;
+}
+
+interface Division {
+  id: string;
+  name: string;
+  color: string;
+  departments: Department[];
+}
+
 export default function OrganizationTab() {
   const { addLog } = useHospital();
   const { activeUser } = useAdmin();
-  const [divisions, setDivisions] = useState<Record<string, any>>({});
+  const [divisions, setDivisions] = useState<Record<string, Division>>({});
   const [selectedDivision, setSelectedDivision] = useState("");
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editing, setEditing] = useState<{ divisionId: string; dept: any } | null>(null);
+  const [editing, setEditing] = useState<{ divisionId: string; dept: Department } | null>(null);
   const [form, setForm] = useState({ name: "", leader: "", phone: "", staffCount: 0, description: "", details: "" });
 
   const isSuperAdmin = activeUser?.role === "Super Admin";
@@ -37,11 +54,11 @@ export default function OrganizationTab() {
 
   const currentDepts = divisions[selectedDivision]?.departments || [];
 
-  const filteredDepts = currentDepts.filter((d: any) =>
+  const filteredDepts = currentDepts.filter((d: Department) =>
     !search || d.name.toLowerCase().includes(search.toLowerCase()) || d.leader.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleOpenModal = (divisionId: string, dept: any = null) => {
+  const handleOpenModal = (divisionId: string, dept: Department | null = null) => {
     if (dept) {
       setEditing({ divisionId, dept });
       setForm({ name: dept.name, leader: dept.leader, phone: dept.phone, staffCount: dept.staffCount, description: dept.description, details: dept.details || "" });
@@ -105,7 +122,7 @@ export default function OrganizationTab() {
       {Object.keys(divisions).length > 0 && (
         <>
           <div className="flex items-center gap-2 overflow-x-auto pb-2">
-            {Object.values(divisions).map((div: any) => (
+            {Object.values(divisions).map((div: Division) => (
               <button key={div.id} onClick={() => setSelectedDivision(div.id)}
                 className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${selectedDivision === div.id ? `${div.color} text-white shadow-md` : "bg-white text-green-dark border border-green-800/10 hover:bg-cream-white"}`}>
                 {div.name}
@@ -139,7 +156,7 @@ export default function OrganizationTab() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ink/5">
-                  {filteredDepts.map((dept: any) => (
+                  {filteredDepts.map((dept: Department) => (
                     <tr key={dept.id} className="hover:bg-cream-white transition-colors">
                       <td className="p-3 font-bold text-green-dark">{dept.name}</td>
                       <td className="p-3 font-semibold">{dept.leader}</td>

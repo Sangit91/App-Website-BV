@@ -189,7 +189,7 @@ export default function News() {
       {/* Download Toast */}
       {downloadToast && (
         <div className="fixed top-24 right-4 z-[200] bg-green-dark text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium animate-fade-in-down">
-          <CheckCircle size={16} className="text-[#2FA968]" />
+          <CheckCircle size={16} className="text-brand-green" />
           {downloadToast}
         </div>
       )}
@@ -197,8 +197,8 @@ export default function News() {
       <div className="max-w-[1180px] mx-auto px-4">
 
         <div className="text-center max-w-[680px] mx-auto mb-10">
-          <span className="inline-flex items-center gap-1.5 bg-[#EAF7EE] text-[#164B36] font-sans font-bold text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border border-[#2FA968]/20 mb-3">
-            <FileText size={13} className="text-[#2FA968]" /> Cổng thông tin công cộng
+          <span className="inline-flex items-center gap-1.5 bg-mint text-green-dark font-sans font-bold text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border border-brand-green/20 mb-3">
+            <FileText size={13} className="text-brand-green" /> Cổng thông tin công cộng
           </span>
           <h2 className="font-display font-bold text-[28px] md:text-[32px] text-green-dark">
             Tin Tức Y Khoa & Thông Báo Đấu Thầu
@@ -215,7 +215,7 @@ export default function News() {
               onClick={() => setActiveMainTab("news")}
               className={`px-6 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                 activeMainTab === "news"
-                  ? "bg-[#164B36] text-white shadow"
+                  ? "bg-green-dark text-white shadow"
                   : "text-green-dark hover:bg-green-dark/5"
               }`}
             >
@@ -226,7 +226,7 @@ export default function News() {
               onClick={() => setActiveMainTab("tenders")}
               className={`px-6 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                 activeMainTab === "tenders"
-                  ? "bg-[#164B36] text-white shadow"
+                  ? "bg-green-dark text-white shadow"
                   : "text-green-dark hover:bg-green-dark/5"
               }`}
             >
@@ -256,7 +256,7 @@ export default function News() {
                         transition={{ duration: 0.5 }}
                       />
                       {isTender && (
-                        <div className="absolute top-3 left-3 bg-[#164B36] text-[#EAF7EE] font-mono text-[10px] font-bold py-1 px-3 rounded-full flex items-center gap-1.5 shadow">
+                        <div className="absolute top-3 left-3 bg-green-dark text-mint font-mono text-[10px] font-bold py-1 px-3 rounded-full flex items-center gap-1.5 shadow">
                           <span className="w-2 h-2 bg-peach rounded-full animate-pulse"></span>
                           MỜI THẦU / KHẨN
                         </div>
@@ -311,14 +311,14 @@ export default function News() {
                       onClick={() => setActiveTenderDept(dept)}
                       className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold whitespace-nowrap cursor-pointer transition-all border shrink-0 ${
                         isActive
-                          ? "bg-[#164B36] text-white border-transparent shadow"
-                          : "bg-white text-green-dark/80 border-green-800/10 hover:border-[#2FA968]"
+                          ? "bg-green-dark text-white border-transparent shadow"
+                          : "bg-white text-green-dark/80 border-green-800/10 hover:border-brand-green"
                       }`}
                     >
                       <span className="truncate">{dept}</span>
                       <span className={`w-5 h-5 rounded-full text-[10px] font-extrabold flex items-center justify-center shrink-0 ${
                         isActive
-                          ? "bg-[#FFA265] text-green-dark"
+                          ? "bg-peach text-green-dark"
                           : openCount > 0
                           ? "bg-green-dark/10 text-green-dark"
                           : "bg-gray-100 text-gray-400"
@@ -334,15 +334,15 @@ export default function News() {
             <div className="lg:col-span-3 space-y-6">
               <div className="bg-white p-5 rounded-2xl border border-green-800/10 flex items-center justify-between gap-4 text-left">
                 <div>
-                  <h4 className="font-display font-extrabold text-sm text-[#164B36] uppercase tracking-wide">
+                  <h4 className="font-display font-extrabold text-sm text-green-dark uppercase tracking-wide">
                     {activeTenderDept}
                   </h4>
                   <p className="text-xs text-gray-500 mt-0.5">
                     Danh sách các thông báo mua sắm thiết bị, vật tư, xây lắp do {activeTenderDept} đăng tải và quản lý.
                   </p>
                 </div>
-                <div className="hidden sm:flex items-center gap-1.5 bg-[#EAF7EE] text-[#164B36] py-1 px-3 rounded-full border border-[#2FA968]/20 text-[10px] font-bold">
-                  <ShieldCheck size={12} className="text-[#2FA968]" />
+                <div className="hidden sm:flex items-center gap-1.5 bg-mint text-green-dark py-1 px-3 rounded-full border border-brand-green/20 text-[10px] font-bold">
+                  <ShieldCheck size={12} className="text-brand-green" />
                   <span>Chính xác & Công khai</span>
                 </div>
               </div>
@@ -372,7 +372,7 @@ export default function News() {
                               {statusBadge.label}
                             </span>
                             {item.tenderNumber && (
-                              <span className="bg-[#164B36]/90 text-white font-mono text-[8px] font-bold py-0.5 px-2 rounded-md">
+                              <span className="bg-green-dark/90 text-white font-mono text-[8px] font-bold py-0.5 px-2 rounded-md">
                                 {item.tenderNumber}
                               </span>
                             )}
@@ -397,7 +397,7 @@ export default function News() {
                             )}
                           </div>
 
-                          <div className="pt-4 mt-4 border-t border-green-800/5 flex items-center justify-between text-[11px] font-bold text-[#2FA968] uppercase tracking-wider">
+                          <div className="pt-4 mt-4 border-t border-green-800/5 flex items-center justify-between text-[11px] font-bold text-brand-green uppercase tracking-wider">
                             <span>Tải HSMT & Nộp hồ sơ</span>
                             <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
                           </div>
@@ -409,7 +409,7 @@ export default function News() {
                 </div>
               ) : (
                 <div className="bg-white border border-green-800/[0.04] rounded-3xl p-12 text-center flex flex-col items-center justify-center space-y-4">
-                  <div className="w-16 h-16 bg-[#FCFBF7] rounded-full flex items-center justify-center border border-green-800/5 text-gray-400">
+                  <div className="w-16 h-16 bg-cream-white rounded-full flex items-center justify-center border border-green-800/5 text-gray-400">
                     <AlertCircle size={24} />
                   </div>
                   <div className="space-y-2">
@@ -430,9 +430,9 @@ export default function News() {
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto no-print">
           <div className="w-full max-w-4xl bg-cream-white rounded-[28px] shadow-2xl overflow-hidden my-8 flex flex-col max-h-[90vh]">
 
-            <div className="bg-green-dark px-6 py-4 text-white flex justify-between items-center shrink-0 border-b border-[#2FA968]/20 no-print">
+            <div className="bg-green-dark px-6 py-4 text-white flex justify-between items-center shrink-0 border-b border-brand-green/20 no-print">
               <div className="flex items-center gap-2">
-                <FileText size={18} className="text-[#FFA265]" />
+                <FileText size={18} className="text-peach" />
                 <span className="font-display font-bold text-sm tracking-wide text-gray-200">
                   Cổng Công Bố Văn Bản & Thủ Tục Hành Chính Công Khai
                 </span>
@@ -455,7 +455,7 @@ export default function News() {
               </div>
             </div>
 
-            <div className="overflow-y-auto p-6 md:p-12 flex-grow bg-[#FCFBF7]" id="print-document-area">
+            <div className="overflow-y-auto p-6 md:p-12 flex-grow bg-cream-white" id="print-document-area">
               <div className="max-w-3xl mx-auto space-y-8">
 
                 <div className="border-b-2 border-green-800/10 pb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -490,21 +490,21 @@ export default function News() {
                   {selectedNews.title}
                 </h1>
 
-                <div className="bg-mint/40 border border-[#2FA968]/10 rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs font-sans text-gray-600">
+                <div className="bg-mint/40 border border-brand-green/10 rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs font-sans text-gray-600">
                   <div className="flex items-center gap-2">
-                    <Calendar size={14} className="text-[#2FA968]" />
-                    <span>Thời điểm đăng tải: <span className="text-[#164B36] font-bold">{selectedNews.date}</span></span>
+                    <Calendar size={14} className="text-brand-green" />
+                    <span>Thời điểm đăng tải: <span className="text-green-dark font-bold">{selectedNews.date}</span></span>
                   </div>
                   <div>
-                    <span>Cơ quan ban hành: <span className="text-[#164B36] font-bold">Phòng Kế hoạch tổng hợp - BV MNPB QN</span></span>
+                    <span>Cơ quan ban hành: <span className="text-green-dark font-bold">Phòng Kế hoạch tổng hợp - BV MNPB QN</span></span>
                   </div>
                 </div>
 
                 {isTenderPost(selectedNews) && (
-                  <div className="bg-[#EAF7EE] border-l-4 border-green-dark p-6 rounded-r-2xl space-y-4">
+                  <div className="bg-mint border-l-4 border-green-dark p-6 rounded-r-2xl space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       {selectedTenderStatus && (
-                        <h3 className="font-display font-bold text-[#164B36] text-[15px] flex items-center gap-2">
+                        <h3 className="font-display font-bold text-green-dark text-[15px] flex items-center gap-2">
                           {selectedTenderStatus === "Đang mở" && (
                             <span className="relative flex h-2.5 w-2.5">
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-green opacity-75"></span>
@@ -516,9 +516,9 @@ export default function News() {
                       )}
 
                       {selectedTenderStatus !== "Đã đóng" && selectedNews.tenderEndDate && !timeLeft.expired && (
-                        <div className="bg-[#164B36] text-white px-3.5 py-1.5 rounded-lg font-mono text-[12.5px] font-bold flex items-center gap-1.5 shadow-sm">
-                          <Clock size={13} className="text-[#FFA265]" />
-                          <span>Hạn đóng thầu còn: <span className="text-[#FFA265]">{timeLeft.days} ngày {timeLeft.hours} giờ {timeLeft.minutes} phút {timeLeft.seconds} giây</span></span>
+                        <div className="bg-green-dark text-white px-3.5 py-1.5 rounded-lg font-mono text-[12.5px] font-bold flex items-center gap-1.5 shadow-sm">
+                          <Clock size={13} className="text-peach" />
+                          <span>Hạn đóng thầu còn: <span className="text-peach">{timeLeft.days} ngày {timeLeft.hours} giờ {timeLeft.minutes} phút {timeLeft.seconds} giây</span></span>
                         </div>
                       )}
 
@@ -588,11 +588,11 @@ export default function News() {
                       </div>
                     )}
 
-                    <div className="bg-white/60 p-3 rounded-xl border border-[#2FA968]/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div className="bg-white/60 p-3 rounded-xl border border-brand-green/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                       <div className="flex items-center gap-2">
-                        <FileText size={18} className="text-[#2FA968]" />
+                        <FileText size={18} className="text-brand-green" />
                         <div>
-                          <p className="font-sans font-bold text-[12.5px] text-[#164B36] truncate max-w-[280px]">
+                          <p className="font-sans font-bold text-[12.5px] text-green-dark truncate max-w-[280px]">
                             {selectedNews.tenderFile?.name || "Hồ sơ mời thầu chi tiết (PDF)"}
                           </p>
                           <p className="text-[11px] text-gray-500">
@@ -602,7 +602,7 @@ export default function News() {
                       </div>
                       <button
                         onClick={() => handleDownload(selectedNews)}
-                        className="flex items-center gap-1.5 bg-[#2FA968] hover:bg-[#1a7c46] text-white text-[11.5px] font-bold py-1.5 px-3 rounded-lg shadow-sm transition-colors cursor-pointer"
+                        className="flex items-center gap-1.5 bg-brand-green hover:bg-green-700 text-white text-[11.5px] font-bold py-1.5 px-3 rounded-lg shadow-sm transition-colors cursor-pointer"
                       >
                         <Download size={13} />
                         Tải Hồ Sơ Thầu
@@ -668,10 +668,10 @@ export default function News() {
 
                 <div className="pt-8 border-t border-green-800/10 flex justify-end">
                   <div className="text-center font-sans text-xs max-w-[250px]">
-                    <p className="font-bold uppercase text-[#164B36]">TL. GIÁM ĐỐC</p>
+                    <p className="font-bold uppercase text-green-dark">TL. GIÁM ĐỐC</p>
                     <p className="font-bold text-gray-500">TRƯỞNG PHÒNG KẾ HOẠCH TỔNG HỢP</p>
                     <div className="h-16"></div>
-                    <p className="font-bold font-display text-[#164B36] text-[13px]">BSCKI. Nguyễn Hoàng Nam</p>
+                    <p className="font-bold font-display text-green-dark text-[13px]">BSCKI. Nguyễn Hoàng Nam</p>
                     <p className="text-gray-400 italic">(Đã ký đóng dấu đỏ điện tử)</p>
                   </div>
                 </div>

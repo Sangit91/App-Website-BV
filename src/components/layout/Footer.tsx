@@ -115,7 +115,7 @@ export default function Footer({ onScrollToSection, onOpenAdmin }: FooterProps) 
               <li>
                 <button
                   onClick={onOpenAdmin}
-                  className="text-xs md:text-[13px] text-[#2FA968] font-bold hover:text-peach flex items-center gap-1 group cursor-pointer"
+                  className="text-xs md:text-[13px] text-brand-green font-bold hover:text-peach flex items-center gap-1 group cursor-pointer"
                 >
                   <span className="text-brand-green group-hover:translate-x-0.5 transition-transform">›</span>
                   <span>Cổng Quản Trị Hệ Thống (Admin)</span>

@@ -34,8 +34,8 @@ export default function TestLookup({ isOpen, onClose }: TestLookupProps) {
         throw new Error(data.error || "Mã kết quả không tồn tại.");
       }
       setResult(data);
-    } catch (err: any) {
-      setErrorMsg(err.message || "Không thể tìm thấy kết quả. Vui lòng kiểm tra lại mã chính xác.");
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Không thể tìm thấy kết quả. Vui lòng kiểm tra lại mã chính xác.");
     } finally {
       setIsLoading(false);
     }

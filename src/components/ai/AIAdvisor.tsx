@@ -88,7 +88,8 @@ export default function AIAdvisor({ isOpen, onClose, onOpenBooking }: AIAdvisorP
       };
 
       setMessages((prev) => [...prev, newModelMsg]);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Đường truyền kết nối AI bị gián đoạn.";
       const errorMsgId = `error-${Date.now()}`;
       setMessages((prev) => [
         ...prev,
