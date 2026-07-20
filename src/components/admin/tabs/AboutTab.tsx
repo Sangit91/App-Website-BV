@@ -335,8 +335,8 @@ function PartnersSection() {
         onSubmit={handleSave}
         title={editingPartner && partners.find(p => p.id === editingPartner.id) ? "Chỉnh sửa đối tác" : "Thêm đối tác mới"}
         fields={[
-          { name: "name", label: "Tên đối tác", required: true },
-          { name: "website", label: "Website" }
+          { name: "name", label: "Tên đối tác", required: true, description: "Tên công ty/bảo hiểm", hint: "VD: BHYT Quảng Nam, Bảo Việt, Prudential" },
+          { name: "website", label: "Website", description: "Địa chỉ website", hint: "VD: https://bhytquangnam.vn" }
         ]}
         initialData={editingPartner || {}}
       />
@@ -461,9 +461,9 @@ function FacilitiesSection() {
         title={editingFacility && facilities.find(f => f.id === editingFacility.id) ? "Chỉnh sửa cơ sở" : "Thêm cơ sở mới"}
         size="lg"
         fields={[
-          { name: "title", label: "Tiêu đề", required: true },
-          { name: "description", label: "Mô tả", type: "textarea", rows: 2 },
-          { name: "image", label: "Hình ảnh", type: "image" }
+          { name: "title", label: "Tiêu đề", required: true, description: "Tên tiện ích/cơ sở", hint: "VD: Cơ sở vật chất, Hình ảnh bệnh viện" },
+          { name: "description", label: "Mô tả", type: "textarea", rows: 2, description: "Mô tả ngắn gọn", hint: "Mô tả 1-2 câu về cơ sở vật chất" },
+          { name: "image", label: "Hình ảnh", type: "image", description: "Ảnh minh họa cơ sở" }
         ]}
         initialData={editingFacility || {}}
       />

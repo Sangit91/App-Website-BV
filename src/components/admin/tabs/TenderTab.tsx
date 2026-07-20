@@ -147,12 +147,12 @@ function TenderNoticesSection() {
         title={editingTender && tenders.find(t => t.id === editingTender.id) ? "Chỉnh sửa thông báo" : "Thêm thông báo mới"}
         size="lg"
         fields={[
-          { name: "title", label: "Tiêu đề thông báo", required: true },
-          { name: "tenderNumber", label: "Số hiệu thầu" },
-          { name: "dept", label: "Phòng ban", type: "select", options: DEPT_OPTIONS },
-          { name: "estimateValue", label: "Giá trị dự toán" },
-          { name: "endDate", label: "Hạn nộp hồ sơ" },
-          { name: "status", label: "Trạng thái", type: "select", options: STATUS_OPTIONS }
+          { name: "title", label: "Tiêu đề thông báo", required: true, description: "Tên gói thầu/mua sắm", hint: "VD: Mua sắm vật tư y tế năm 2026" },
+          { name: "tenderNumber", label: "Số hiệu thầu", description: "Mã số thông báo", hint: "VD: BHYT-2026-001" },
+          { name: "dept", label: "Phòng ban", type: "select", options: DEPT_OPTIONS, description: "Phòng ban phụ trách" },
+          { name: "estimateValue", label: "Giá trị dự toán", description: "Số tiền dự toán", hint: "VD: 500.000.000đ" },
+          { name: "endDate", label: "Hạn nộp hồ sơ", description: "Ngày kết thúc nộp", hint: "VD: 30/08/2026" },
+          { name: "status", label: "Trạng thái", type: "select", options: STATUS_OPTIONS, description: "Tình trạng thầu" }
         ]}
         initialData={editingTender || {}}
       />

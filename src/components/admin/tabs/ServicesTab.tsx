@@ -128,9 +128,9 @@ function ServiceCategoriesSection() {
         onSubmit={handleSave}
         title="Chỉnh sửa danh mục"
         fields={[
-          { name: "title", label: "Tên danh mục", required: true },
-          { name: "icon", label: "Icon", type: "select", options: iconOptions },
-          { name: "color", label: "Màu sắc", type: "select", options: colorOptions }
+          { name: "title", label: "Tên danh mục", required: true, description: "Tên loại dịch vụ", hint: "VD: Dịch vụ trọn gói, Tiêm chủng, Gói khám" },
+          { name: "icon", label: "Icon", type: "select", options: iconOptions, description: "Icon đại diện" },
+          { name: "color", label: "Màu sắc", type: "select", options: colorOptions, description: "Màu gradient hiển thị" }
         ]}
         initialData={editingCategory || {}}
       />
@@ -247,10 +247,10 @@ function ServiceItemsSection() {
         title={editingService && currentServices.find(s => s.id === editingService.id) ? "Chỉnh sửa dịch vụ" : "Thêm dịch vụ mới"}
         size="lg"
         fields={[
-          { name: "name", label: "Tên dịch vụ", required: true },
-          { name: "desc", label: "Mô tả", type: "textarea", rows: 2 },
-          { name: "price", label: "Giá tham khảo" },
-          { name: "img", label: "Hình ảnh", type: "image" }
+          { name: "name", label: "Tên dịch vụ", required: true, description: "Tên dịch vụ cụ thể", hint: "VD: Dịch vụ trọn gói, Kiến thức thai sản" },
+          { name: "desc", label: "Mô tả", type: "textarea", rows: 2, description: "Mô tả ngắn về dịch vụ", hint: "Mô tả 1-2 câu, dễ hiểu" },
+          { name: "price", label: "Giá tham khảo", description: "Giá dịch vụ", hint: "VD: Từ 500.000đ, Miễn phí, Theo gói" },
+          { name: "img", label: "Hình ảnh", type: "image", description: "Ảnh minh họa dịch vụ" }
         ]}
         initialData={editingService || {}}
       />

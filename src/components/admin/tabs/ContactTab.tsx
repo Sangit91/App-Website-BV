@@ -224,8 +224,8 @@ function QuickLinksSection() {
         onSubmit={handleSave}
         title={editingLink && links.find(l => l.id === editingLink.id) ? "Chỉnh sửa liên kết" : "Thêm liên kết mới"}
         fields={[
-          { name: "label", label: "Tên hiển thị", required: true },
-          { name: "link", label: "Đường dẫn", required: true }
+          { name: "label", label: "Tên hiển thị", required: true, description: "Tên liên kết hiển thị", hint: "VD: Trang chủ, Giới thiệu, Liên hệ" },
+          { name: "link", label: "Đường dẫn", required: true, description: "Link của liên kết", hint: "Bắt đầu bằng / VD: /gioi-thieu, /chuyen-khoa" }
         ]}
         initialData={editingLink || {}}
       />
@@ -304,10 +304,11 @@ function SupportLinksSection() {
         isOpen={isEditOpen}
         onClose={() => { setIsEditOpen(false); setEditingLink(null); }}
         onSubmit={handleSave}
-        title={editingLink && links.find(l => l.id === editingLink.id) ? "Chỉnh sửa liên kết" : "Thêm liên kết mới"}
+        title={editingLink && links.find(l => l.id === editingLink.id) ? "Chỉnh sửa liên kết" : "Thêm liên kết hỗ trợ mới"}
+        size="lg"
         fields={[
-          { name: "label", label: "Tên hiển thị", required: true },
-          { name: "link", label: "Đường dẫn", required: true }
+          { name: "label", label: "Tên hiển thị", required: true, description: "Tên liên kết hỗ trợ", hint: "VD: Đặt lịch khám, Bảng giá dịch vụ" },
+          { name: "link", label: "Đường dẫn", required: true, description: "Link của liên kết", hint: "Bắt đầu bằng / VD: /dat-lich, /dich-vu" }
         ]}
         initialData={editingLink || {}}
       />

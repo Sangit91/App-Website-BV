@@ -148,9 +148,9 @@ function ProcessSection() {
         onSubmit={handleSave}
         title={editingStep && steps.find(s => s.id === editingStep.id) ? "Chỉnh sửa bước" : "Thêm bước mới"}
         fields={[
-          { name: "title", label: "Tiêu đề bước", required: true },
-          { name: "desc", label: "Mô tả", type: "textarea", rows: 2 },
-          { name: "icon", label: "Icon", type: "select", options: ICON_OPTIONS }
+          { name: "title", label: "Tiêu đề bước", required: true, description: "Tên bước trong quy trình", hint: "VD: Đăng ký lịch hẹn, Đến bệnh viện" },
+          { name: "desc", label: "Mô tả", type: "textarea", rows: 2, description: "Mô tả chi tiết bước", hint: "Mô tả ngắn gọn action cần thực hiện" },
+          { name: "icon", label: "Icon", type: "select", options: ICON_OPTIONS, description: "Icon minh họa" }
         ]}
         initialData={editingStep || {}}
       />
@@ -326,8 +326,8 @@ function FaqSection() {
         title={editingFaq && faqs.find(f => f.id === editingFaq.id) ? "Chỉnh sửa FAQ" : "Thêm FAQ mới"}
         size="lg"
         fields={[
-          { name: "question", label: "Câu hỏi", required: true },
-          { name: "answer", label: "Câu trả lời", type: "textarea", rows: 3, required: true }
+          { name: "question", label: "Câu hỏi", required: true, description: "Câu hỏi thường gặp", hint: "VD: Giờ làm việc của bệnh viện?, Làm sao đặt lịch khám?" },
+          { name: "answer", label: "Câu trả lời", type: "textarea", rows: 3, required: true, description: "Câu trả lời ngắn gọn", hint: "Trả lời ngắn gọn, dễ hiểu (1-3 câu)" }
         ]}
         initialData={editingFaq || {}}
       />
