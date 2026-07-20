@@ -1,14 +1,16 @@
-import React, { useState } from "react";
-import { 
-  Heart, 
-  Baby, 
-  Activity, 
-  Stethoscope, 
-  Layers, 
-  Smile, 
-  Plus, 
+import React, { useState, useRef } from "react";
+import { motion, useInView, useMotionValue, useSpring, useTransform } from "framer-motion";
+import {
+  Heart,
+  Baby,
+  Activity,
+  Stethoscope,
+  Layers,
+  Smile,
+  Plus,
   Minus,
-  Sparkles
+  Sparkles,
+  ArrowRight
 } from "lucide-react";
 import { useHospital } from "../../context/HospitalContext";
 import { Specialty } from "../../types";
@@ -16,130 +18,248 @@ import { Specialty } from "../../types";
 export default function Specialties() {
   const { specialties } = useHospital();
   const [showAll, setShowAll] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
 
-  // We can display 4 specialties by default, and expand to 8 when clicked
   const displayedSpecialties = showAll ? specialties : specialties.slice(0, 4);
 
-  // Helper to map icon types to beautiful styled badge containers
   const getIconBadge = (type: string) => {
+    const configs: Record<string, { bg: string; iconColor: string; gradient: string }> = {
+      cardiology: { bg: "bg-mint", iconColor: "text-brand-green", gradient: "from-brand-green/20 to-mint/30" },
+      obstetrics: { bg: "bg-peach/20", iconColor: "text-peach", gradient: "from-peach/20 to-peach/10" },
+      pediatrics: { bg: "bg-peach/20", iconColor: "text-peach", gradient: "from-peach/20 to-peach/10" },
+      emergency: { bg: "bg-red-50", iconColor: "text-red-500", gradient: "from-red-100/50 to-red-50/30" },
+      general: { bg: "bg-mint", iconColor: "text-green-dark", gradient: "from-brand-green/10 to-mint/20" },
+      diagnostics: { bg: "bg-blue-50", iconColor: "text-blue-500", gradient: "from-blue-100/50 to-blue-50/30" },
+      ent: { bg: "bg-amber-50", iconColor: "text-amber-500", gradient: "from-amber-100/50 to-amber-50/30" },
+      odontology: { bg: "bg-cyan-50", iconColor: "text-cyan-500", gradient: "from-cyan-100/50 to-cyan-50/30" },
+    };
+    return configs[type] || configs.general;
+  };
+
+  const getIcon = (type: string) => {
     switch (type) {
-      case "cardiology":
-        return {
-          bg: "bg-mint",
-          iconColor: "text-brand-green",
-          icon: <Heart size={24} className="fill-mint" />
-        };
-      case "obstetrics":
-        return {
-          bg: "bg-peach/15",
-          iconColor: "text-peach",
-          icon: <Sparkles size={24} className="fill-peach/10" />
-        };
-      case "pediatrics":
-        return {
-          bg: "bg-peach/15",
-          iconColor: "text-peach",
-          icon: <Baby size={24} />
-        };
-      case "emergency":
-        return {
-          bg: "bg-red-50",
-          iconColor: "text-red-500",
-          icon: <Activity size={24} />
-        };
-      case "general":
-        return {
-          bg: "bg-mint",
-          iconColor: "text-green-dark",
-          icon: <Stethoscope size={24} />
-        };
-      case "diagnostics":
-        return {
-          bg: "bg-blue-50",
-          iconColor: "text-blue-500",
-          icon: <Layers size={24} />
-        };
-      case "ent":
-        return {
-          bg: "bg-amber-50",
-          iconColor: "text-amber-500",
-          icon: <Activity size={24} />
-        };
-      case "odontology":
-        return {
-          bg: "bg-cyan-50",
-          iconColor: "text-cyan-500",
-          icon: <Smile size={24} />
-        };
-      default:
-        return {
-          bg: "bg-mint",
-          iconColor: "text-brand-green",
-          icon: <Stethoscope size={24} />
-        };
+      case "cardiology": return <Heart size={24} />;
+      case "obstetrics": return <Sparkles size={24} />;
+      case "pediatrics": return <Baby size={24} />;
+      case "emergency": return <Activity size={24} />;
+      case "general": return <Stethoscope size={24} />;
+      case "diagnostics": return <Layers size={24} />;
+      case "ent": return <Activity size={24} />;
+      case "odontology": return <Smile size={24} />;
+      default: return <Stethoscope size={24} />;
     }
   };
 
   return (
-    <section id="chuyen-khoa" className="bg-cream-white py-16 md:py-20 border-b border-green-800/10">
-      <div className="max-w-[1180px] mx-auto px-4">
-        
+    <section id="chuyen-khoa" className="bg-cream-white py-16 md:py-24 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-brand-green/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-peach/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="max-w-[1180px] mx-auto px-4 relative z-10">
         {/* Section Heading */}
-        <div className="text-center max-w-[680px] mx-auto mb-12 md:mb-16">
-          <p className="text-brand-green text-xs font-bold uppercase tracking-widest mb-2">Hệ thống chuyên môn</p>
-          <h2 className="font-display font-bold text-[28px] md:text-[32px] text-green-dark">
-            Chuyên Khoa Nổi Bật hàng đầu
+        <motion.div
+          ref={ref}
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-[680px] mx-auto mb-16"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="inline-flex items-center gap-2 bg-brand-green/10 text-brand-green text-xs font-bold px-4 py-1.5 rounded-full mb-4"
+          >
+            <Layers size={14} />
+            <span>Hệ thống chuyên môn</span>
+          </motion.div>
+
+          <h2 className="font-display font-bold text-[28px] md:text-[36px] text-green-dark mb-4">
+            <motion.span
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="inline-block"
+            >
+              Chuyên Khoa
+            </motion.span>
+            <motion.span
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="inline-block ml-2 text-brand-green"
+            >
+              Nổi Bật
+            </motion.span>
           </h2>
-          <div className="w-16 h-1 bg-brand-green mx-auto my-3 rounded-full"></div>
-          <p className="text-ink/80 text-sm md:text-base">
+
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={isInView ? { scaleX: 1 } : {}}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="w-16 h-1 bg-gradient-to-r from-brand-green to-peach mx-auto mb-4 rounded-full"
+          />
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            className="text-ink/70 text-sm md:text-base"
+          >
             Bệnh viện cung cấp đầy đủ các chuyên khoa sâu với dịch vụ khám chữa bệnh chất lượng cao, tận tâm, giúp bà con vùng cao an tâm gửi gắm sức khỏe.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
 
         {/* Specialties Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {displayedSpecialties.map((spec: Specialty) => {
-            const badge = getIconBadge(spec.iconType);
-            return (
-              <div
-                key={spec.id}
-                className="bg-white border border-green-800/5 p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between text-left group cursor-pointer hover:border-brand-green/30"
-              >
-                <div>
-                  {/* Squircle Badge icon container (Radius Small - 14px, size 50px) */}
-                  <div className={`w-[50px] h-[50px] ${badge.bg} ${badge.iconColor} squircle flex items-center justify-center mb-5 shadow-inner transition-transform duration-300 group-hover:scale-110`}>
-                    {badge.icon}
-                  </div>
-
-                  <h3 className="font-display font-bold text-[18px] md:text-[20px] text-green-dark mb-2.5 group-hover:text-brand-green transition-colors duration-200">
-                    {spec.name}
-                  </h3>
-                  
-                  <p className="text-xs md:text-[13px] text-ink/75 leading-relaxed mb-4">
-                    {spec.description}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-green-800/[0.04] text-[12px] text-ink/70 bg-mint/20 p-3 rounded-xl leading-relaxed italic">
-                  {spec.detail}
-                </div>
-              </div>
-            );
-          })}
+          {displayedSpecialties.map((spec: Specialty, index: number) => (
+            <div key={spec.id}>
+              <SpecialtyCard
+                spec={spec}
+                index={index}
+                badge={getIconBadge(spec.iconType)}
+                icon={getIcon(spec.iconType)}
+              />
+            </div>
+          ))}
         </div>
 
         {/* View All Toggle Button */}
-        <div className="text-center mt-12 md:mt-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5, delay: 0.6 }}
+          className="text-center mt-12"
+        >
           <button
             onClick={() => setShowAll(!showAll)}
-            className="inline-flex items-center gap-2 bg-white hover:bg-brand-green hover:text-white border-2 border-brand-green text-brand-green font-display text-[15px] font-bold px-6 py-2.5 rounded-full cursor-pointer transition-all duration-300 shadow-sm"
+            className="group inline-flex items-center gap-3 bg-gradient-to-r from-brand-green to-green-dark hover:from-green-dark hover:to-brand-green text-white font-display text-[15px] font-bold px-8 py-3.5 rounded-full cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-brand-green/30 hover:-translate-y-0.5"
           >
-            <span>{showAll ? "Thu gọn bớt chuyên khoa" : "Xem tất cả chuyên khoa"}</span>
-            {showAll ? <Minus size={16} /> : <Plus size={16} />}
+            <span>{showAll ? "Thu gọn bớt" : "Xem tất cả chuyên khoa"}</span>
+            <motion.div
+              animate={{ rotate: showAll ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {showAll ? <Minus size={18} /> : <Plus size={18} />}
+            </motion.div>
           </button>
-        </div>
-
+        </motion.div>
       </div>
     </section>
+  );
+}
+
+function SpecialtyCard({
+  spec,
+  index,
+  badge,
+  icon
+}: {
+  spec: Specialty;
+  index: number;
+  badge: { bg: string; iconColor: string; gradient: string };
+  icon: React.ReactNode;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(cardRef, { once: true, margin: "-50px" });
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const springConfig = { damping: 20, stiffness: 300 };
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), springConfig);
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), springConfig);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={cardRef}
+      initial={{ opacity: 0, y: 60, scale: 0.9 }}
+      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+      style={{ perspective: "1000px" }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="group cursor-pointer"
+    >
+      <motion.div
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: "preserve-3d"
+        }}
+        animate={isInView ? { scale: 1 } : {}}
+        whileHover={{ scale: 1.03 }}
+        className="relative bg-white rounded-3xl overflow-hidden shadow-lg border border-green-800/5 transition-all duration-300 hover:shadow-2xl hover:shadow-brand-green/20 hover:border-brand-green/30 h-full"
+      >
+        {/* Gradient overlay on hover */}
+        <motion.div
+          className={`absolute inset-0 bg-gradient-to-br ${badge.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0`}
+        />
+
+        {/* Content */}
+        <div className="relative z-10 p-6 flex flex-col h-full">
+          {/* Icon container */}
+          <motion.div
+            className={`w-[60px] h-[60px] ${badge.bg} ${badge.iconColor} rounded-2xl flex items-center justify-center mb-5 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}
+            style={{ transform: "translateZ(30px)" }}
+          >
+            {icon}
+          </motion.div>
+
+          {/* Title */}
+          <h3
+            className="font-display font-bold text-[18px] md:text-[20px] text-green-dark mb-3 group-hover:text-brand-green transition-colors duration-300"
+            style={{ transform: "translateZ(20px)" }}
+          >
+            {spec.name}
+          </h3>
+
+          {/* Description */}
+          <p
+            className="text-xs md:text-[13px] text-ink/70 leading-relaxed mb-4 flex-grow"
+            style={{ transform: "translateZ(15px)" }}
+          >
+            {spec.description}
+          </p>
+
+          {/* Detail footer */}
+          <motion.div
+            className="mt-auto pt-4 border-t border-green-800/5"
+            style={{ transform: "translateZ(10px)" }}
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] text-ink/60 italic line-clamp-2 flex-1 pr-2">
+                {spec.detail}
+              </p>
+              <motion.div
+                className="w-8 h-8 rounded-full bg-brand-green/10 flex items-center justify-center text-brand-green opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-x-2 group-hover:translate-x-0"
+              >
+                <ArrowRight size={14} />
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Decorative corner accent */}
+        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-brand-green/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      </motion.div>
+    </motion.div>
   );
 }
