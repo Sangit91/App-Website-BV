@@ -3,13 +3,14 @@ import { useHospital } from "../../../context/HospitalContext";
 import { useAdmin } from "../../../context/AdminContext";
 import { Card, Button } from "../../ui";
 import { Plus, Edit, Trash2, ShieldAlert } from "lucide-react";
+import { IconType } from "../../../types/models/specialty";
 
 export default function SpecialtiesTab() {
   const { specialties, addSpecialty, updateSpecialty, deleteSpecialty } = useHospital();
   const { activeUser } = useAdmin();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<typeof specialties[0] | null>(null);
-  const [form, setForm] = useState({ name: "", description: "", iconType: "general" as any, detail: "" });
+  const [form, setForm] = useState<{ name: string; description: string; iconType: IconType; detail: string }>({ name: "", description: "", iconType: "general", detail: "" });
 
   const isSuperAdmin = activeUser?.role === "Super Admin";
   const canEdit = isSuperAdmin;
@@ -56,7 +57,7 @@ export default function SpecialtiesTab() {
       </div>
 
       {!canEdit && (
-        <div className="bg-peach/10 text-peach-dark p-3 rounded-xl text-xs flex items-center gap-2 border border-peach/20 font-semibold">
+        <div className="bg-peach/10 text-peach p-3 rounded-xl text-xs flex items-center gap-2 border border-peach/20 font-semibold">
           <ShieldAlert size={14} />
           <span>Quyền hạn vai trò của bạn ({activeUser?.role}) bị hạn chế thêm/sửa đổi chuyên khoa.</span>
         </div>

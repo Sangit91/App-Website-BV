@@ -84,7 +84,7 @@ export default function ItemCard({
             {actions.onView && (
               <button
                 onClick={actions.onView}
-                className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors cursor-pointer"
+                className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-brand-green hover:bg-brand-green/5 transition-colors cursor-pointer"
                 title="Xem"
               >
                 <Eye size={16} />
@@ -102,7 +102,7 @@ export default function ItemCard({
             {actions.onDelete && (
               <button
                 onClick={actions.onDelete}
-                className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
+                className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
                 title="Xóa"
               >
                 <Trash2 size={16} />
@@ -129,10 +129,10 @@ const colorMap = {
     iconBg: "bg-brand-green/10"
   },
   blue: {
-    bg: "bg-blue-50/50 hover:bg-blue-100/50",
-    border: "border-blue-200 hover:border-blue-400",
-    icon: "text-blue-500",
-    iconBg: "bg-blue-100"
+    bg: "bg-brand-green/5 hover:bg-brand-green/10",
+    border: "border-brand-green/20 hover:border-brand-green/40",
+    icon: "text-brand-green",
+    iconBg: "bg-brand-green/10"
   },
   amber: {
     bg: "bg-peach/5 hover:bg-peach/10",
@@ -141,10 +141,10 @@ const colorMap = {
     iconBg: "bg-peach/10"
   },
   rose: {
-    bg: "bg-rose-50/50 hover:bg-rose-100/50",
-    border: "border-rose-200 hover:border-rose-400",
-    icon: "text-rose-500",
-    iconBg: "bg-rose-100"
+    bg: "bg-red-50/50 hover:bg-red-100/50",
+    border: "border-red-200 hover:border-red-400",
+    icon: "text-red-500",
+    iconBg: "bg-red-100"
   }
 };
 

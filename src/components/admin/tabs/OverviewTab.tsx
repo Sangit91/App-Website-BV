@@ -71,7 +71,7 @@ export default function OverviewTab({ onNavigate }: OverviewTabProps) {
             <span className="text-[10px] font-extrabold text-peach uppercase tracking-wider block">Đang chờ phê duyệt gấp</span>
             <h3 className="font-display font-extrabold text-3xl mt-1 text-green-dark">{metrics.pendingConfirmations}</h3>
           </div>
-          <div className="text-[10px] font-bold text-peach-dark flex items-center gap-1 mt-3">
+          <div className="text-[10px] font-bold text-peach flex items-center gap-1 mt-3">
             <AlertTriangle size={12} />
             <span>Lễ tân cần kiểm tra sổ sách</span>
           </div>

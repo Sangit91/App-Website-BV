@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Briefcase, List, Calendar, Home, Syringe, Shield, Heart, Truck, Plane, Plus } from "lucide-react";
 import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog, ImageUploader } from "../ui";
 import { Button } from "../../ui";
+import { LucideIcon } from "lucide-react";
 
-const ICON_MAP: Record<string, any> = {
+const ICON_MAP: Record<string, LucideIcon> = {
   Calendar, Home, Syringe, Shield, Heart, Truck, Plane
 };
 
@@ -15,7 +16,7 @@ const DEFAULT_CATEGORIES = [
   { key: "goi-kham", title: "Gói khám", icon: "Heart", color: "from-pink-500 to-rose-600" }
 ];
 
-const DEFAULT_SERVICES: Record<string, any[]> = {
+const DEFAULT_SERVICES: Record<string, ServiceItem[]> = {
   "dich-vu-tron-goi": [
     { id: "1", name: "Dịch vụ trọn gói", desc: "Gói khám, điều trị toàn diện", price: "Từ 5.000.000đ", img: "/images/pages/vip-1.jpeg", highlight: true },
     { id: "2", name: "Kiến thức thai sản", desc: "Tư vấn, chăm sóc mẹ và bé", price: "Miễn phí", img: "/images/pages/sanphukhoa-1.jpeg" },

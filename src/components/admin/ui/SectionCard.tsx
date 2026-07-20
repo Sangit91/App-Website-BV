@@ -18,10 +18,10 @@ interface SectionCardProps {
 
 const badgeColors = {
   green: "bg-brand-green/10 text-brand-green border-brand-green/20",
-  blue: "bg-blue-50 text-blue-600 border-blue-200",
+  blue: "bg-brand-green/10 text-brand-green border-brand-green/20",
   amber: "bg-peach/10 text-peach border-peach/20",
-  rose: "bg-rose-50 text-rose-600 border-rose-200",
-  purple: "bg-purple-50 text-purple-600 border-purple-200"
+  rose: "bg-red-50 text-red-600 border-red-200",
+  purple: "bg-green-dark/5 text-green-dark border-green-dark/20"
 };
 
 export default function SectionCard({

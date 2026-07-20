@@ -20,13 +20,15 @@ interface Field {
   icon?: "text" | "image" | "link" | "number" | "date" | "list" | "info";
 }
 
+type FieldValue = string | number | boolean | File | null;
+
 interface EditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Record<string, any>) => void;
+  onSubmit: (data: Record<string, FieldValue>) => void;
   title: string;
   fields: Field[];
-  initialData?: Record<string, any>;
+  initialData?: Record<string, FieldValue>;
   size?: "sm" | "md" | "lg" | "xl";
   children?: ReactNode;
 }
@@ -60,11 +62,11 @@ export default function EditModal({
   size = "md",
   children
 }: EditModalProps) {
-  const [form, setForm] = useState<Record<string, any>>(
+  const [form, setForm] = useState<Record<string, FieldValue>>(
     fields.reduce((acc, field) => {
       acc[field.name] = initialData[field.name] ?? "";
       return acc;
-    }, {} as Record<string, any>)
+    }, {} as Record<string, FieldValue>)
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [focusedField, setFocusedField] = useState<string | null>(null);

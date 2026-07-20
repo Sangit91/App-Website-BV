@@ -51,7 +51,7 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
 
         <form onSubmit={handleSubmit} className="p-8 space-y-5">
           {loginError && (
-            <div className="bg-peach/10 text-peach-dark text-xs p-3 rounded-xl flex items-center gap-2 border border-peach/20">
+            <div className="bg-peach/10 text-peach text-xs p-3 rounded-xl flex items-center gap-2 border border-peach/20">
               <AlertTriangle size={14} className="shrink-0" />
               <span>{loginError}</span>
             </div>
