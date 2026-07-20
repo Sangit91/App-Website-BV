@@ -1061,6 +1061,60 @@ Các InfoCard trong tab "Chi phí & Địa điểm" chỉ có bản đồ click 
 
 ---
 
+## PHASE 34
+
+### InfoCard Modal System - Thay scroll sections bằng Modals (Hoàn thành 2026-07-20)
+
+**Files affected:** 6 files (5 new modals + 1 page)
+
+**Mục tiêu:**
+- Tất cả InfoCards đều clickable
+- Click → Mở modal thay vì scroll xuống page
+- Tránh page bị bố trí nhiều thông tin thừa
+
+**Vấn đề:**
+- PHASE 33 đã thêm inline scroll sections cho map và drug lookup
+- User反馈: page có quá nhiều content, nên dùng modal
+
+**Đã thực hiện:**
+
+**New Modals:**
+| Modal | File | Mô tả |
+|-------|------|-------|
+| MapModal | MapModal.tsx | Google Maps iframe + contact info |
+| DrugLookupModal | DrugLookupModal.tsx | Searchable drug list with BHYT coverage |
+| InpatientGuideModal | InpatientGuideModal.tsx | Guidelines for hospital stay |
+| OutpatientGuideModal | OutpatientGuideModal.tsx | Step-by-step outpatient flow |
+| ServicesModal | ServicesModal.tsx | List of hospital departments |
+
+**Actions Mapping:**
+```typescript
+getItemOnAction(itemName) {
+  if (tab === "chi-phi-dia-diem") {
+    "Cơ sở điều trị" → setIsMapOpen(true)
+    "Danh mục thuốc BHYT" → setIsDrugLookupOpen(true)
+  }
+  if (tab === "huong-dan-tien-ich") {
+    "Dịch vụ điều trị" → setIsServicesOpen(true)
+    "Dành cho bệnh nhân nội trú" → setIsInpatientGuideOpen(true)
+    "Dành cho thăm khám ngoại trú" → setIsOutpatientGuideOpen(true)
+  }
+}
+```
+
+**Removed:**
+- Inline map-section (scroll-based)
+- Inline drug-lookup-section (scroll-based)
+
+**UX Improvement:**
+- Click bất kỳ InfoCard nào → modal mở ra với nội dung chi tiết
+- Page không bị kéo dài bởi các inline sections
+- Clean navigation, modal đóng lại thì quay về page
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## TECHNICAL DEBT
 
 ### prefers-reduced-motion Support (Chưa hoàn thành)
