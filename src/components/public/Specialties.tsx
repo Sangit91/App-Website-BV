@@ -169,7 +169,7 @@ export default function Specialties() {
         {/* Specialties Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {displayedSpecialties.map((spec: Specialty, index: number) => (
-            <div key={spec.id}>
+            <div key={spec.id} className="flex">
               <SpecialtyCard
                 spec={spec}
                 index={index}
@@ -248,7 +248,7 @@ function SpecialtyCard({
       style={{ perspective: "1000px" }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="group cursor-pointer"
+      className="group cursor-pointer h-full"
     >
       <motion.div
         style={{
