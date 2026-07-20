@@ -65,6 +65,7 @@ export default function Doctors({ onOpenBookingWithDoctor }: DoctorsProps) {
             {filteredDoctors.map((doc: Doctor) => (
               <div
                 key={doc.id}
+                onClick={() => onOpenBookingWithDoctor(doc.name, doc.specialtyId)}
                 className="bg-white border border-green-800/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group cursor-pointer hover:border-brand-green/30"
               >
                 {/* Doctor Portrait Image */}
