@@ -60,58 +60,110 @@ export default function Specialties() {
       </div>
 
       <div className="max-w-[1180px] mx-auto px-4 relative z-10">
-        {/* Section Heading */}
+        {/* Section Heading - Modern & Eye-catching */}
         <motion.div
           ref={ref}
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 40 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center max-w-[680px] mx-auto mb-16"
+          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="text-center max-w-[800px] mx-auto mb-16 relative"
         >
+          {/* Floating shapes behind */}
+          <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-[200px] h-[200px]">
+            <motion.div
+              animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-0 left-0 w-16 h-16 bg-gradient-to-br from-brand-green/20 to-brand-green/5 rounded-2xl blur-xl"
+            />
+            <motion.div
+              animate={{ y: [0, 10, 0], rotate: [0, -5, 0] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              className="absolute top-8 right-0 w-12 h-12 bg-gradient-to-br from-peach/20 to-peach/5 rounded-xl blur-lg"
+            />
+          </div>
+
+          {/* Badge */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="inline-flex items-center gap-2 bg-brand-green/10 text-brand-green text-xs font-bold px-4 py-1.5 rounded-full mb-4"
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={isInView ? { opacity: 1, scale: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-green-dark/10 via-brand-green/10 to-green-dark/10 text-brand-green text-xs font-bold px-5 py-2 rounded-full mb-6 border border-brand-green/20 backdrop-blur-sm shadow-sm"
           >
-            <Layers size={14} />
-            <span>Hệ thống chuyên môn</span>
+            <motion.div
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+            >
+              <Layers size={16} />
+            </motion.div>
+            <span className="relative">
+              <span className="relative z-10">Hệ thống chuyên môn</span>
+              <span className="absolute inset-0 bg-brand-green/20 blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+            </span>
           </motion.div>
 
-          <h2 className="font-display font-bold text-[28px] md:text-[36px] text-green-dark mb-4">
+          {/* Title with gradient and animation */}
+          <h2 className="font-display font-bold text-[32px] md:text-[44px] lg:text-[48px] text-green-dark mb-6 leading-tight">
             <motion.span
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
               className="inline-block"
             >
               Chuyên Khoa
             </motion.span>
             <motion.span
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="inline-block ml-2 text-brand-green"
+              transition={{ duration: 0.6, delay: 0.35 }}
+              className="inline-block ml-3 md:ml-4"
             >
-              Nổi Bật
+              <span className="bg-gradient-to-r from-brand-green via-emerald-600 to-brand-green bg-[length:200%_auto] bg-clip-text text-transparent animate-gradient">
+                Nổi Bật
+              </span>
+              <motion.span
+                initial={{ scaleX: 0 }}
+                animate={isInView ? { scaleX: 1 } : {}}
+                transition={{ duration: 0.8, delay: 0.5 }}
+                className="block h-1.5 bg-gradient-to-r from-brand-green via-brand-green/80 to-peach mt-2 rounded-full origin-left"
+              />
             </motion.span>
           </h2>
 
-          <motion.div
-            initial={{ scaleX: 0 }}
-            animate={isInView ? { scaleX: 1 } : {}}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="w-16 h-1 bg-gradient-to-r from-brand-green to-peach mx-auto mb-4 rounded-full"
-          />
-
+          {/* Subtitle with typing effect style */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            className="text-ink/70 text-sm md:text-base"
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="text-ink/70 text-base md:text-lg leading-relaxed max-w-[600px] mx-auto"
           >
-            Bệnh viện cung cấp đầy đủ các chuyên khoa sâu với dịch vụ khám chữa bệnh chất lượng cao, tận tâm, giúp bà con vùng cao an tâm gửi gắm sức khỏe.
+            <span className="text-brand-green font-semibold">12+ chuyên khoa sâu</span>
+            {" "}với đội ngũ bác sĩ giàu kinh nghiệm, trang thiết bị hiện đại
           </motion.p>
+
+          {/* Stats row */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="flex items-center justify-center gap-8 mt-8"
+          >
+            {[
+              { value: "12+", label: "Chuyên khoa" },
+              { value: "50+", label: "Bác sĩ" },
+              { value: "15K+", label: "Bệnh nhân/năm" }
+            ].map((stat, idx) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                transition={{ duration: 0.4, delay: 0.7 + idx * 0.1 }}
+                className="text-center"
+              >
+                <div className="font-display font-bold text-2xl md:text-3xl text-green-dark">{stat.value}</div>
+                <div className="text-xs md:text-sm text-ink/60 font-medium">{stat.label}</div>
+              </motion.div>
+            ))}
+          </motion.div>
         </motion.div>
 
         {/* Specialties Grid */}
