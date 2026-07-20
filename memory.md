@@ -755,6 +755,32 @@ Review toàn bộ hệ thống theo đặc tả v2.7, sửa TypeScript any types
 
 ---
 
+## PHASE 24
+
+### Admin Panel Review & Fix (Hoàn thành 2026-07-20)
+
+**Files affected:** 7 files
+
+**Mục tiêu:**
+Review Admin Panel components và tabs, sửa TypeScript any types và hardcoded colors.
+
+**Đã thực hiện - Task 1: Fix TypeScript any types**
+- EditModal.tsx: Tạo type `FieldValue = string | number | boolean | File | null`, thay `Record<string, any>` → `Record<string, FieldValue>`
+- ServicesTab.tsx: Import `LucideIcon`, thay `Record<string, any>` → `Record<string, LucideIcon>`
+- ServicesTab.tsx: Thêm interface `ServiceItem`, thay `Record<string, any[]>` → `Record<string, ServiceItem[]>`
+- SpecialtiesTab.tsx: Import `IconType` từ types, thay `as any` → properly typed form state
+
+**Đã thực hiện - Task 2: Fix hardcoded colors**
+- OverviewTab.tsx: `text-peach-dark` → `text-peach`
+- AdminLogin.tsx: `text-peach-dark` → `text-peach`
+- SpecialtiesTab.tsx: `text-peach-dark` → `text-peach`
+- SectionCard.tsx: Badge colors blue/rose/purple → map sang brand colors
+- ItemCard.tsx: Badge colors blue/rose → map sang brand colors, action button colors fixed
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## TECHNICAL DEBT
 
 ### prefers-reduced-motion Support (Chưa hoàn thành)
