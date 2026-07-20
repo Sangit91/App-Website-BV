@@ -1031,6 +1031,36 @@ Xây dựng mockup API đầy đủ theo đặc tả HIS v1.1.
 
 ---
 
+## PHASE 33
+
+### Fix InfoCard Click for Chi phi & Dia diem Tab (Hoàn thành 2026-07-20)
+
+**Files affected:** 1 file
+
+**Mục tiêu:**
+Các InfoCard trong tab "Chi phí & Địa điểm" chỉ có bản đồ click được, các tab khác không hoạt động.
+
+**Vấn đề:**
+- Items trong `sectionData["chi-phi-dia-diem"]` không có `onAction`
+- InfoCard có `onClick={item.onAction}` nhưng items không có handler
+
+**Đã thực hiện:**
+- Thêm `handleOpenMap()` - scroll đến #map-section
+- Thêm `handleOpenDrugLookup()` - scroll đến #drug-lookup-section
+- Thêm `getItemOnAction(itemName)` helper để map action theo tab và item name
+- Thêm ItemData type với `onAction?: () => void`
+- Thêm conditional sections cho tab "chi-phi-dia-diem":
+  - `#map-section` - iframe bản đồ Google Maps
+  - `#drug-lookup-section` - placeholder tra cứu thuốc BHYT
+
+**UX Improvement:**
+- Click "Cơ sở điều trị" → scroll xuống bản đồ
+- Click "Danh mục thuốc BHYT" → scroll xuống drug lookup section
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## TECHNICAL DEBT
 
 ### prefers-reduced-motion Support (Chưa hoàn thành)
