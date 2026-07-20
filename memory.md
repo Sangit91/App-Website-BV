@@ -884,6 +884,28 @@ Liên kết các items trong "Cổng thông tin" để mở đúng modal/section
 
 ---
 
+## PHASE 28
+
+### InfoCard Fully Clickable (Hoàn thành 2026-07-20)
+
+**Files affected:** 1 file
+
+**Mục tiêu:**
+Cả card InfoCard đều clickable thay vì chỉ button mới click được.
+
+**Đã thực hiện:**
+- Thêm `onClick={item.onAction}` vào outer `motion.div`
+- Bỏ floating action button (redundant)
+- Footer text với action hint vẫn hiển thị
+
+**UX Improvement:**
+- Click bất kỳ đâu trên card → trigger action
+- Thay vì phải bấm đúng vào button nhỏ
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## TECHNICAL DEBT
 
 ### prefers-reduced-motion Support (Chưa hoàn thành)
