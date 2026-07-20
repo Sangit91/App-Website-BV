@@ -14,12 +14,21 @@ import {
 } from "lucide-react";
 import { useHospital } from "../../context/HospitalContext";
 import { Specialty } from "../../types";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
+import { ToggleButton } from "../../hooks/useToggleButton";
 
 export default function Specialties() {
   const { specialties } = useHospital();
   const [showAll, setShowAll] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const iconRotation = useMotionValue(showAll ? 180 : 0);
+  const rotation = useSpring(iconRotation, {
+    stiffness: prefersReducedMotion ? 0 : 100,
+    damping: prefersReducedMotion ? 0 : 15,
+  });
 
   const displayedSpecialties = showAll ? specialties : specialties.slice(0, 4);
 
@@ -189,15 +198,23 @@ export default function Specialties() {
         >
           <button
             onClick={() => setShowAll(!showAll)}
-            className="group inline-flex items-center gap-3 bg-gradient-to-r from-brand-green to-green-dark hover:from-green-dark hover:to-brand-green text-white font-display text-[15px] font-bold px-8 py-3.5 rounded-full cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-brand-green/30 hover:-translate-y-0.5"
+            className="group inline-flex items-center gap-3 bg-gradient-to-r from-brand-green to-green-dark hover:from-green-dark hover:to-brand-green text-white font-display text-[15px] font-bold px-8 py-3.5 rounded-full cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-brand-green/30 active:scale-95"
           >
-            <span>{showAll ? "Thu gọn bớt" : "Xem tất cả chuyên khoa"}</span>
-            <motion.div
-              animate={{ rotate: showAll ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
+            <motion.span
+              key={showAll ? "collapse" : "expand"}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
             >
-              {showAll ? <Minus size={18} /> : <Plus size={18} />}
-            </motion.div>
+              {showAll ? "Thu gọn bớt" : "Xem tất cả chuyên khoa"}
+            </motion.span>
+            <ToggleButton
+              isExpanded={showAll}
+              expandedIcon={<Minus size={18} />}
+              collapsedIcon={<Plus size={18} />}
+              rotation={rotation}
+              reducedMotion={prefersReducedMotion}
+            />
           </button>
         </motion.div>
       </div>
