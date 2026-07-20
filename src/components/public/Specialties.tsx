@@ -185,27 +185,35 @@ export default function Specialties() {
             exit={{ opacity: 0 }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
           >
-            {displayedSpecialties.map((spec: Specialty, index: number) => (
-              <motion.div
-                key={spec.id}
-                className="flex"
-                layout
-                initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{
-                  duration: prefersReducedMotion ? 0 : 0.4,
-                  delay: prefersReducedMotion ? 0 : (showAll ? index * 0.05 : 0),
-                }}
-              >
-                <SpecialtyCard
-                  spec={spec}
-                  index={index}
-                  badge={getIconBadge(spec.iconType)}
-                  icon={getIcon(spec.iconType)}
-                />
-              </motion.div>
-            ))}
+            {displayedSpecialties.map((spec: Specialty, index: number) => {
+              const totalCards = specialties.length;
+              const maxIndex = totalCards - 1;
+              const reverseIndex = showAll ? (totalCards - 1 - index) * 0.05 : 0;
+              const staggerDelay = showAll ? reverseIndex : index * 0.03;
+
+              return (
+                <motion.div
+                  key={spec.id}
+                  className="flex"
+                  layout
+                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                  transition={{
+                    duration: prefersReducedMotion ? 0 : 0.35,
+                    delay: prefersReducedMotion ? 0 : staggerDelay,
+                    layout: { duration: prefersReducedMotion ? 0 : 0.4 },
+                  }}
+                >
+                  <SpecialtyCard
+                    spec={spec}
+                    index={index}
+                    badge={getIconBadge(spec.iconType)}
+                    icon={getIcon(spec.iconType)}
+                  />
+                </motion.div>
+              );
+            })}
           </motion.div>
         </AnimatePresence>
 
