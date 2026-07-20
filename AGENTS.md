@@ -202,6 +202,63 @@ Mọi giao diện phải:
 
 ---
 
+## InfoCard - Full Card Clickability
+
+Mọi card có `cursor-pointer` phải có action khi click.
+
+### Không được
+
+```tsx
+<div className="cursor-pointer">
+  <img ... />
+  <div>Content</div>
+  <button onClick={handleAction}>Action</button>  // ❌ Chỉ button click được
+</div>
+```
+
+### Đúng
+
+```tsx
+<div className="cursor-pointer" onClick={handleAction}>
+  <img ... />
+  <div>Content</div>
+  <button onClick={(e) => { e.stopPropagation(); handleAction(); }}>Action</button>  // ✅ Cả card click được
+</div>
+```
+
+---
+
+## Modal Pattern cho Content-Heavy Sections
+
+Khi card hiển thị thông tin chi tiết, ưu tiên **Modal** thay vì **inline sections**.
+
+### Ưu tiên Modal khi
+
+* Content dài (scroll nhiều)
+* Cần search/filter
+* Cần nhiều interaction (form, search)
+* Tránh page bị kéo dài
+
+### Inline Sections (Scroll) khi
+
+* Content ngắn gọn (< 10 lines)
+* Không cần interaction
+* Thông tin bổ sung không quan trọng
+
+### Modal Components đã có
+
+| Modal | File | Khi click vào |
+|-------|------|---------------|
+| RecordRequestModal | RecordRequestModal.tsx | "Yêu cầu trích sao hồ sơ" |
+| FeedbackModal | FeedbackModal.tsx | "Góp ý chất lượng phục vụ" |
+| MapModal | MapModal.tsx | "Cơ sở điều trị" |
+| DrugLookupModal | DrugLookupModal.tsx | "Danh mục thuốc BHYT" |
+| InpatientGuideModal | InpatientGuideModal.tsx | "Bệnh nhân nội trú" |
+| OutpatientGuideModal | OutpatientGuideModal.tsx | "Thăm khám ngoại trú" |
+| ServicesModal | ServicesModal.tsx | "Dịch vụ điều trị" |
+
+---
+
 # 🎨 DESIGN SYSTEM
 
 ## Typography
@@ -606,6 +663,51 @@ Route → Database
 ```
 
 bỏ qua Service Layer.
+
+---
+
+## HIS API Standards
+
+### API Versioning
+
+Tất cả HIS endpoints phải có prefix `/api/v1/*`:
+
+```text
+/api/v1/patients/*
+/api/v1/auth/*
+/api/v1/appointments/*
+```
+
+### Authentication Flow
+
+```
+1. POST /api/v1/auth/token/access → accessToken + refreshToken
+2. Use accessToken in Authorization header
+3. POST /api/v1/auth/token/refresh → new accessToken (when expired)
+```
+
+### OTP Flow cho PHI (Protected Health Information)
+
+```
+1. POST /api/v1/auth/otp/send → sessionId (OTP sent to phone)
+2. POST /api/v1/auth/otp/verify → readToken (5 min expiry)
+3. Use readToken to access PHI endpoints
+```
+
+### Check-Patient Flow (2 bước)
+
+```
+Bước 1: POST /api/v1/appointments/check-patient
+  → Trả về patientCode (existing or newly created)
+
+Bước 2: POST /api/v1/appointments
+  → Dùng patientCode từ bước 1 để tạo lịch hẹn
+```
+
+### Data Standards
+
+* **ICD-10** cho mã bệnh danh (`icd10_code`)
+* **LOINC** cho mã cận lâm sàng (`loinc_code`)
 
 ---
 
