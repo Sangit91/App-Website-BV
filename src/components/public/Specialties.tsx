@@ -24,23 +24,23 @@ export default function Specialties() {
   const displayedSpecialties = showAll ? specialties : specialties.slice(0, 4);
 
   const getIconBadge = (type: string) => {
-    const configs: Record<string, { bg: string; iconColor: string; gradient: string }> = {
-      cardiology: { bg: "bg-mint", iconColor: "text-brand-green", gradient: "from-brand-green/20 to-mint/30" },
-      obstetrics: { bg: "bg-peach/20", iconColor: "text-peach", gradient: "from-peach/20 to-peach/10" },
-      pediatrics: { bg: "bg-peach/20", iconColor: "text-peach", gradient: "from-peach/20 to-peach/10" },
-      emergency: { bg: "bg-red-50", iconColor: "text-red-500", gradient: "from-red-100/50 to-red-50/30" },
-      general: { bg: "bg-mint", iconColor: "text-green-dark", gradient: "from-brand-green/10 to-mint/20" },
-      diagnostics: { bg: "bg-blue-50", iconColor: "text-blue-500", gradient: "from-blue-100/50 to-blue-50/30" },
-      ent: { bg: "bg-amber-50", iconColor: "text-amber-500", gradient: "from-amber-100/50 to-amber-50/30" },
-      odontology: { bg: "bg-cyan-50", iconColor: "text-cyan-500", gradient: "from-cyan-100/50 to-cyan-50/30" },
+    const configs: Record<string, { bg: string; iconColor: string; gradient: string; glow: string }> = {
+      cardiology: { bg: "bg-gradient-to-br from-mint to-brand-green/20", iconColor: "text-brand-green", gradient: "from-brand-green/20 to-emerald-50/50", glow: "shadow-brand-green/30" },
+      obstetrics: { bg: "bg-gradient-to-br from-pink-100 to-peach/30", iconColor: "text-pink-500", gradient: "from-pink-100/60 to-peach/30", glow: "shadow-pink-200/50" },
+      pediatrics: { bg: "bg-gradient-to-br from-amber-100 to-orange-50/50", iconColor: "text-amber-500", gradient: "from-amber-100/60 to-orange-50/30", glow: "shadow-amber-200/50" },
+      emergency: { bg: "bg-gradient-to-br from-red-100 to-red-50/50", iconColor: "text-red-500", gradient: "from-red-100/60 to-red-50/30", glow: "shadow-red-200/50" },
+      general: { bg: "bg-gradient-to-br from-mint to-brand-green/20", iconColor: "text-green-dark", gradient: "from-brand-green/10 to-mint/50", glow: "shadow-brand-green/20" },
+      diagnostics: { bg: "bg-gradient-to-br from-blue-100 to-blue-50/50", iconColor: "text-blue-500", gradient: "from-blue-100/60 to-blue-50/30", glow: "shadow-blue-200/50" },
+      ent: { bg: "bg-gradient-to-br from-amber-100 to-amber-50/50", iconColor: "text-amber-500", gradient: "from-amber-100/60 to-amber-50/30", glow: "shadow-amber-200/50" },
+      odontology: { bg: "bg-gradient-to-br from-cyan-100 to-cyan-50/50", iconColor: "text-cyan-500", gradient: "from-cyan-100/60 to-cyan-50/30", glow: "shadow-cyan-200/50" },
     };
     return configs[type] || configs.general;
   };
 
   const getIcon = (type: string) => {
     switch (type) {
-      case "cardiology": return <Heart size={24} />;
-      case "obstetrics": return <Sparkles size={24} />;
+      case "cardiology": return <Heart size={24} className="fill-brand-green/30" />;
+      case "obstetrics": return <Baby size={24} />;
       case "pediatrics": return <Baby size={24} />;
       case "emergency": return <Activity size={24} />;
       case "general": return <Stethoscope size={24} />;
@@ -213,7 +213,7 @@ function SpecialtyCard({
 }: {
   spec: Specialty;
   index: number;
-  badge: { bg: string; iconColor: string; gradient: string };
+  badge: { bg: string; iconColor: string; gradient: string; glow: string };
   icon: React.ReactNode;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -267,41 +267,47 @@ function SpecialtyCard({
 
         {/* Content */}
         <div className="relative z-10 p-6 flex flex-col h-full">
-          {/* Icon container */}
+          {/* Icon container with glow effect */}
           <motion.div
-            className={`w-[60px] h-[60px] ${badge.bg} ${badge.iconColor} rounded-2xl flex items-center justify-center mb-5 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}
+            className={`w-[60px] h-[60px] ${badge.bg} ${badge.iconColor} rounded-2xl flex items-center justify-center mb-5 ${badge.glow} transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 relative overflow-hidden`}
             style={{ transform: "translateZ(30px)" }}
           >
-            {icon}
+            {/* Inner glow */}
+            <div className={`absolute inset-0 bg-gradient-to-br from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+            {/* Icon */}
+            <div className="relative z-10">
+              {icon}
+            </div>
           </motion.div>
 
           {/* Title */}
           <h3
-            className="font-display font-bold text-[18px] md:text-[20px] text-green-dark mb-3 group-hover:text-brand-green transition-colors duration-300"
+            className="font-display font-bold text-[18px] md:text-[20px] text-green-dark mb-3 group-hover:text-brand-green transition-colors duration-300 relative"
             style={{ transform: "translateZ(20px)" }}
           >
             {spec.name}
+            <span className="absolute -left-2 top-1/2 w-1 h-6 bg-brand-green/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </h3>
 
           {/* Description */}
           <p
-            className="text-xs md:text-[13px] text-ink/70 leading-relaxed mb-4 flex-grow"
+            className="text-xs md:text-[13px] text-ink/70 leading-relaxed mb-4 flex-grow line-clamp-3"
             style={{ transform: "translateZ(15px)" }}
           >
             {spec.description}
           </p>
 
-          {/* Detail footer */}
+          {/* Detail footer with gradient background */}
           <motion.div
-            className="mt-auto pt-4 border-t border-green-800/5"
+            className={`mt-auto pt-4 border-t border-green-800/5 rounded-xl p-3 ${badge.bg.replace('bg-gradient-to-br', 'bg-gradient-to-r').replace('to-', 'to-transparent to-')}`}
             style={{ transform: "translateZ(10px)" }}
           >
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] text-ink/60 italic line-clamp-2 flex-1 pr-2">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[11px] text-green-dark/80 leading-relaxed line-clamp-2 flex-1">
                 {spec.detail}
               </p>
               <motion.div
-                className="w-8 h-8 rounded-full bg-brand-green/10 flex items-center justify-center text-brand-green opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-x-2 group-hover:translate-x-0"
+                className={`w-8 h-8 rounded-full ${badge.iconColor} bg-white/80 flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-x-2 group-hover:translate-x-0 shrink-0`}
               >
                 <ArrowRight size={14} />
               </motion.div>
