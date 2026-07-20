@@ -979,6 +979,58 @@ Kiểm tra các card có cursor-pointer nhưng chỉ có button click được.
 
 ---
 
+## PHASE 32
+
+### HIS API Mockup Full Implementation (Hoàn thành 2026-07-20)
+
+**Files affected:** 8 files
+
+**Mục tiêu:**
+Xây dựng mockup API đầy đủ theo đặc tả HIS v1.1.
+
+**Đã thực hiện:**
+
+**1. TypeScript Types Updated:**
+- `patient.ts`: Thêm OTP types (OTPSendRequest, OTPVerifyRequest, RefreshTokenRequest)
+- `medical-record.ts`: Thêm `icd10_code` field
+- `clinical-test.ts`: Thêm `loinc_code` field, `indicators[].loinc_code`
+
+**2. New Server Routes:**
+- `patient.routes.ts` (281 lines)
+  - POST /lookup - Tra cứu bệnh nhân
+  - GET /:patientId/medical-records - Lấy bệnh sử (yêu cầu readToken)
+  - GET /:patientId/clinical-tests - Lấy CLS (yêu cầu readToken)
+  - GET /:patientId/treatment-histories - Lấy lịch sử điều trị
+
+- `auth.routes.ts` (213 lines)
+  - POST /otp/send - Gửi OTP
+  - POST /otp/verify - Xác thực OTP → read_token (5 phút)
+  - POST /token/refresh - Refresh access token
+  - POST /token/access - Client credentials flow
+
+- `appointment.routes.ts` (239 lines)
+  - POST /check-patient - Check trùng BN (Bước 1)
+  - POST / - Tạo lịch hẹn (Bước 2)
+  - GET /search - Tra cứu lịch hẹn
+  - GET /:maKCB - Chi tiết lịch hẹn
+  - PATCH /:maKCB/cancel - Hủy lịch hẹn
+
+**3. Mock Data:**
+- 3 mock patients (BN-2020-00001, BN-2021-00042, BN-2022-00156)
+- 3 medical records với ICD-10 codes
+- 4 clinical tests với LOINC codes
+- 2 treatment histories
+- 2 appointments
+
+**4. API Security:**
+- read_token required cho PHI access
+- OTP verification for PHI lookup
+- 5-minute read_token expiry
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## TECHNICAL DEBT
 
 ### prefers-reduced-motion Support (Chưa hoàn thành)
