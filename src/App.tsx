@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import PageTransition from "./components/layout/PageTransition";
 import HomePage from "./pages/HomePage";
 import GioiThieuPage from "./pages/GioiThieuPage";
 import ChuyenKhoaPage from "./pages/ChuyenKhoaPage";
@@ -13,19 +14,21 @@ import AdminPage from "./pages/AdminPage";
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/gioi-thieu" element={<GioiThieuPage />} />
-        <Route path="/chuyen-khoa" element={<ChuyenKhoaPage />} />
-        <Route path="/dich-vu" element={<DichVuPage />} />
-        <Route path="/thong-tin-thau" element={<ThongTinThauPage />} />
-        <Route path="/dich-vu/thong-tin-thau" element={<ThongTinThauPage />} />
-        <Route path="/cho-benh-nhan" element={<ChoBenhNhanPage />} />
-        <Route path="/tin-tuc" element={<TinTucPage />} />
-        <Route path="/so-do-to-chuc" element={<SoDoToChucPage />} />
-        <Route path="/lien-he" element={<LienHePage />} />
-        <Route path="/admin" element={<AdminPage />} />
-      </Routes>
+      <PageTransition>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/gioi-thieu" element={<GioiThieuPage />} />
+          <Route path="/chuyen-khoa" element={<ChuyenKhoaPage />} />
+          <Route path="/dich-vu" element={<DichVuPage />} />
+          <Route path="/thong-tin-thau" element={<ThongTinThauPage />} />
+          <Route path="/dich-vu/thong-tin-thau" element={<ThongTinThauPage />} />
+          <Route path="/cho-benh-nhan" element={<ChoBenhNhanPage />} />
+          <Route path="/tin-tuc" element={<TinTucPage />} />
+          <Route path="/so-do-to-chuc" element={<SoDoToChucPage />} />
+          <Route path="/lien-he" element={<LienHePage />} />
+          <Route path="/admin" element={<AdminPage />} />
+        </Routes>
+      </PageTransition>
     </BrowserRouter>
   );
 }

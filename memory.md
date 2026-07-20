@@ -688,6 +688,25 @@ Cleanup đã thực hiện:
 
 ---
 
+## PHASE 21
+
+### Page Transition Animation Fix (Hoàn thành 2026-07-20)
+
+**Files affected:**
+- src/App.tsx
+
+**Vấn đề:**
+PageTransition component đã được tạo ở Phase 10 nhưng chưa được tích hợp vào App.tsx.
+
+**Đã thực hiện:**
+- Import PageTransition vào App.tsx
+- Bọc Routes trong PageTransition component
+- Animation: fade + slide (opacity 0→1, y 20→0), duration 0.3s
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## PHASE 15
 
 ### ChuyenKhoaPage - Modern Redesign với Animation Ấn Tượng (2026-07-19) - ĐANG THIẾT KẾ
