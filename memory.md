@@ -860,6 +860,30 @@ Liên kết các items trong "Cổng thông tin" để mở đúng modal/section
 
 ---
 
+## PHASE 27
+
+### Simplify PatientPortalSection Design (Hoàn thành 2026-07-20)
+
+**Files affected:** 2 files
+
+**Mục tiêu:**
+Đơn giản hóa PatientPortalSection bằng cách tích hợp action buttons trực tiếp, thay vì render riêng biệt bên ngoài.
+
+**Đã thực hiện:**
+- Thêm 2 props callbacks: `onOpenRecordRequest`, `onOpenFeedback` vào PatientPortalSection
+- Thêm 2 action buttons ở cuối portal section (chỉ hiện khi đã tra cứu bệnh nhân)
+- Bỏ redundant header box trong ChoBenhNhanPage
+
+**Design Flow:**
+1. Featured card "Tra cứu bệnh sử" → scroll đến PatientPortalSection
+2. InfoCard "Trích sao hồ sơ" → mở RecordRequestModal
+3. InfoCard "Góp ý" → mở FeedbackModal
+4. Buttons trong portal (sau login) → mở modals tương ứng
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## TECHNICAL DEBT
 
 ### prefers-reduced-motion Support (Chưa hoàn thành)
