@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Clipboard, FileSearch, Calendar, Stethoscope, TestTube,
   Activity, Pill, Clock, AlertCircle, Check, ChevronDown,
-  ChevronUp, User, MapPin, FileText, TestTube2, Image
+  ChevronUp, User, MapPin, FileText, TestTube2, Image, MessageSquare
 } from "lucide-react";
 import { MedicalRecord } from "../../types/models/medical-record";
 import { ClinicalTest, CLINICAL_TEST_TYPE_LABELS, ClinicalTestStatus } from "../../types/models/clinical-test";
@@ -17,6 +17,8 @@ interface PatientPortalSectionProps {
   onFetchMedicalRecords?: (patientId: string) => Promise<MedicalRecord[]>;
   onFetchClinicalTests?: (patientId: string) => Promise<ClinicalTest[]>;
   onFetchTreatmentHistories?: (patientId: string) => Promise<TreatmentHistory[]>;
+  onOpenRecordRequest?: () => void;
+  onOpenFeedback?: () => void;
   isLoading?: boolean;
   error?: string | null;
 }
@@ -384,6 +386,8 @@ export default function PatientPortalSection({
   onFetchMedicalRecords,
   onFetchClinicalTests,
   onFetchTreatmentHistories,
+  onOpenRecordRequest,
+  onOpenFeedback,
   isLoading = false,
   error = null
 }: PatientPortalSectionProps) {
@@ -597,6 +601,25 @@ export default function PatientPortalSection({
                 {getDataForTab().map((item, index) => renderCard(item, index))}
               </motion.div>
             </AnimatePresence>
+          </div>
+        )}
+
+        {currentPatient && (
+          <div className="flex gap-4 mt-6 pt-6 border-t border-green-800/5">
+            <button
+              onClick={onOpenRecordRequest}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border border-green-800/10 rounded-xl text-sm font-semibold text-green-dark hover:bg-gray-50 transition-colors cursor-pointer"
+            >
+              <FileSearch size={18} className="text-brand-green" />
+              <span>Yêu cầu trích sao hồ sơ</span>
+            </button>
+            <button
+              onClick={onOpenFeedback}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border border-green-800/10 rounded-xl text-sm font-semibold text-green-dark hover:bg-gray-50 transition-colors cursor-pointer"
+            >
+              <MessageSquare size={18} className="text-brand-green" />
+              <span>Góp ý chất lượng dịch vụ</span>
+            </button>
           </div>
         )}
       </div>
