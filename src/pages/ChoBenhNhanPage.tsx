@@ -128,6 +128,7 @@ function InfoCard({ item, dept, index }: InfoCardProps) {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={item.onAction}
       className="group cursor-pointer"
     >
       <motion.div
@@ -193,15 +194,10 @@ function InfoCard({ item, dept, index }: InfoCardProps) {
               </motion.p>
             </div>
           </div>
-          <motion.button
-            onClick={item.onAction}
-            animate={isHovered ? { y: 0, opacity: 1 } : { y: 8, opacity: 0.8 }}
-            transition={{ duration: 0.3 }}
-            className={`mt-auto inline-flex items-center gap-2 ${dept.textColor} font-semibold text-sm hover:gap-3 transition-all cursor-pointer`}
-          >
+          <div className={`mt-auto flex items-center gap-2 ${dept.textColor} font-semibold text-sm`}>
             {item.action}
             <ExternalLink className="w-4 h-4" />
-          </motion.button>
+          </div>
         </div>
       </motion.div>
     </motion.div>
