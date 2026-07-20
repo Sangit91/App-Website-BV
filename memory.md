@@ -906,6 +906,35 @@ Cả card InfoCard đều clickable thay vì chỉ button mới click được.
 
 ---
 
+## PHASE 29
+
+### Remove Redundant Nested motion.div (Hoàn thành 2026-07-20)
+
+**Files affected:** 1 file
+
+**Mục tiêu:**
+Fix cấu trúc JSX bị wrapped 2 lần không cần thiết.
+
+**Vấn đề:**
+```tsx
+<motion.div ref={portalRef} ...>           // outer
+  <motion.div className="mb-6" ...>        // inner - THỪA
+    <div className="grid...">...</div>     // content
+  </motion.div>                            // đóng inner
+  <PatientPortalSection />
+  <InfoCards />
+</motion.div>                              // đóng outer
+```
+
+**Đã thực hiện:**
+- Merge props từ inner motion.div vào outer
+- Bỏ inner motion.div thừa
+- Giờ chỉ 1 motion.div wrapper cho toàn bộ section
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## TECHNICAL DEBT
 
 ### prefers-reduced-motion Support (Chưa hoàn thành)
