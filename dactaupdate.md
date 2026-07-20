@@ -568,8 +568,23 @@ const checklist = ["Hỗ trợ 24/7 qua hotline", "Quy trình đơn giản", "Th
 ```
 src/pages/
 ├── ChuyenKhoaPage.tsx    # 527 lines
-├── DichVuPage.tsx        # 396 lines  
-├── ChoBenhNhanPage.tsx   # 367 lines
+├── DichVuPage.tsx        # 396 lines
+├── ChoBenhNhanPage.tsx   # 439 lines (with Patient Portal)
+
+src/components/public/
+├── PatientLookupForm.tsx    # Patient lookup form
+├── PatientPortalSection.tsx # Patient portal with 3 tabs
+├── RecordRequestModal.tsx   # Request medical records
+├── FeedbackModal.tsx        # Service feedback
+
+src/data/
+├── patient-portal-data.ts   # Mock data for patient portal
+
+src/types/models/
+├── medical-record.ts       # Medical record type
+├── clinical-test.ts        # Clinical test (CLS) type
+├── treatment-history.ts    # Treatment history type
+├── patient.ts              # Extended patient type with HIS fields
 ```
 
 Each page follows the same pattern but uses different data sources.
@@ -729,6 +744,104 @@ Thay "actions" button bằng AddCard trong content area:
 - Quản lý Nội dung: Home, About, Specialties, Services, Patient, News, Tender, Contact
 - Quản lý Nhân sự: Doctors, Phân ca
 - Quản lý Hoạt động: Đặt lịch, Bệnh nhân, Nhật ký
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
+## PHASE 25 - Patient Portal HIS Integration (2026-07-20)
+
+### Patient Portal Components
+
+**PatientLookupForm:**
+- 3 loại tra cứu: Mã KCB, CCCD/CMND, Số điện thoại
+- Validation input (CCCD 9/12 số, phone 10 số)
+- Loading state, error handling
+- PatientInfoCard hiển thị thông tin bệnh nhân
+
+**PatientPortalSection:**
+- 3 tabs: Lịch sử bệnh sử | CLS các lần khám | Lịch sử điều trị
+- Expandable cards với chi tiết đầy đủ
+- API callbacks interface: `onPatientLookup`, `onFetchMedicalRecords`, `onFetchClinicalTests`, `onFetchTreatmentHistories`
+- Mock mode: tự động load mock data khi không có API
+
+### Data Models cho HIS
+
+**MedicalRecord** (`src/types/models/medical-record.ts`):
+```typescript
+interface MedicalRecord {
+  id: string;
+  patientId: string;
+  date: string;
+  clinic: string;
+  doctorName: string;
+  symptoms: string;
+  diagnosis: string;
+  treatment: string;
+  prescriptions?: Prescription[];
+  followUpDate?: string;
+}
+```
+
+**ClinicalTest** (`src/types/models/clinical-test.ts`):
+```typescript
+type ClinicalTestType = 'xet-nghiem-mau' | 'x-quang' | 'sieu-am' | 'ecg' | 'ct-scan' | 'mri' | ...
+type ClinicalTestStatus = 'normal' | 'abnormal' | 'critical';
+
+interface ClinicalTest {
+  id: string;
+  testType: ClinicalTestType;
+  testName: string;
+  result: string;
+  status: ClinicalTestStatus;
+  indicators?: ClinicalTestIndicator[];
+}
+```
+
+**TreatmentHistory** (`src/types/models/treatment-history.ts`):
+```typescript
+type TreatmentType = 'noi-tru' | 'ngoai-tru' | 'thu-thuat' | 'phau-thuat' | 'cap-cuu';
+type TreatmentOutcome = 'khoi' | 'do' | 'chuyen-vien' | 'tai-kham';
+```
+
+### API Interface cho HIS Backend
+```typescript
+POST /api/patients/lookup
+  Body: { identifier: string, identifierType: 'patientCode' | 'cccd' | 'phone' }
+  Response: { patient: Patient }
+
+GET /api/patients/:id/medical-records
+GET /api/patients/:id/clinical-tests
+GET /api/patients/:id/treatment-histories
+```
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
+## PHASE 26 - Link Portal Actions (2026-07-20)
+
+### Cổng thông tin Items Link
+
+**InfoCard Enhancement:**
+- Thêm `onAction` callback vào item props
+- Button gọi `item.onAction()` khi bấm
+
+**RecordRequestModal:**
+- Form yêu cầu trích sao hồ sơ y tế
+- 4 loại: Hồ sơ y tế, Giấy chứng nhận, Kết quả khám, Đơn thuốc
+- Chọn ngày, phương thức nhận (tái khám/quầy/bưu điện)
+- Success state với mã yêu cầu
+
+**FeedbackModal:**
+- Form góp ý chất lượng dịch vụ
+- Chọn loại dịch vụ, rating 5 sao, nội dung
+- Success state
+
+### Click Flow
+1. **Tra cứu bệnh sử online** → scroll đến PatientPortalSection → nhập mã KCB/CCCD/phone → xem dữ liệu
+2. **Yêu cầu trích sao hồ sơ** → mở RecordRequestModal → điền form → submit → nhận mã yêu cầu
+3. **Góp ý chất lượng dịch vụ** → mở FeedbackModal → đánh giá → submit
 
 **Commands:** npm run lint - Passed, npm run build - Passed
 
