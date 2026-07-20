@@ -9,3 +9,6 @@ export * from './models/schedule';
 export * from './models/audit-log';
 export * from './models/auth';
 export * from './models/quick-action';
+export * from './models/medical-record';
+export * from './models/clinical-test';
+export * from './models/treatment-history';

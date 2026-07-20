@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
 import { FileText, MapPin, Pill, Users, Search, Clipboard, DollarSign, Bed, Calendar, Phone, ExternalLink, Check, Heart, Map, FileSearch } from "lucide-react";
+import PatientPortalSection from "../components/public/PatientPortalSection";
 
 const SECTIONS = [
   { key: "chi-phi-dia-diem", title: "Chi phí & Địa điểm", icon: MapPin, color: "from-blue-500 to-indigo-600", bgLight: "bg-blue-50", textColor: "text-blue-600" },
@@ -311,53 +312,72 @@ export default function ChoBenhNhanPage() {
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <AnimatePresence mode="wait">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }} className="mb-12">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" style={{
-                  background: `linear-gradient(135deg, ${currentSection.textColor.includes("blue") ? "rgba(59,130,246,0.05)" : currentSection.textColor.includes("emerald") ? "rgba(16,185,129,0.05)" : "rgba(147,51,234,0.05)"} 0%, transparent 50%)`,
-                  borderRadius: "24px"
-                }}>
-                  <motion.div className="relative h-80 lg:h-96 overflow-hidden rounded-3xl" initial={{ clipPath: "inset(100% 0 0 0)" }} animate={{ clipPath: "inset(0% 0 0 0)" }} transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}>
-                    <motion.img src={featuredItem.img} alt={featuredItem.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" initial={{ scale: 1.2 }} animate={{ scale: 1 }} transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }} />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-8">
-                      <motion.span className={`inline-flex ${currentSection.bgLight} ${currentSection.textColor} text-xs font-bold px-4 py-1.5 rounded-full mb-4`} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>
-                        {currentSection.title}
-                      </motion.span>
-                      <motion.h2 className="text-3xl font-display font-bold text-white mb-3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
-                        {featuredItem.name}
-                      </motion.h2>
-                      <motion.p className="text-white/80 text-sm" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
-                        {featuredItem.desc}
-                      </motion.p>
+              {activeTab === "cong-thong-tin" ? (
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }}>
+                  <div className="bg-white rounded-3xl border border-green-800/5 p-6 mb-6">
+                    <div className="flex items-center gap-4 mb-2">
+                      <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <Clipboard className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <h2 className="font-display font-bold text-2xl text-green-dark">Cổng thông tin bệnh nhân</h2>
+                        <p className="text-sm text-ink/60">Xem lịch sử khám bệnh, kết quả xét nghiệm và lịch sử điều trị</p>
+                      </div>
+                    </div>
+                  </div>
+                  <PatientPortalSection />
+                </motion.div>
+              ) : (
+                <>
+                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }} className="mb-12">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" style={{
+                      background: `linear-gradient(135deg, ${currentSection.textColor.includes("blue") ? "rgba(59,130,246,0.05)" : currentSection.textColor.includes("emerald") ? "rgba(16,185,129,0.05)" : "rgba(147,51,234,0.05)"} 0%, transparent 50%)`,
+                      borderRadius: "24px"
+                    }}>
+                      <motion.div className="relative h-80 lg:h-96 overflow-hidden rounded-3xl" initial={{ clipPath: "inset(100% 0 0 0)" }} animate={{ clipPath: "inset(0% 0 0 0)" }} transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}>
+                        <motion.img src={featuredItem.img} alt={featuredItem.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" initial={{ scale: 1.2 }} animate={{ scale: 1 }} transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }} />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-8">
+                          <motion.span className={`inline-flex ${currentSection.bgLight} ${currentSection.textColor} text-xs font-bold px-4 py-1.5 rounded-full mb-4`} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>
+                            {currentSection.title}
+                          </motion.span>
+                          <motion.h2 className="text-3xl font-display font-bold text-white mb-3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+                            {featuredItem.name}
+                          </motion.h2>
+                          <motion.p className="text-white/80 text-sm" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+                            {featuredItem.desc}
+                          </motion.p>
+                        </div>
+                      </motion.div>
+
+                      <div className="flex flex-col justify-center p-8">
+                        <motion.h3 initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="text-2xl font-display font-bold text-green-dark mb-4">
+                          Thông tin hữu ích
+                        </motion.h3>
+                        <motion.p initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }} className="text-ink/70 leading-relaxed mb-6">
+                          {currentData.description}
+                        </motion.p>
+                        <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }} className="space-y-3">
+                          {["Hỗ trợ 24/7 qua hotline", "Quy trình đơn giản", "Thông tin minh bạch", "Chăm sóc tận tâm"].map((item, idx) => (
+                            <motion.div key={item} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 + idx * 0.1 }} className="flex items-center gap-3">
+                              <div className={`w-6 h-6 rounded-full bg-gradient-to-r ${currentSection.color} flex items-center justify-center`}>
+                                <Check className="w-3 h-3 text-white" />
+                              </div>
+                              <span className="text-ink/80 font-medium">{item}</span>
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      </div>
                     </div>
                   </motion.div>
 
-                  <div className="flex flex-col justify-center p-8">
-                    <motion.h3 initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="text-2xl font-display font-bold text-green-dark mb-4">
-                      Thông tin hữu ích
-                    </motion.h3>
-                    <motion.p initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }} className="text-ink/70 leading-relaxed mb-6">
-                      {currentData.description}
-                    </motion.p>
-                    <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }} className="space-y-3">
-                      {["Hỗ trợ 24/7 qua hotline", "Quy trình đơn giản", "Thông tin minh bạch", "Chăm sóc tận tâm"].map((item, idx) => (
-                        <motion.div key={item} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 + idx * 0.1 }} className="flex items-center gap-3">
-                          <div className={`w-6 h-6 rounded-full bg-gradient-to-r ${currentSection.color} flex items-center justify-center`}>
-                            <Check className="w-3 h-3 text-white" />
-                          </div>
-                          <span className="text-ink/80 font-medium">{item}</span>
-                        </motion.div>
-                      ))}
-                    </motion.div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {currentData.items.filter(item => !item.highlight).map((item, idx) => (
+                      <InfoCard key={item.name} item={item} dept={currentSection} index={idx} />
+                    ))}
                   </div>
-                </div>
-              </motion.div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {currentData.items.filter(item => !item.highlight).map((item, idx) => (
-                  <InfoCard key={item.name} item={item} dept={currentSection} index={idx} />
-                ))}
-              </div>
+                </>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
