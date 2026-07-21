@@ -202,7 +202,7 @@ const SPECIALTY_CONTENT: Record<string, {
 };
 
 export default function SpecialtyModal({ isOpen, onClose, specialty }: SpecialtyModalProps) {
-  if (!specialty) return null;
+  if (!isOpen || !specialty) return null;
 
   const content = SPECIALTY_CONTENT[specialty.id] || {
     icon: Stethoscope,
