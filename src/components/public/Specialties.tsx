@@ -16,10 +16,12 @@ import { useHospital } from "../../context/HospitalContext";
 import { Specialty } from "../../types";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { ToggleButton } from "../../hooks/useToggleButton";
+import SpecialtyModal from "./SpecialtyModal";
 
 export default function Specialties() {
   const { specialties } = useHospital();
   const [showAll, setShowAll] = useState(false);
+  const [selectedSpecialty, setSelectedSpecialty] = useState<Specialty | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -210,6 +212,7 @@ export default function Specialties() {
                     index={index}
                     badge={getIconBadge(spec.iconType)}
                     icon={getIcon(spec.iconType)}
+                    onClick={() => setSelectedSpecialty(spec)}
                   />
                 </motion.div>
               );
@@ -255,6 +258,13 @@ export default function Specialties() {
           </motion.button>
         </motion.div>
       </div>
+
+      {/* Specialty Detail Modal */}
+      <SpecialtyModal
+        isOpen={selectedSpecialty !== null}
+        onClose={() => setSelectedSpecialty(null)}
+        specialty={selectedSpecialty}
+      />
     </section>
   );
 }
@@ -263,12 +273,14 @@ function SpecialtyCard({
   spec,
   index,
   badge,
-  icon
+  icon,
+  onClick
 }: {
   spec: Specialty;
   index: number;
   badge: { bg: string; iconColor: string; gradient: string; glow: string };
   icon: React.ReactNode;
+  onClick?: () => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true, margin: "-50px" });
@@ -302,6 +314,7 @@ function SpecialtyCard({
       style={{ perspective: "1000px" }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      onClick={onClick}
       className="group cursor-pointer h-full"
     >
       <motion.div
