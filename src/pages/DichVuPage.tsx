@@ -1,8 +1,11 @@
-import { useState, useEffect, useRef, MouseEvent, ElementType } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useState, useEffect, useRef, MouseEvent } from "react";
+import { useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
 import { Calendar, Home, Syringe, Shield, Heart, Truck, Sparkles, Baby, Plane, Stethoscope, ArrowRight, ChevronRight, Check } from "lucide-react";
+import { useReducedMotion } from "../hooks/useReducedMotion";
+import { AnimatedCounter } from "../hooks/AnimatedCounter";
+import { FloatingShape } from "../hooks/FloatingShape";
 
 const SERVICE_CATEGORIES = [
   { key: "dich-vu-tron-goi", title: "Dịch vụ trọn gói", icon: Calendar, color: "from-orange-500 to-amber-600", bgLight: "bg-orange-50", textColor: "text-orange-600" },
@@ -72,41 +75,6 @@ const stats = [
   { value: 24, label: "Giờ hỗ trợ" }
 ];
 
-function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-  useEffect(() => {
-    if (!isInView) return;
-    let start = 0;
-    const duration = 2000;
-    const increment = value / (duration / 16);
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= value) {
-        setCount(value);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(start));
-      }
-    }, 16);
-    return () => clearInterval(timer);
-  }, [isInView, value]);
-
-  return <div ref={ref}>{count}{suffix}</div>;
-}
-
-function FloatingShape({ className, delay = 0 }: { className: string; delay?: number }) {
-  return (
-    <motion.div
-      className={`absolute rounded-full opacity-20 ${className}`}
-      animate={{ y: [0, -30, 0], x: [0, 15, 0], scale: [1, 1.1, 1] }}
-      transition={{ duration: 8, delay, repeat: Infinity, ease: "easeInOut" }}
-    />
-  );
-}
-
 interface ServiceCardProps {
   key?: string;
   item: { name: string; desc: string; price: string; img: string };
@@ -121,9 +89,10 @@ function ServiceCard({ item, dept, index, onBook }: ServiceCardProps) {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const [isHovered, setIsHovered] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || reducedMotion) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -131,15 +100,15 @@ function ServiceCard({ item, dept, index, onBook }: ServiceCardProps) {
     mouseY.set(y);
   };
 
-  const rotateX = useTransform(mouseY, [-0.5, 0.5], [8, -8]);
-  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], reducedMotion ? [0, 0] : [8, -8]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], reducedMotion ? [0, 0] : [-8, 8]);
 
   return (
     <motion.div
       ref={cardRef}
       initial={{ opacity: 0, y: 60 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+      transition={{ duration: reducedMotion ? 0 : 0.6, delay: reducedMotion ? 0 : index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
       style={{ perspective: "1000px" }}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
@@ -229,11 +198,17 @@ function ServiceCard({ item, dept, index, onBook }: ServiceCardProps) {
 
 export default function DichVuPage() {
   const location = useLocation();
+  const reducedMotion = useReducedMotion();
   const [activeTab, setActiveTab] = useState("dich-vu-tron-goi");
   const heroRef = useRef<HTMLDivElement>(null);
+  const tabNavRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+
+  const scrollToTabNav = () => {
+    tabNavRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   useEffect(() => {
     if (location.hash) {
@@ -266,7 +241,7 @@ export default function DichVuPage() {
 
         <motion.div
           className="relative z-10 max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10 py-20 w-full"
-          style={{ opacity: heroOpacity, scale: heroScale }}
+          style={{ opacity: reducedMotion ? 1 : heroOpacity, scale: reducedMotion ? 1 : heroScale }}
         >
           <div className="text-center">
             <motion.div
@@ -311,14 +286,24 @@ export default function DichVuPage() {
           </div>
         </motion.div>
 
-        <motion.div className="absolute bottom-8 left-1/2 -translate-x-1/2" animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+        <motion.div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 cursor-pointer"
+          style={{ transform: "translateX(-50%)" }}
+          onClick={scrollToTabNav}
+          animate={reducedMotion ? {} : { y: [0, 10, 0] }}
+          transition={reducedMotion ? {} : { duration: 2, repeat: Infinity }}
+        >
           <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center pt-2">
-            <motion.div className="w-1.5 h-3 bg-white rounded-full" animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }} transition={{ duration: 2, repeat: Infinity }} />
+            <motion.div
+              className="w-1.5 h-3 bg-white rounded-full"
+              animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
           </div>
         </motion.div>
       </section>
 
-      <section className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-green-800/5 shadow-sm">
+      <section ref={tabNavRef} className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-green-800/5 shadow-sm">
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <div className="flex overflow-x-auto scrollbar-hide py-4 gap-2">
             {SERVICE_CATEGORIES.map(cat => {

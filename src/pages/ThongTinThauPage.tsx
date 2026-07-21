@@ -4,6 +4,9 @@ import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePres
 import { FileText, Download, Server, Stethoscope, Microscope, Pill, Building2, Users, ChevronDown, ChevronUp, X, Calendar, Clock, MapPin, Phone, BadgeCheck, DollarSign, FileCheck, CheckCircle, Layers, ShieldCheck, AlertCircle } from "lucide-react";
 import { useHospital } from "../context/HospitalContext";
 import { NewsItem, TenderStatus } from "../types";
+import { useReducedMotion } from "../hooks/useReducedMotion";
+import { AnimatedCounter } from "../hooks/AnimatedCounter";
+import { FloatingShape } from "../hooks/FloatingShape";
 
 const DEPARTMENTS = [
   { id: "PHÒNG CNTT", name: "Phòng Công Nghệ Thông Tin", icon: Server, color: "from-blue-500 to-cyan-600" },
@@ -51,36 +54,6 @@ function formatDateShort(dateStr: string): string {
   return `${hours}:${minutes} ${day}/${month}/${year}`;
 }
 
-function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-  useEffect(() => {
-    if (!isInView) return;
-    let start = 0;
-    const duration = 2000;
-    const increment = value / (duration / 16);
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= value) { setCount(value); clearInterval(timer); }
-      else { setCount(Math.floor(start)); }
-    }, 16);
-    return () => clearInterval(timer);
-  }, [isInView, value]);
-
-  return <div ref={ref}>{count}{suffix}</div>;
-}
-
-function FloatingShape({ className, delay = 0 }: { className: string; delay?: number }) {
-  return (
-    <motion.div className={`absolute rounded-full opacity-20 ${className}`}
-      animate={{ y: [0, -30, 0], x: [0, 15, 0], scale: [1, 1.1, 1] }}
-      transition={{ duration: 8, delay, repeat: Infinity, ease: "easeInOut" }}
-    />
-  );
-}
-
 interface TenderCardProps {
   item: NewsItem;
   dept: { name: string; color: string };
@@ -95,11 +68,12 @@ function TenderCard({ item, dept, index, onClick }: TenderCardProps) {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const [isHovered, setIsHovered] = useState(false);
+  const reducedMotion = useReducedMotion();
   const status = getTenderStatus(item);
   const statusBadge = getStatusBadge(status);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || reducedMotion) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -107,12 +81,12 @@ function TenderCard({ item, dept, index, onClick }: TenderCardProps) {
     mouseY.set(y);
   };
 
-  const rotateX = useTransform(mouseY, [-0.5, 0.5], [8, -8]);
-  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], reducedMotion ? [0, 0] : [8, -8]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], reducedMotion ? [0, 0] : [-8, 8]);
 
   return (
     <motion.div ref={cardRef} initial={{ opacity: 0, y: 60 }} animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.1 }} style={{ perspective: "1000px" }}
+      transition={{ duration: reducedMotion ? 0 : 0.6, delay: reducedMotion ? 0 : index * 0.1 }} style={{ perspective: "1000px" }}
       onMouseMove={handleMouseMove} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}
       className="group cursor-pointer">
       <motion.div style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
@@ -161,6 +135,7 @@ function TenderCard({ item, dept, index, onClick }: TenderCardProps) {
 
 export default function ThongTinThauPage() {
   const { news } = useHospital();
+  const reducedMotion = useReducedMotion();
   const [activeDept, setActiveDept] = useState("PHÒNG CNTT");
   const [selectedTender, setSelectedTender] = useState<NewsItem | null>(null);
   const [downloadToast, setDownloadToast] = useState<string | null>(null);
@@ -207,7 +182,7 @@ export default function ThongTinThauPage() {
         </div>
 
         <motion.div className="relative z-10 max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10 py-16 w-full"
-          style={{ opacity: heroOpacity, scale: heroScale }}>
+          style={{ opacity: reducedMotion ? 1 : heroOpacity, scale: reducedMotion ? 1 : heroScale }}>
           <div className="text-center">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
               className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-5 py-2 rounded-full text-sm font-medium mb-6">

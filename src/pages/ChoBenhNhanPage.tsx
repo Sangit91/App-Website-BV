@@ -11,6 +11,9 @@ import DrugLookupModal from "../components/public/DrugLookupModal";
 import InpatientGuideModal from "../components/public/InpatientGuideModal";
 import OutpatientGuideModal from "../components/public/OutpatientGuideModal";
 import ServicesModal from "../components/public/ServicesModal";
+import { useReducedMotion } from "../hooks/useReducedMotion";
+import { AnimatedCounter } from "../hooks/AnimatedCounter";
+import { FloatingShape } from "../hooks/FloatingShape";
 
 const SECTIONS = [
   { key: "chi-phi-dia-diem", title: "Chi phí & Địa điểm", icon: MapPin, color: "from-blue-500 to-indigo-600", bgLight: "bg-blue-50", textColor: "text-blue-600" },
@@ -55,41 +58,6 @@ const stats = [
   { value: 50, label: "Bác sĩ", suffix: "+" }
 ];
 
-function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-  useEffect(() => {
-    if (!isInView) return;
-    let start = 0;
-    const duration = 2000;
-    const increment = value / (duration / 16);
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= value) {
-        setCount(value);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(start));
-      }
-    }, 16);
-    return () => clearInterval(timer);
-  }, [isInView, value]);
-
-  return <div ref={ref}>{count}{suffix}</div>;
-}
-
-function FloatingShape({ className, delay = 0 }: { className: string; delay?: number }) {
-  return (
-    <motion.div
-      className={`absolute rounded-full opacity-20 ${className}`}
-      animate={{ y: [0, -30, 0], x: [0, 15, 0], scale: [1, 1.1, 1] }}
-      transition={{ duration: 8, delay, repeat: Infinity, ease: "easeInOut" }}
-    />
-  );
-}
-
 type ItemData = {
   name: string;
   desc: string;
@@ -113,9 +81,10 @@ function InfoCard({ item, dept, index }: InfoCardProps) {
   const mouseY = useMotionValue(0);
   const [isHovered, setIsHovered] = useState(false);
   const Icon = item.icon;
+  const reducedMotion = useReducedMotion();
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || reducedMotion) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -123,15 +92,15 @@ function InfoCard({ item, dept, index }: InfoCardProps) {
     mouseY.set(y);
   };
 
-  const rotateX = useTransform(mouseY, [-0.5, 0.5], [8, -8]);
-  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], reducedMotion ? [0, 0] : [8, -8]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], reducedMotion ? [0, 0] : [-8, 8]);
 
   return (
     <motion.div
       ref={cardRef}
       initial={{ opacity: 0, y: 60 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+      transition={{ duration: reducedMotion ? 0 : 0.6, delay: reducedMotion ? 0 : index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
       style={{ perspective: "1000px" }}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
@@ -214,6 +183,7 @@ function InfoCard({ item, dept, index }: InfoCardProps) {
 
 export default function ChoBenhNhanPage() {
   const location = useLocation();
+  const reducedMotion = useReducedMotion();
   const [activeTab, setActiveTab] = useState("chi-phi-dia-diem");
   const [isRecordRequestOpen, setIsRecordRequestOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
@@ -225,9 +195,14 @@ export default function ChoBenhNhanPage() {
   const [scrollToPortal, setScrollToPortal] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const portalRef = useRef<HTMLDivElement>(null);
+  const tabNavRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+
+  const scrollToTabNav = () => {
+    tabNavRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   useEffect(() => {
     if (location.hash) {
@@ -313,7 +288,7 @@ export default function ChoBenhNhanPage() {
 
         <motion.div
           className="relative z-10 max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10 py-20 w-full"
-          style={{ opacity: heroOpacity, scale: heroScale }}
+          style={{ opacity: reducedMotion ? 1 : heroOpacity, scale: reducedMotion ? 1 : heroScale }}
         >
           <div className="text-center">
             <motion.div
@@ -358,14 +333,24 @@ export default function ChoBenhNhanPage() {
           </div>
         </motion.div>
 
-        <motion.div className="absolute bottom-8 left-1/2 -translate-x-1/2" animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+        <motion.div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 cursor-pointer"
+          style={{ transform: "translateX(-50%)" }}
+          onClick={scrollToTabNav}
+          animate={reducedMotion ? {} : { y: [0, 10, 0] }}
+          transition={reducedMotion ? {} : { duration: 2, repeat: Infinity }}
+        >
           <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center pt-2">
-            <motion.div className="w-1.5 h-3 bg-white rounded-full" animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }} transition={{ duration: 2, repeat: Infinity }} />
+            <motion.div
+              className="w-1.5 h-3 bg-white rounded-full"
+              animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
           </div>
         </motion.div>
       </section>
 
-      <section className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-green-800/5 shadow-sm">
+      <section ref={tabNavRef} className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-green-800/5 shadow-sm">
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <div className="flex overflow-x-auto scrollbar-hide py-4 gap-2">
             {SECTIONS.map(sec => {

@@ -2,8 +2,21 @@ import { useState, useEffect, useRef, MouseEvent } from "react";
 import { useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
-import { Info, Users, Building2, Award, Heart, ArrowRight, Check, Activity, type LucideIcon } from "lucide-react";
+import { Info, Users, Building2, Award, Heart, ArrowRight, Check, Activity, ChevronDown, type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import Organization from "../components/public/Organization";
+
+function useReducedMotion() {
+  const [reducedMotion, setReducedMotion] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReducedMotion(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return reducedMotion;
+}
 
 const stats = [
   { value: 15, label: "Năm kinh nghiệm", suffix: "+" },
@@ -16,9 +29,14 @@ function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: strin
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     if (!isInView) return;
+    if (reducedMotion) {
+      setCount(value);
+      return;
+    }
     let start = 0;
     const duration = 2000;
     const increment = value / (duration / 16);
@@ -32,21 +50,22 @@ function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: strin
       }
     }, 16);
     return () => clearInterval(timer);
-  }, [isInView, value]);
+  }, [isInView, value, reducedMotion]);
 
   return <div ref={ref}>{count}{suffix}</div>;
 }
 
 function FloatingShape({ className, delay = 0 }: { className: string; delay?: number }) {
+  const reducedMotion = useReducedMotion();
   return (
     <motion.div
       className={`absolute rounded-full opacity-20 ${className}`}
-      animate={{
+      animate={reducedMotion ? {} : {
         y: [0, -30, 0],
         x: [0, 15, 0],
         scale: [1, 1.1, 1]
       }}
-      transition={{
+      transition={reducedMotion ? {} : {
         duration: 8,
         delay,
         repeat: Infinity,
@@ -133,9 +152,10 @@ function FeatureCard({ item, index, color }: FeatureCardProps) {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const [isHovered, setIsHovered] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || reducedMotion) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -151,15 +171,15 @@ function FeatureCard({ item, index, color }: FeatureCardProps) {
 
   const colors = colorMap[color] || colorMap.green;
 
-  const rotateX = useTransform(mouseY, [-0.5, 0.5], [8, -8]);
-  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], reducedMotion ? [0, 0] : [8, -8]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], reducedMotion ? [0, 0] : [-8, 8]);
 
   return (
     <motion.div
       ref={cardRef}
       initial={{ opacity: 0, y: 60 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+      transition={{ duration: reducedMotion ? 0 : 0.6, delay: reducedMotion ? 0 : index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
       style={{ perspective: "1000px" }}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
@@ -168,7 +188,7 @@ function FeatureCard({ item, index, color }: FeatureCardProps) {
     >
       <motion.div
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        animate={isHovered ? { scale: 1.02 } : { scale: 1 }}
+        animate={isHovered && !reducedMotion ? { scale: 1.02 } : { scale: 1 }}
         className="relative bg-white rounded-3xl overflow-hidden shadow-lg border border-green-800/5 transition-all duration-300 h-full flex flex-col"
       >
         {/* Image container with reveal animation */}
@@ -176,15 +196,15 @@ function FeatureCard({ item, index, color }: FeatureCardProps) {
           className="relative h-48 overflow-hidden"
           initial={{ clipPath: "inset(100% 0 0 0)" }}
           animate={isInView ? { clipPath: "inset(0% 0 0 0)" } : {}}
-          transition={{ duration: 0.8, delay: index * 0.1 + 0.2 }}
+          transition={{ duration: reducedMotion ? 0 : 0.8, delay: reducedMotion ? 0 : index * 0.1 + 0.2 }}
         >
           <motion.img
             src={item.image}
             alt={item.title}
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
-            animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
-            transition={{ duration: 0.6 }}
+            animate={isInView ? { scale: reducedMotion ? 1 : [1.2, 1] } : {}}
+            transition={{ duration: reducedMotion ? 0 : 1.2, delay: reducedMotion ? 0 : index * 0.1 + 0.2 }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
@@ -192,7 +212,7 @@ function FeatureCard({ item, index, color }: FeatureCardProps) {
           <motion.div
             initial={{ opacity: 0, scale: 0.5 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ delay: index * 0.1 + 0.4 }}
+            transition={{ delay: reducedMotion ? 0 : index * 0.1 + 0.4 }}
             className={`absolute top-4 left-4 ${colors.bg} ${colors.text} w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg backdrop-blur-sm`}
           >
             <item.icon className="w-6 h-6" />
@@ -205,7 +225,7 @@ function FeatureCard({ item, index, color }: FeatureCardProps) {
             className="font-display font-bold text-lg text-green-dark mb-4"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: index * 0.1 + 0.3 }}
+            transition={{ delay: reducedMotion ? 0 : index * 0.1 + 0.3 }}
           >
             {item.title}
           </motion.h3>
@@ -217,7 +237,7 @@ function FeatureCard({ item, index, color }: FeatureCardProps) {
                 key={i}
                 initial={{ opacity: 0, x: -20 }}
                 animate={isInView ? { opacity: 1, x: 0 } : {}}
-                transition={{ delay: index * 0.1 + 0.4 + i * 0.08 }}
+                transition={{ delay: reducedMotion ? 0 : index * 0.1 + 0.4 + i * 0.08 }}
                 className="flex items-center gap-2"
               >
                 <div className="w-5 h-5 rounded-full bg-brand-green/10 flex items-center justify-center shrink-0">
@@ -244,9 +264,10 @@ function ProcessCard({ item, index }: ProcessCardProps) {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const [isHovered, setIsHovered] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || reducedMotion) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -254,15 +275,15 @@ function ProcessCard({ item, index }: ProcessCardProps) {
     mouseY.set(y);
   };
 
-  const rotateX = useTransform(mouseY, [-0.5, 0.5], [8, -8]);
-  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], reducedMotion ? [0, 0] : [8, -8]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], reducedMotion ? [0, 0] : [-8, 8]);
 
   return (
     <motion.div
       ref={cardRef}
       initial={{ opacity: 0, y: 60 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+      transition={{ duration: reducedMotion ? 0 : 0.6, delay: reducedMotion ? 0 : index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
       style={{ perspective: "1000px" }}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
@@ -271,7 +292,7 @@ function ProcessCard({ item, index }: ProcessCardProps) {
     >
       <motion.div
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        animate={isHovered ? { scale: 1.02 } : { scale: 1 }}
+        animate={isHovered && !reducedMotion ? { scale: 1.02 } : { scale: 1 }}
         className="relative bg-white rounded-3xl overflow-hidden shadow-lg border border-green-800/5 transition-all duration-300 h-full flex flex-col"
       >
         <div className="relative h-48 overflow-hidden">
@@ -280,8 +301,8 @@ function ProcessCard({ item, index }: ProcessCardProps) {
             alt={item.title}
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
-            animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
-            transition={{ duration: 0.6 }}
+            animate={isInView ? { scale: reducedMotion ? 1 : [1.2, 1] } : {}}
+            transition={{ duration: reducedMotion ? 0 : 1.2, delay: reducedMotion ? 0 : index * 0.1 + 0.2 }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
@@ -289,7 +310,7 @@ function ProcessCard({ item, index }: ProcessCardProps) {
           <motion.div
             initial={{ opacity: 0, scale: 0.5 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ delay: index * 0.1 + 0.3 }}
+            transition={{ delay: reducedMotion ? 0 : index * 0.1 + 0.3 }}
             className="absolute top-4 left-4 w-14 h-14 bg-gradient-to-br from-brand-green to-emerald-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold shadow-lg"
           >
             {item.num}
@@ -300,7 +321,7 @@ function ProcessCard({ item, index }: ProcessCardProps) {
           <motion.h3
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: index * 0.1 + 0.4 }}
+            transition={{ delay: reducedMotion ? 0 : index * 0.1 + 0.4 }}
             className="font-display font-bold text-lg text-green-dark mb-2"
           >
             {item.title}
@@ -308,7 +329,7 @@ function ProcessCard({ item, index }: ProcessCardProps) {
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: index * 0.1 + 0.5 }}
+            transition={{ delay: reducedMotion ? 0 : index * 0.1 + 0.5 }}
             className="text-ink/75 text-sm"
           >
             {item.desc}
@@ -321,13 +342,20 @@ function ProcessCard({ item, index }: ProcessCardProps) {
 
 export default function GioiThieuPage() {
   const location = useLocation();
+  const [isExpanded, setIsExpanded] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"]
   });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+
+  const scrollToContent = () => {
+    contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   useEffect(() => {
     if (location.hash) {
@@ -367,7 +395,7 @@ export default function GioiThieuPage() {
 
         <motion.div
           className="relative max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10 py-20 w-full"
-          style={{ opacity: heroOpacity, scale: heroScale }}
+          style={{ opacity: reducedMotion ? 1 : heroOpacity, scale: reducedMotion ? 1 : heroScale }}
         >
           <div className="max-w-3xl mx-auto text-center">
             {/* Badge */}
@@ -443,157 +471,180 @@ export default function GioiThieuPage() {
 
         {/* Scroll indicator */}
         <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 cursor-pointer"
+          style={{ transform: "translateX(-50%)" }}
+          onClick={scrollToContent}
+          animate={reducedMotion ? {} : { y: [0, 10, 0] }}
+          transition={reducedMotion ? {} : { duration: 2, repeat: Infinity }}
         >
           <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center pt-2">
             <motion.div
               className="w-1.5 h-3 bg-white rounded-full"
-              animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              animate={reducedMotion ? {} : { y: [0, 12, 0], opacity: [1, 0.3, 1] }}
+              transition={reducedMotion ? {} : { duration: 2, repeat: Infinity }}
             />
           </div>
         </motion.div>
       </section>
 
       {/* Về Chúng Tôi Section */}
-      <section id="ve-chung-toi" className="py-24">
+      <section ref={contentRef} id="ve-chung-toi" className="py-24">
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-16"
+            className="text-center mb-12"
           >
-            <h2 className="text-4xl font-display font-bold text-green-dark mb-4">Về chúng tôi</h2>
-            <div className="w-20 h-1 bg-brand-green mx-auto rounded-full" />
+            <motion.h2
+              className="text-4xl font-display font-bold text-green-dark mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              Về chúng tôi
+            </motion.h2>
+            <motion.div
+              className="w-20 h-1 bg-brand-green mx-auto rounded-full"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            />
           </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Left - Why Choose */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="bg-white rounded-3xl p-8 shadow-lg border border-green-800/5"
-            >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-peach/20 rounded-2xl flex items-center justify-center">
-                  <Award className="w-6 h-6 text-peach" />
+          {/* Summary Cards - Always Visible */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {[
+              { icon: Award, label: "Kinh nghiệm", value: "15+ năm", color: "bg-peach/20 text-peach" },
+              { icon: Users, label: "Bác sĩ", value: "50+ chuyên khoa", color: "bg-brand-green/10 text-brand-green" },
+              { icon: Heart, label: "Giường bệnh", value: "200+ giường", color: "bg-blue-50 text-blue-600" }
+            ].map((item, idx) => (
+              <motion.div
+                key={item.label}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + idx * 0.1 }}
+                className="bg-white rounded-2xl p-6 shadow-lg border border-green-800/5 text-center"
+              >
+                <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                  <item.icon className="w-7 h-7" />
                 </div>
-                <h3 className="font-display font-bold text-xl text-green-dark">Tại sao lại chọn Bệnh viện?</h3>
-              </div>
-
-              <ul className="space-y-4 mb-6">
-                {whyChooseItems.map((item, idx) => (
-                  <motion.li
-                    key={idx}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="flex items-start gap-3"
-                  >
-                    <div className="w-6 h-6 rounded-full bg-brand-green/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <Check className="w-3.5 h-3.5 text-brand-green" />
-                    </div>
-                    <span className="text-gray-700">{item}</span>
-                  </motion.li>
-                ))}
-              </ul>
-
-              <div className="relative rounded-2xl overflow-hidden">
-                <img
-                  src="/images/pages/khamtongquat-1.jpeg"
-                  alt="Bệnh viện hiện đại"
-                  className="w-full h-48 object-cover"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-            </motion.div>
-
-            {/* Right - Partners & Directors */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="space-y-6"
-            >
-              {/* Partners */}
-              <div className="bg-white rounded-3xl p-8 shadow-lg border border-green-800/5">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-brand-green/10 rounded-2xl flex items-center justify-center">
-                    <Users className="w-6 h-6 text-brand-green" />
-                  </div>
-                  <h3 className="font-display font-bold text-xl text-green-dark">Đối tác của Bệnh viện</h3>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  {partners.map((partner, idx) => (
-                    <motion.div
-                      key={partner}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="bg-mint/50 rounded-xl p-3 text-center hover:bg-mint transition-colors"
-                    >
-                      <span className="font-semibold text-green-dark text-sm">{partner}</span>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Directors */}
-              <div className="bg-white rounded-3xl p-8 shadow-lg border border-green-800/5">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
-                    <Users className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="font-display font-bold text-xl text-green-dark">Ban Giám Đốc</h3>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  {directors.map((leader, idx) => (
-                    <motion.div
-                      key={leader.name}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="text-center"
-                    >
-                      <div className="relative inline-block">
-                        <img
-                          src={leader.img}
-                          alt={leader.name}
-                          className="w-20 h-20 rounded-full mx-auto mb-2 object-cover border-2 border-brand-green/20"
-                          referrerPolicy="no-referrer"
-                        />
-                      </div>
-                      <p className="font-semibold text-ink text-sm">{leader.name}</p>
-                      <p className="text-xs text-gray-500">{leader.role}</p>
-                    </motion.div>
-                  ))}
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-green-800/5">
-                  <Link
-                    to="/so-do-to-chuc"
-                    className="inline-flex items-center gap-2 text-brand-green font-semibold hover:text-brand-green/80 transition-colors"
-                  >
-                    <Info size={18} />
-                    Xem sơ đồ tổ chức đầy đủ
-                    <ArrowRight size={16} />
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
+                <h3 className="font-display font-bold text-lg text-green-dark mb-1">{item.value}</h3>
+                <p className="text-gray-500 text-sm">{item.label}</p>
+              </motion.div>
+            ))}
           </div>
+
+          {/* Expandable Details */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="bg-mint/30 rounded-3xl p-8"
+          >
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="w-full flex items-center justify-between mb-6 cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <Info className="w-5 h-5 text-brand-green" />
+                <span className="font-display font-bold text-lg text-green-dark">Thông tin chi tiết</span>
+              </div>
+              <motion.div
+                animate={{ rotate: isExpanded ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ChevronDown className="w-5 h-5 text-green-dark" />
+              </motion.div>
+            </button>
+
+            <AnimatePresence mode="wait">
+              {isExpanded && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0, height: "auto" }}
+                  exit={{ opacity: 0, y: -20, height: 0 }}
+                  transition={{ duration: reducedMotion ? 0 : 0.4 }}
+                  className="overflow-hidden"
+                >
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Why Choose */}
+                    <div className="bg-white rounded-2xl p-6">
+                      <h4 className="font-display font-bold text-lg text-green-dark mb-4">Tại sao chọn Bệnh viện?</h4>
+                      <ul className="space-y-3">
+                        {whyChooseItems.map((item, idx) => (
+                          <motion.li
+                            key={idx}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className="flex items-start gap-3"
+                          >
+                            <div className="w-5 h-5 rounded-full bg-brand-green/10 flex items-center justify-center shrink-0 mt-0.5">
+                              <Check className="w-3 h-3 text-brand-green" />
+                            </div>
+                            <span className="text-gray-700 text-sm">{item}</span>
+                          </motion.li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Partners */}
+                    <div className="bg-white rounded-2xl p-6">
+                      <h4 className="font-display font-bold text-lg text-green-dark mb-4">Đối tác Bảo hiểm</h4>
+                      <div className="flex flex-wrap gap-3">
+                        {partners.map((partner, idx) => (
+                          <motion.span
+                            key={partner}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className="bg-mint/50 px-4 py-2 rounded-full text-green-dark font-semibold text-sm"
+                          >
+                            {partner}
+                          </motion.span>
+                        ))}
+                      </div>
+
+                      <div className="mt-6 pt-6 border-t border-green-800/5">
+                        <h4 className="font-display font-bold text-lg text-green-dark mb-4">Ban Giám Đốc</h4>
+                        <div className="flex justify-center gap-6">
+                          {directors.map((leader, idx) => (
+                            <motion.div
+                              key={leader.name}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3 + idx * 0.1 }}
+                              className="text-center"
+                            >
+                              <img
+                                src={leader.img}
+                                alt={leader.name}
+                                className="w-16 h-16 rounded-full mx-auto mb-2 object-cover border-2 border-brand-green/20"
+                                referrerPolicy="no-referrer"
+                              />
+                              <p className="font-semibold text-ink text-xs">{leader.name}</p>
+                              <p className="text-gray-400 text-[10px]">{leader.role}</p>
+                            </motion.div>
+                          ))}
+                        </div>
+                        <div className="mt-4 text-center">
+                          <Link
+                            to="/so-do-to-chuc"
+                            className="inline-flex items-center gap-2 text-brand-green font-semibold text-sm hover:text-brand-green/80 transition-colors"
+                          >
+                            <Info size={14} />
+                            Xem sơ đồ tổ chức đầy đủ
+                            <ArrowRight size={14} />
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         </div>
       </section>
 
@@ -602,8 +653,7 @@ export default function GioiThieuPage() {
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
@@ -628,8 +678,7 @@ export default function GioiThieuPage() {
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
@@ -647,13 +696,12 @@ export default function GioiThieuPage() {
         </div>
       </section>
 
-      {/* WhyChooseUs & Organization */}
+      {/* WhyChooseUs */}
       <section className="bg-mint/30 py-24">
-        <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10 space-y-24">
+        <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
             <div className="text-center mb-12">
@@ -702,8 +750,7 @@ export default function GioiThieuPage() {
                   <motion.div
                     key={idx}
                     initial={{ opacity: 0, y: 40 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1, duration: 0.5 }}
                     whileHover={{ y: -6, scale: 1.01 }}
                     className="group relative overflow-hidden rounded-3xl shadow-lg cursor-pointer"
@@ -750,24 +797,36 @@ export default function GioiThieuPage() {
               })}
             </div>
           </motion.div>
+        </div>
+      </section>
 
+      {/* Sơ đồ tổ chức Section */}
+      <section id="so-do-to-chuc" className="py-24">
+        <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="bg-white rounded-3xl p-8 shadow-lg border border-green-800/5"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            <h3 className="text-2xl font-display font-bold text-green-dark mb-6 text-center">Sơ đồ tổ chức</h3>
-            <div className="flex justify-center">
-              <Link
-                to="/so-do-to-chuc"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-brand-green to-emerald-600 text-white font-semibold rounded-full hover:shadow-lg hover:scale-105 transition-all"
+            <div className="text-center mb-12">
+              <motion.h2
+                className="text-4xl font-display font-bold text-green-dark mb-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
               >
-                <Building2 size={18} />
-                Xem sơ đồ tổ chức
-                <ArrowRight size={16} />
-              </Link>
+                Sơ đồ tổ chức
+              </motion.h2>
+              <motion.div
+                className="w-20 h-1 bg-brand-green mx-auto rounded-full"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+              />
+            </div>
+
+            <div className="bg-mint/30 rounded-3xl p-8">
+              <Organization />
             </div>
           </motion.div>
         </div>

@@ -312,10 +312,7 @@ function SpecialtyCard({
       animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
       transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
       style={{ perspective: "1000px" }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      onClick={onClick}
-      className="group cursor-pointer h-full"
+      className="h-full group"
     >
       <motion.div
         style={{
@@ -325,7 +322,11 @@ function SpecialtyCard({
         }}
         animate={isInView ? { scale: 1 } : {}}
         whileHover={{ scale: 1.03 }}
-        className="relative bg-white rounded-3xl overflow-hidden shadow-lg border border-green-800/5 transition-all duration-300 hover:shadow-2xl hover:shadow-brand-green/20 hover:border-brand-green/30 h-full"
+        whileTap={{ scale: 0.98 }}
+        onClick={onClick}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className="relative bg-white rounded-3xl overflow-hidden shadow-lg border border-green-800/5 transition-all duration-300 hover:shadow-2xl hover:shadow-brand-green/20 hover:border-brand-green/30 h-full cursor-pointer"
       >
         {/* Gradient overlay on hover */}
         <motion.div

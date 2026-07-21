@@ -77,7 +77,7 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
     "Tại sao lại chọn Bệnh viện": "/gioi-thieu#ve-chung-toi",
     "Đối tác của Bệnh viện": "/gioi-thieu#ve-chung-toi",
     "Ban Giám Đốc": "/so-do-to-chuc",
-    "Sơ đồ tổ chức": "/so-do-to-chuc",
+    "Sơ đồ tổ chức": "/gioi-thieu#so-do-to-chuc",
     "Cơ sở – Trang thiết bị": "/gioi-thieu#co-so-vat-chat",
     "Hình ảnh bệnh viện": "/gioi-thieu#co-so-vat-chat",
     "Tiện nghi – sang trọng": "/gioi-thieu#co-so-vat-chat",

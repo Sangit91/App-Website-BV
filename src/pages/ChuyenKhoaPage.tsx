@@ -3,6 +3,9 @@ import { useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
 import { Activity, Scissors, Stethoscope, Baby, Microscope, ArrowRight, ChevronRight } from "lucide-react";
+import { useReducedMotion } from "../hooks/useReducedMotion";
+import { AnimatedCounter } from "../hooks/AnimatedCounter";
+import { FloatingShape } from "../hooks/FloatingShape";
 
 const DEPARTMENTS = [
   { key: "ngoai-cap-cuu", title: "Ngoại & Cấp cứu", icon: Scissors, color: "from-red-500 to-rose-600", bgLight: "bg-red-50", textColor: "text-red-600" },
@@ -61,50 +64,6 @@ const stats = [
   { value: 5, label: "Phòng mổ" }
 ];
 
-function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-  useEffect(() => {
-    if (!isInView) return;
-    let start = 0;
-    const duration = 2000;
-    const increment = value / (duration / 16);
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= value) {
-        setCount(value);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(start));
-      }
-    }, 16);
-    return () => clearInterval(timer);
-  }, [isInView, value]);
-
-  return <div ref={ref}>{count}{suffix}</div>;
-}
-
-function FloatingShape({ className, delay = 0 }: { className: string; delay?: number }) {
-  return (
-    <motion.div
-      className={`absolute rounded-full opacity-20 ${className}`}
-      animate={{
-        y: [0, -30, 0],
-        x: [0, 15, 0],
-        scale: [1, 1.1, 1]
-      }}
-      transition={{
-        duration: 8,
-        delay,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }}
-    />
-  );
-}
-
 interface ServiceCardProps {
   key?: string;
   item: {
@@ -122,9 +81,10 @@ function ServiceCard({ item, dept, index }: ServiceCardProps) {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const [isHovered, setIsHovered] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || reducedMotion) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -132,15 +92,15 @@ function ServiceCard({ item, dept, index }: ServiceCardProps) {
     mouseY.set(y);
   };
 
-  const rotateX = useTransform(mouseY, [-0.5, 0.5], [8, -8]);
-  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], reducedMotion ? [0, 0] : [8, -8]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], reducedMotion ? [0, 0] : [-8, 8]);
 
   return (
     <motion.div
       ref={cardRef}
       initial={{ opacity: 0, y: 60 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+      transition={{ duration: reducedMotion ? 0 : 0.6, delay: reducedMotion ? 0 : index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
       style={{ perspective: "1000px" }}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
@@ -149,7 +109,7 @@ function ServiceCard({ item, dept, index }: ServiceCardProps) {
     >
       <motion.div
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        animate={isHovered ? { scale: 1.02 } : { scale: 1 }}
+        animate={isHovered && !reducedMotion ? { scale: 1.02 } : { scale: 1 }}
         className="relative bg-white rounded-3xl overflow-hidden shadow-lg border border-green-800/5 transition-all duration-300"
       >
         {/* Glow effect */}
@@ -178,8 +138,8 @@ function ServiceCard({ item, dept, index }: ServiceCardProps) {
             alt={item.name}
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
-            animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
-            transition={{ duration: 0.6 }}
+            animate={isInView ? { scale: reducedMotion ? 1 : [1.2, 1] } : { scale: 1 }}
+            transition={{ duration: reducedMotion ? 0 : 1.2, delay: reducedMotion ? 0 : index * 0.1 + 0.2 }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
@@ -187,7 +147,7 @@ function ServiceCard({ item, dept, index }: ServiceCardProps) {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 + 0.3 }}
+            transition={{ delay: reducedMotion ? 0 : index * 0.1 + 0.3 }}
             className={`absolute top-4 left-4 ${dept.bgLight} ${dept.textColor} text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm`}
           >
             {dept.title}
@@ -234,12 +194,18 @@ export default function ChuyenKhoaPage() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("ngoai-cap-cuu");
   const heroRef = useRef<HTMLDivElement>(null);
+  const tabNavRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"]
   });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+
+  const scrollToTabNav = () => {
+    tabNavRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   useEffect(() => {
     if (location.hash) {
@@ -276,7 +242,7 @@ export default function ChuyenKhoaPage() {
 
         <motion.div
           className="relative z-10 max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10 py-20 w-full"
-          style={{ opacity: heroOpacity, scale: heroScale }}
+          style={{ opacity: reducedMotion ? 1 : heroOpacity, scale: reducedMotion ? 1 : heroScale }}
         >
           <div className="text-center">
             {/* Animated badge */}
@@ -352,22 +318,24 @@ export default function ChuyenKhoaPage() {
 
         {/* Scroll indicator */}
         <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 cursor-pointer"
+          style={{ transform: "translateX(-50%)" }}
+          onClick={scrollToTabNav}
+          animate={reducedMotion ? {} : { y: [0, 10, 0] }}
+          transition={reducedMotion ? {} : { duration: 2, repeat: Infinity }}
         >
           <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center pt-2">
             <motion.div
               className="w-1.5 h-3 bg-white rounded-full"
-              animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              animate={reducedMotion ? {} : { y: [0, 12, 0], opacity: [1, 0.3, 1] }}
+              transition={reducedMotion ? {} : { duration: 2, repeat: Infinity }}
             />
           </div>
         </motion.div>
       </section>
 
       {/* Tab Navigation */}
-      <section className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-green-800/5 shadow-sm">
+      <section ref={tabNavRef} className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-green-800/5 shadow-sm">
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <div className="flex overflow-x-auto scrollbar-hide py-4 gap-2">
             {DEPARTMENTS.map(dept => {
@@ -423,16 +391,16 @@ export default function ChuyenKhoaPage() {
                     className="relative h-80 lg:h-96 overflow-hidden rounded-3xl"
                     initial={{ clipPath: "inset(100% 0 0 0)" }}
                     animate={{ clipPath: "inset(0% 0 0 0)" }}
-                    transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    transition={{ duration: reducedMotion ? 0 : 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
                   >
                     <motion.img
                       src={featuredItem.img}
                       alt={featuredItem.name}
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
-                      initial={{ scale: 1.2 }}
-                      animate={{ scale: 1 }}
-                      transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      initial={{ scale: reducedMotion ? 1 : 1.2 }}
+                      animate={{ scale: reducedMotion ? 1 : 1 }}
+                      transition={{ duration: reducedMotion ? 0 : 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-8">
@@ -440,7 +408,7 @@ export default function ChuyenKhoaPage() {
                         className={`inline-flex ${currentDept.bgLight} ${currentDept.textColor} text-xs font-bold px-4 py-1.5 rounded-full mb-4`}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.5 }}
+                        transition={{ delay: reducedMotion ? 0 : 0.5 }}
                       >
                         {currentDept.title}
                       </motion.span>
@@ -448,7 +416,7 @@ export default function ChuyenKhoaPage() {
                         className="text-3xl font-display font-bold text-white mb-3"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6 }}
+                        transition={{ delay: reducedMotion ? 0 : 0.6 }}
                       >
                         {featuredItem.name}
                       </motion.h2>
@@ -456,7 +424,7 @@ export default function ChuyenKhoaPage() {
                         className="text-white/80 text-sm"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.7 }}
+                        transition={{ delay: reducedMotion ? 0 : 0.7 }}
                       >
                         {featuredItem.desc}
                       </motion.p>

@@ -1161,9 +1161,65 @@ Biến section "Chuyên khoa nổi bật" từ đơn điệu thành hiện đạ
 
 ---
 
+## PHASE 36
+
+### Fix SpecialtyCard Icons & Enhance Visuals (Hoàn thành 2026-07-20)
+
+**Files affected:** 1 file
+
+**Vấn đề:**
+- Icon Sparkles cho sản phụ khoa không đẹp (thiếu fill)
+- Cards đơn điệu
+
+**Đã thực hiện:**
+
+**1. Fix sản phụ khoa icon:**
+- Thay Sparkles bằng Baby icon
+- Icon phù hợp hơn với chuyên khoa
+
+**2. Enhanced Badge Configs:**
+- Gradient backgrounds thay vì solid colors
+- Thêm `glow` shadow property
+- Màu sắc đa dạng hơn:
+  - obstetrics: pink gradient
+  - pediatrics: amber gradient
+  - emergency: red gradient
+  - diagnostics: blue gradient
+
+**3. Enhanced Icon Container:**
+- Inner glow effect on hover
+- Glow shadow từ badge config
+- Relative overflow hidden for glow effect
+
+**4. Enhanced Title:**
+- Vertical indicator bar on hover (opacity 0 → 1)
+
+**5. Enhanced Detail Footer:**
+- Gradient background matching department color
+- Better text contrast (green-dark instead of ink)
+- Arrow button với white background thay vì transparent
+
+**6. Toggle Button Animation:**
+- Tạo shared ToggleButton component (`src/hooks/useToggleButton.tsx`)
+- Spring animation: stiffness 100, damping 15
+- Text animation: fade + slide (opacity 0→1, y -10→0)
+- Tôn trọng prefers-reduced-motion
+- Thêm active:scale-95 cho press feedback
+
+**7. Specialty Detail Modal:**
+- Tạo SpecialtyModal.tsx cho chi tiết từng chuyên khoa
+- Nội dung: services list, highlights, expert team, working hours, hotline
+- 8 specialty content pre-defined (tim-mach, san-khoa, nhi-khoa, cap-cuu, ngoai-tong-hop, chan-doan-hinh-anh, tai-mui-hong, rang-ham-mat)
+- Animation entrance cho từng phần
+- Action buttons: Close + Đặt lịch khám
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
 ## TECHNICAL DEBT
 
-### prefers-reduced-motion Support (Chưa hoàn thành)
+### prefers-reduced-motion Support (Hoàn thành 2026-07-21)
 
 **Mô tả:**
 Theo đặc tả v2.7 section 19.1.6, tất cả animations phải tôn trọng `prefers-reduced-motion`. Khi user bật chế độ giảm chuyển động trong OS/browser, animations phải:
@@ -1171,15 +1227,244 @@ Theo đặc tả v2.7 section 19.1.6, tất cả animations phải tôn trọng 
 - Chỉ giữ fade transitions tối thiểu
 - Giữ nguyên nội dung và chức năng
 
-**Files cần cập nhật:**
-- Tạo useReducedMotion hook
-- FloatingShape components
-- AnimatedCounter components
-- Hero parallax effects
-- 3D tilt effects trên cards
-- AnimatePresence transitions
+**Đã thực hiện (2026-07-21) - GioiThieuPage:**
 
-**Ưu tiên:** Thấp - enhancement, không phải bug
+1. **Tạo useReducedMotion hook**
+   - Custom hook sử dụng window.matchMedia("(prefers-reduced-motion: reduce)")
+   - Returns boolean: true = reduce motion, false = normal
+
+2. **FloatingShape components**
+   - Khi reducedMotion: animate={} và transition={} → không animation
+
+3. **AnimatedCounter components**
+   - Khi reducedMotion: set count = value ngay lập tức, không animate
+
+4. **Hero parallax effects**
+   - Khi reducedMotion: opacity=1, scale=1 (không parallax)
+
+5. **3D tilt effects trên cards (FeatureCard, ProcessCard)**
+   - Khi reducedMotion: rotateX/Y = [0,0], không scale 1.02 hover
+   - Ken Burns effect: scale từ [1.2, 1] → 1 (không zoom)
+
+6. **AnimatePresence transitions**
+   - Thêm mode="wait"
+   - Exit animation: opacity 0, y -20
+   - Khi reducedMotion: duration = 0
+
+7. **Scroll indicator bouncing**
+   - Khi reducedMotion: animate={}, transition={} → không bounce
+
+**Files affected:**
+- src/pages/GioiThieuPage.tsx
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
+## PHASE 37
+
+### GioiThieuPage - Animation Review & Fix (Hoàn thành 2026-07-21)
+
+**Files affected:** 1 file
+
+**Mục tiêu:**
+Review animation theo đặc tả v2.7 section 19.1 (Modern Page Design Pattern) và sửa các thiếu sót.
+
+**Đã review và sửa:**
+
+**1. Hero Section** - Đã đúng spec:
+- ✅ Gradient 3 tông (green-dark → green-800 → brand-green)
+- ✅ 4 FloatingShape (8s, easeInOut)
+- ✅ Text chia 2 phần bay lên + fade (delay 0.3s, 0.4s)
+- ✅ AnimatedCounter (2 giây, useInView once: true)
+- ✅ Scroll indicator bouncing
+- ✅ Parallax opacity 1→0, scale 1→1.1
+
+**2. FeatureCard (3D Tilt + Ken Burns)** - Đã sửa:
+- ✅ Clip-path reveal 0.8s
+- ✅ **Thêm Ken Burns effect**: scale [1.2, 1] trong 1.2s khi vào view
+- ✅ 3D tilt ±8°, perspective 1000px
+- ✅ Hover scale 1.02
+- ✅ **Thêm prefers-reduced-motion support**
+
+**3. ProcessCard (3D Tilt + Ken Burns)** - Đã sửa:
+- ✅ 3D tilt ±8°, perspective 1000px
+- ✅ Hover scale 1.02
+- ✅ **Thêm Ken Burns effect**: scale [1.2, 1] trong 1.2s khi vào view
+- ✅ **Thêm prefers-reduced-motion support**
+
+**4. AnimatePresence (Tab Transitions)** - Đã sửa:
+- ✅ Thêm `mode="wait"`
+- ✅ Exit: opacity 0, y -20
+- ✅ Enter: opacity 1, y 0
+- ✅ Duration: 0.4s
+- ✅ **Thêm prefers-reduced-motion support**
+
+**5. prefers-reduced-motion** - Hoàn thành:
+- ✅ Tạo useReducedMotion hook
+- ✅ FloatingShape: disable animation
+- ✅ AnimatedCounter: skip animation
+- ✅ Hero parallax: disable
+- ✅ 3D tilt: disable (rotateX/Y = [0,0])
+- ✅ Ken Burns: disable (scale = 1)
+- ✅ Scroll indicator: disable bounce
+- ✅ AnimatePresence: duration = 0
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
+## PHASE 38
+
+### SoDoToChucPage - Expandable Organization Chart (Hoàn thành 2026-07-21)
+
+**Files affected:** 1 file
+
+**Mục tiêu:**
+Biến "Sơ đồ tổ chức chi tiết" thành thanh expandable thay vì hiển thị inline.
+
+**Đã thực hiện:**
+1. Thêm `useReducedMotion` hook cho animation consistency
+2. Thêm state `isOrgExpanded` để toggle
+3. Thêm expandable bar với gradient từ green-dark → green-800
+4. Icon Building2 + tiêu đề + mô tả
+5. ChevronDown icon với rotate animation khi expand
+6. AnimatePresence với height transition + opacity
+7. Organization component được wrap trong bg-white rounded-2xl khi expand
+
+**UX Improvement:**
+- Page không bị kéo dài bởi sơ đồ tổ chức chi tiết
+- User có thể click để xem khi cần
+- Smooth expand/collapse animation
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
+## PHASE 39
+
+### SoDoToChucPage - Neon Border Organization Chart (Hoàn thành 2026-07-21)
+
+**Files affected:** 1 file
+
+**Mục tiêu:**
+Redesign expandable bar với phong cách Neon Border - animated gradient border, glow effect, hover interactions.
+
+**Đã thực hiện - Neon Border Design:**
+
+1. **Animated Gradient Border:**
+   - Outer glow effect với gradient brand-green → emerald-300 → brand-green
+   - `blur-sm` + `animate-pulse` cho hiệu ứng neon breathing
+   - Opacity tăng khi hover (0.5 → 1)
+
+2. **Card Structure:**
+   - Triple layered: outer glow → inner glow → card background
+   - Border-radius 22px cho outer, 20px cho inner (tạo border effect)
+   - Background gradient from-green-dark via-green-900 to-green-dark
+
+3. **Icon Container:**
+   - Scale 1.1 on hover
+   - Glow shadow behind icon
+   - Rotate animation khi hover (-10° → 10° → 0°)
+   - Gradient background from-brand-green to-emerald-600
+
+4. **Status Badge (desktop):**
+   - Animated dot indicator với pulse animation khi expanded
+   - Text thay đổi: "Nhấn để xem" ↔ "Đang mở"
+
+5. **Chevron Animation:**
+   - Spring physics rotation (stiffness: 200)
+   - Scale 1.1 on hover
+   - Backdrop blur + border
+
+6. **Expanded Content:**
+   - Decorative gradient line với scaleX animation
+   - Semi-transparent background với backdrop blur
+   - Border outline cho content area
+   - Duration 0.5s với ease-out curve
+
+**UX Improvements:**
+- Hiệu ứng neon glow chuyên nghiệp
+- Interactive feedback rõ ràng (hover, click, expand)
+- Smooth animations với spring physics
+- Visual hierarchy tốt
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
+## PHASE 40
+
+### Shared Animation Hooks & prefers-reduced-motion (Hoàn thành 2026-07-21)
+
+**Files affected:** 8 files
+- src/hooks/useReducedMotion.ts (NEW)
+- src/hooks/AnimatedCounter.tsx (NEW)
+- src/hooks/FloatingShape.tsx (NEW)
+- src/pages/ChuyenKhoaPage.tsx (updated)
+- src/pages/DichVuPage.tsx (updated)
+- src/pages/ChoBenhNhanPage.tsx (updated)
+- src/pages/TinTucPage.tsx (updated)
+- src/pages/ThongTinThauPage.tsx (updated)
+
+**Mục tiêu:**
+Tạo shared hooks cho animations và thêm prefers-reduced-motion support cho tất cả pages.
+
+**Đã thực hiện:**
+
+**1. Tạo shared hooks:**
+- `useReducedMotion.ts` - Hook kiểm tra OS preference cho reduced motion
+- `AnimatedCounter.tsx` - Component counter với animation, tự động disable khi reduced motion
+- `FloatingShape.tsx` - Component floating shape, tự động disable khi reduced motion
+
+**2. Cập nhật 5 pages với prefers-reduced-motion:**
+- ChuyenKhoaPage
+- DichVuPage
+- ChoBenhNhanPage
+- TinTucPage
+- ThongTinThauPage
+
+**3. Trong mỗi page, đã update:**
+- Import shared hooks thay vì local definitions
+- Remove duplicate AnimatedCounter và FloatingShape functions
+- Thêm reducedMotion hook vào main component
+- Update 3D tilt effects (disable khi reduced motion)
+- Update parallax effects (disable khi reduced motion)
+- Update Ken Burns effect (disable khi reduced motion)
+- Update scroll indicator animations (disable khi reduced motion)
+- Update card entrance transitions (duration=0 khi reduced motion)
+
+**Ưu điểm:**
+- Single source of truth cho animation logic
+- Dễ bảo trì
+- Consistent behavior across all pages
+- Accessibility: tôn trọng user preference
+
+**Commands:** npm run lint - Passed, npm run build - Passed
+
+---
+
+## PHASE 41
+
+### GioiThieuPage - Add Organization Chart Section (Hoàn thành 2026-07-21)
+
+**Files affected:** 2 files
+- src/pages/GioiThieuPage.tsx (updated)
+- src/components/layout/Navbar.tsx (updated)
+
+**Mục tiêu:**
+Thêm section "Sơ đồ tổ chức" trong GioiThieuPage để navbar link hoạt động đúng.
+
+**Đã thực hiện:**
+1. Thêm import Organization component vào GioiThieuPage
+2. Thêm section mới `<section id="so-do-to-chuc">` với tiêu đề và Organization component
+3. Cập nhật Navbar link từ `/so-do-to-chuc` → `/gioi-thieu#so-do-to-chuc`
+
+**UX Improvement:**
+- Link "Sơ đồ tổ chức" trong navbar giờ scroll đến section trong GioiThieuPage
+- Organization chart hiển thị trực tiếp trong GioiThieuPage
+
+**Commands:** npm run lint - Passed, npm run build - Passed
 
 ---
 
@@ -1849,3 +2134,33 @@ Mọi thay đổi mới phải:
 7. Commit
 
 Không bỏ qua bất kỳ bước nào.
+
+---
+
+## PHASE 37
+
+### Fix Scroll Indicator - Add Click to Scroll (Hoàn thành 2026-07-21)
+
+**Files affected:** 5 files
+
+**Mục tiêu:**
+Scroll indicator ở hero section không hoạt động khi click.
+
+**Đã thực hiện:**
+- Thêm `cursor-pointer` và `onClick` handler để scroll xuống content
+- ChuyenKhoaPage: scroll tới Tab Navigation (ref: tabNavRef)
+- DichVuPage: scroll tới Tab Navigation (ref: tabNavRef)
+- ChoBenhNhanPage: scroll tới Tab Navigation (ref: tabNavRef)
+- TinTucPage: scroll tới Tab Navigation (ref: tabNavRef)
+- GioiThieuPage: scroll tới "Về Chúng Tôi" section (ref: contentRef)
+
+**Thay đổi:**
+```tsx
+// Before
+<motion.div className="absolute bottom-8 ...">
+
+// After
+<motion.div className="cursor-pointer" onClick={scrollToContent} ...>
+```
+
+**Commands:** npm run lint - Passed, npm run build - Passed

@@ -1,11 +1,13 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Layout from "../components/layout/Layout";
 import News from "../components/public/News";
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion";
 import { Newspaper, FileText, Users, Shield, ArrowRight, Calendar, Heart, Stethoscope, Gavel, FileCheck } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useEffect } from "react";
 import { useHospital } from "../context/HospitalContext";
+import { useReducedMotion } from "../hooks/useReducedMotion";
+import { AnimatedCounter } from "../hooks/AnimatedCounter";
+import { FloatingShape } from "../hooks/FloatingShape";
 
 const NEWS_TABS = [
   { key: "benh-vien", title: "Tin tức bệnh viện", icon: Newspaper, color: "from-green-500 to-emerald-600" },
@@ -20,48 +22,19 @@ const stats = [
   { value: 24, label: "Giờ cập nhật" }
 ];
 
-function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-  useEffect(() => {
-    if (!isInView) return;
-    let start = 0;
-    const duration = 2000;
-    const increment = value / (duration / 16);
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= value) {
-        setCount(value);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(start));
-      }
-    }, 16);
-    return () => clearInterval(timer);
-  }, [isInView, value]);
-
-  return <div ref={ref}>{count}{suffix}</div>;
-}
-
-function FloatingShape({ className, delay = 0 }: { className: string; delay?: number }) {
-  return (
-    <motion.div
-      className={`absolute rounded-full opacity-20 ${className}`}
-      animate={{ y: [0, -30, 0], x: [0, 15, 0], scale: [1, 1.1, 1] }}
-      transition={{ duration: 8, delay, repeat: Infinity, ease: "easeInOut" }}
-    />
-  );
-}
-
 export default function TinTucPage() {
   const heroRef = useRef<HTMLDivElement>(null);
+  const tabNavRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
   const { news } = useHospital();
   const [activeTab, setActiveTab] = useState("benh-vien");
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+
+  const scrollToTabNav = () => {
+    tabNavRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const hospitalNews = news.filter(item => !item.isTender && item.tag !== "Tin y học");
   const medicalNews = news.filter(item => item.tag === "Tin y học");
@@ -86,7 +59,7 @@ export default function TinTucPage() {
 
         <motion.div
           className="relative z-10 max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10 py-20 w-full"
-          style={{ opacity: heroOpacity, scale: heroScale }}
+          style={{ opacity: reducedMotion ? 1 : heroOpacity, scale: reducedMotion ? 1 : heroScale }}
         >
           <div className="text-center">
             <motion.div
@@ -131,14 +104,24 @@ export default function TinTucPage() {
           </div>
         </motion.div>
 
-        <motion.div className="absolute bottom-8 left-1/2 -translate-x-1/2" animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+        <motion.div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 cursor-pointer"
+          style={{ transform: "translateX(-50%)" }}
+          onClick={scrollToTabNav}
+          animate={reducedMotion ? {} : { y: [0, 10, 0] }}
+          transition={reducedMotion ? {} : { duration: 2, repeat: Infinity }}
+        >
           <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center pt-2">
-            <motion.div className="w-1.5 h-3 bg-white rounded-full" animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }} transition={{ duration: 2, repeat: Infinity }} />
+            <motion.div
+              className="w-1.5 h-3 bg-white rounded-full"
+              animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
           </div>
         </motion.div>
       </section>
 
-      <section className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-green-800/5 shadow-sm">
+      <section ref={tabNavRef} className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-green-800/5 shadow-sm">
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <div className="flex overflow-x-auto scrollbar-hide py-4 gap-2">
             {NEWS_TABS.map(tab => {
@@ -165,7 +148,7 @@ export default function TinTucPage() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-green-950/5 rounded-3xl overflow-hidden border border-green-800/5">
                     {hospitalNews[0] && (
                       <motion.div className="relative h-80 lg:h-96 overflow-hidden" initial={{ clipPath: "inset(100% 0 0 0)" }} animate={{ clipPath: "inset(0% 0 0 0)" }} transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}>
-                        <motion.img src={hospitalNews[0].image} alt={hospitalNews[0].title} className="w-full h-full object-cover" referrerPolicy="no-referrer" initial={{ scale: 1.2 }} animate={{ scale: 1 }} transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }} />
+                        <motion.img src={hospitalNews[0].image} alt={hospitalNews[0].title} className="w-full h-full object-cover" referrerPolicy="no-referrer" initial={{ scale: 1.2 }} animate={{ scale: reducedMotion ? 1 : 1 }} transition={{ duration: reducedMotion ? 0 : 1.2, ease: [0.25, 0.46, 0.45, 0.94] }} />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-8">
                           <motion.span className="inline-flex bg-brand-green/90 text-white text-xs font-bold px-4 py-1.5 rounded-full mb-4" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>
@@ -273,7 +256,7 @@ export default function TinTucPage() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-rose-950/5 rounded-3xl overflow-hidden border border-green-800/5">
                     {medicalNews[0] && (
                       <motion.div className="relative h-80 lg:h-96 overflow-hidden" initial={{ clipPath: "inset(100% 0 0 0)" }} animate={{ clipPath: "inset(0% 0 0 0)" }} transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}>
-                        <motion.img src={medicalNews[0].image} alt={medicalNews[0].title} className="w-full h-full object-cover" referrerPolicy="no-referrer" initial={{ scale: 1.2 }} animate={{ scale: 1 }} transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }} />
+                        <motion.img src={medicalNews[0].image} alt={medicalNews[0].title} className="w-full h-full object-cover" referrerPolicy="no-referrer" initial={{ scale: 1.2 }} animate={{ scale: reducedMotion ? 1 : 1 }} transition={{ duration: reducedMotion ? 0 : 1.2, ease: [0.25, 0.46, 0.45, 0.94] }} />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-8">
                           <motion.span className="inline-flex bg-rose-500/90 text-white text-xs font-bold px-4 py-1.5 rounded-full mb-4" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>
