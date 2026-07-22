@@ -2,6 +2,7 @@
 import { useHospital } from "../../../context/HospitalContext";
 import { useAdmin } from "../../../context/AdminContext";
 import { Card, Button } from "../../ui";
+import { ConfirmDialog } from "../ui";
 import { Plus, Edit, Trash2, ShieldAlert, Upload, Paperclip, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DEPARTMENTS } from "../../../data";
@@ -40,6 +41,7 @@ export default function NewsTab() {
 
   const [isFileDragging, setIsFileDragging] = useState(false);
   const [tenderFile, setTenderFile] = useState<File | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
   const isSuperAdmin = activeUser?.role === "Super Admin";
   const isDeptAdmin = activeUser?.role === "Department Admin";
@@ -140,8 +142,13 @@ export default function NewsTab() {
 
   const handleDelete = (id: string, title: string) => {
     if (!canEdit) return;
-    if (confirm(`Bạn có chắc chắn muốn xóa bài viết ${title}?`)) {
-      deleteNews(id);
+    setDeleteTarget({ id, title });
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteNews(deleteTarget.id);
+      setDeleteTarget(null);
     }
   };
 
@@ -430,6 +437,17 @@ export default function NewsTab() {
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        title="Xác nhận xóa bài viết"
+        message={"Bạn có chắc chắn muốn xóa bài viết \"" + (deleteTarget?.title || "") + "\"? Hành động này không thể hoàn tác."}
+        confirmText="Xóa bỏ"
+        cancelText="Hủy bỏ"
+        variant="danger"
+      />
     </div>
   );
 }

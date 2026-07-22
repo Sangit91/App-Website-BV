@@ -3,6 +3,21 @@ import { useHospital } from "../../../context/HospitalContext";
 import { Card } from "../../ui";
 import { Search } from "lucide-react";
 
+function maskSensitiveValue(value: string): string {
+  if (!value || value.length < 4) return value;
+  if (value.length === 9) {
+    return value.slice(0, 3) + "-" + "*".repeat(3) + "-" + value.slice(-2);
+  }
+  if (value.length === 12) {
+    return value.slice(0, 3) + "-" + "*".repeat(4) + "-" + "*".repeat(4) + "-" + value.slice(-1);
+  }
+  if (value.length === 10 && value.startsWith("0")) {
+    return value.slice(0, 3) + "-" + "*".repeat(3) + "-" + value.slice(-4);
+  }
+  const visibleChars = Math.max(2, Math.floor(value.length * 0.2));
+  return value.slice(0, visibleChars) + "*".repeat(Math.min(value.length - visibleChars * 2, value.length - 4)) + value.slice(-visibleChars);
+}
+
 export default function PatientsTab() {
   const { patients } = useHospital();
   const [search, setSearch] = useState("");
@@ -48,8 +63,8 @@ export default function PatientsTab() {
                 <tr key={p.id} className="hover:bg-cream-white transition-colors">
                   <td className="p-3 font-mono font-bold text-brand-green">{p.id}</td>
                   <td className="p-3 font-bold text-green-dark">{p.name}</td>
-                  <td className="p-3 font-mono text-ink/75 font-semibold">{p.cccd}</td>
-                  <td className="p-3 font-semibold">{p.phone}</td>
+                  <td className="p-3 font-mono text-ink/75 font-semibold">{maskSensitiveValue(p.cccd)}</td>
+                  <td className="p-3 font-semibold">{maskSensitiveValue(p.phone)}</td>
                   <td className="p-3">
                     <span className="inline-block bg-mint text-green-dark font-bold py-0.5 px-3 rounded-full text-[11px] border border-brand-green/20">
                       {p.visitCount} lần khám

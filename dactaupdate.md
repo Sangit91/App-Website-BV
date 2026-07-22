@@ -1,1195 +1,185 @@
-# Design Document - BVĐK Website
+﻿# Design Document - BVĐK Website
 
-## 📌 THÔNG TIN BỆNH VIỆN
+> **Nguồn tham chiếu chính:** `dac-ta-uiux-tong-hop-v2.9.md` (single source of truth)
+> File này chỉ ghi nhận các bổ sung/changes không có trong spec chính.
+
+---
+
+## Thông tin bệnh viện
 
 **Tên đầy đủ:** Bệnh Viện Đa Khoa Khu Vực Miền Núi Phía Bắc Quảng Nam
 
-**Địa chỉ:** 107 Quang Trung, Xã Đại Lộc, Thành Phố Đà Nẵng
+**Địa chỉ:** 107 Quang Trung, Xã Đại Lộc, TP. Đà Nẵng
 
 **Lãnh đạo:**
 
 | Chức vụ | Họ tên |
 |---------|--------|
-| Giám đốc | Nhà Thuốc Ưu Tú. BS CKII Nguyễn Thống Nhất |
+| Giám đốc | BS CKII Nguyễn Thống Nhất |
 | Phó Giám đốc | BSCK II Lê Minh Dũng |
 | Phó Giám đốc | BS CKII Nguyễn Đình Hoàng |
 
 ---
 
-# 🎨 MODERN PAGE DESIGN PATTERN
+## Database Gap Review — v2.9 (2026-07-22)
 
-## Áp dụng cho: ChuyenKhoaPage, DichVuPage, ChoBenhNhanPage
+> Sau khi review toàn bộ spec v2.9 (3935 dòng), ghi nhận trạng thái các bảng CSDL.
 
-## 1. Hero Section
+### Nhóm A: Đã có đầy đủ trong spec v2.9 ✅
 
-### Structure
+| Bảng | Mục spec | Chi tiết |
+|------|----------|----------|
+| patients | 15.3, 14.5 | 9 fields + encryption + soft-delete ✅ |
+| appointments | 15.4 | Đầy đủ, có cancel workflow |
+| admin_users | 15.5 | 10 fields + MFA + department_id |
+| activity_logs | 15.5 | Read-only, 6 fields |
+| doctors | 15.10 | 7 fields + relationship |
+| doctor_schedules | 15.10 | weekday + shift ENUM |
+| specialties | 15.10 | 7 fields + slug |
+| news | 15.10, 15.9 | Full + 9 tender fields (v2.5) |
+| organization_units | 15.9 | Tree structure + type ENUM |
+| feedback_requests | 21.2 | 11 fields (chính thức hoá từ Phase 48) ✅ |
+| record_requests | 21.3 | 11 fields + request_code UNIQUE ✅ |
+| record_request_files | 21.3 | 7 fields ✅ |
+| notification_logs | 21.5 | Polymorphic ✅ |
+
+### Nhóm B: Có trong spec nhưng field-level còn sơ lược ⚠️
+
+| Bảng | Mục spec | Hiện tại | Cần bổ sung |
+|------|----------|----------|-------------|
+| **service_groups** | 15.10 | name, description | Thiếu: id (PK), slug, sort_order, is_active |
+| **services** | 15.10 | name, group_id, icon_key, description | Thiếu: id (PK), slug, sort_order, is_active, price |
+| **news_categories** | 15.10 | (chỉ liệt kê tên 6 chuyên mục) | Thiếu: id (PK), slug, description, sort_order |
+| **price_list** | 15.10 | item_name, price, unit, insurance_note | Thiếu: id (PK), service_id FK, group_id FK, is_active |
+| **tender_files** | 15.9 | file_name, file_size, storage_path, uploaded_by | Thiếu: id (PK) rõ ràng, mime_type |
+| **testimonials** | 7.10, 12, 15.2 | (chỉ ghi "cần duyệt nội dung") | Thiếu: id (PK), patient_name, service_id FK, content, rating, is_approved, created_at |
+| **contact_messages** | 8.6, 15.2 | (chỉ ghi FK patient_id) | Thiếu: id (PK), name, email, phone, subject, content, status, created_at |
+| **lab_test_requests** | 8.5, 15.2 | (chỉ ghi trong 15.2) | Thiếu: id (PK), patient_id, patient_name, service_type, address, scheduled_date, status |
+| **teleconsult_requests** | 8.5, 15.2 | (chỉ ghi trong 15.2) | Thiếu: id (PK), patient_id, patient_name, specialty_id, reason, requested_time, status |
+
+### Nhóm C: Bảng roadmap — chưa cần triển khai ngay (mục 21.5) 📋
+
+| Bảng | Mục spec | Ghi chú |
+|------|----------|---------|
+| prescription_refill_requests | 21.5 | Cấp lại đơn thuốc online |
+| insurance_verifications | 21.5 | Kiểm tra quyền lợi BHYT |
+| appointment_reminders | 21.5 | Nhắc lịch khám |
+| queue_tickets | 21.5 | Hàng đợi số thứ tự khám |
+
+**Nguyên tắc (mục 21.1):** 4 bảng Nhóm C chỉ dùng khi tính năng tương ứng được phê duyệt triển khai — tránh bảng rỗng không dùng đến.
+
+---
+
+## Enum Values — Cần xác nhận đầy đủ
+
+| Field | Giá trị đã thấy trong spec | Trạng thái |
+|-------|---------------------------|------------|
+| `appointments.status` | confirmed, pending, cancelled | ⚠️ Chưa thấy ENUM đầy đủ trong extract |
+| `appointments.service_type` | kham-benh, noi-tru, cap-cuu, ban-si, other | ⚠️ Có trong feedback_requests nhưng cần xác nhận trong appointments |
+| `organization_units.type` | phong_ban_hanh_chinh, khoa_lam_sang | ⚠️ Có đề cập nhưng chưa rõ full list |
+| `doctor_schedules.shift` | sang, chieu, nghi | ✅ Rõ trong 15.10 |
+| `testimonials.is_approved` | true/false | ⚠️ Có ghi nhắc trong mục 15.11 nhưng thiếu spec đầy đủ |
+
+---
+
+## Còn thiếu — Cần bổ sung trước khi code
+
+### 1. TTL / Retention policy cho bảng log
+
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│  FULL VIEWPORT HERO - Parallax effect                             │
-│  ┌────────────────────────────────────────────────────────────┐  │
-│  │  Background: Animated gradient mesh + floating particles  │  │
-│  │                                                              │  │
-│  │  [Badge] "Chuyên khoa" / "Dịch vụ y tế" / "Dành cho BN"   │  │
-│  │                                                              │  │
-│  │  [Split Text Animation - 2 colors]                          │  │
-│  │  CHUYÊN KHOA                                                 │  │
-│  │                                                              │  │
-│  │  Subtitle text...                                            │  │
-│  │                                                              │  │
-│  │  ┌─────┐  ┌─────┐  ┌─────┐  ┌─────┐                        │  │
-│  │  │ 12  │  │ 50+ │  │ 200 │  │  5  │  [Count-up animation] │  │
-│  │  │CKhoa│  │ BS  │  │Giuong│ │PMo  │                        │  │
-│  │  └─────┘  └─────┘  └─────┘  └─────┘                        │  │
-│  └────────────────────────────────────────────────────────────┘  │
-│                                                                  │
-│  [Scroll indicator - bouncing chevron]                          │
-└──────────────────────────────────────────────────────────────────┘
-```
-
-### Implementation Details
-
-**Background Elements:**
-- Gradient: `bg-gradient-to-br from-green-dark via-green-800 to-brand-green`
-- Floating shapes: 4 circles với animation (y, x, scale oscillation)
-- Grid pattern overlay: opacity 10%
-
-**Badge:**
-```tsx
-<div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-5 py-2 rounded-full text-sm font-medium mb-8">
-  <Activity className="w-4 h-4" />
-  <span>Hệ thống y tế chuyên sâu</span>
-</div>
-```
-
-**Title Animation:**
-```tsx
-<h1 className="text-5xl md:text-6xl font-display font-bold text-white mb-6">
-  <motion.span className="inline-block" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}>
-    Chuyên
-  </motion.span>
-  <motion.span className="inline-block ml-3 text-peach" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}>
-    Khoa
-  </motion.span>
-</h1>
-```
-
-**Stats Cards:**
-```tsx
-<div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-  {stats.map((stat, idx) => (
-    <motion.div
-      key={stat.label}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5, delay: 0.7 + idx * 0.1 }}
-      className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
-    >
-      <div className="text-3xl md:text-4xl font-display font-bold text-white mb-1">
-        <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-      </div>
-      <div className="text-white/70 text-sm font-medium">{stat.label}</div>
-    </motion.div>
-  ))}
-</div>
+notification_logs, activity_logs:
+- Không có thông tin retention period
+- Không có index trên created_at cho cleanup theo ngày
+→ Cần bổ sung: retention_days (VD 90 ngày), auto-cleanup job
 ```
 
-**Scroll Indicator:**
-```tsx
-<motion.div className="absolute bottom-8 left-1/2 -translate-x-1/2" animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity }}>
-  <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center pt-2">
-    <motion.div className="w-1.5 h-3 bg-white rounded-full" animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }} transition={{ duration: 2, repeat: Infinity }} />
-  </div>
-</motion.div>
+### 2. appointments — thiếu cancel fields
+
+```
+appointments (bổ sung):
+├── cancelled_at          TIMESTAMP (nullable)   -- thời điểm hủy
+├── cancel_reason         TEXT (nullable)         -- lý do hủy (spec 14.2)
+└── cancelled_by          UUID FK → admin_users.id (nullable)
 ```
 
-**Parallax Effect:**
-```tsx
-const heroRef = useRef<HTMLDivElement>(null);
-const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
-const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+### 3. patients — thiếu contact fields cho feedback ẩn danh
 
-<motion.div style={{ opacity: heroOpacity, scale: heroScale }}>
-  {/* Hero content */}
-</motion.div>
+```
+feedback_requests (bổ sung):
+- Nếu patient_id = null (gửi ẩn danh) → admin phản hồi bằng cách nào?
+→ Đề xuất: thêm email hoặc phone (nullable) vào feedback_requests
 ```
 
-**AnimatedCounter Component:**
-```tsx
-function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+### 4. activity_logs — thiếu details field
 
-  useEffect(() => {
-    if (!isInView) return;
-    let start = 0;
-    const duration = 2000;
-    const increment = value / (duration / 16);
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= value) {
-        setCount(value);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(start));
-      }
-    }, 16);
-    return () => clearInterval(timer);
-  }, [isInView, value]);
+```
+activity_logs (bổ sung):
+├── details               JSONB (nullable)   -- lưu payload thay đổi
+VD: { "old": { "status": "moi" }, "new": { "status": "dang_xu_ly" } }
+```
 
-  return <div ref={ref}>{count}{suffix}</div>;
-}
+### 5. File storage naming inconsistency
+
+```
+record_request_files: dùng file_path
+tender_files: dùng storage_path
+→ Nên thống nhất: dùng storage_path cho cả 2 bảng
 ```
 
 ---
 
-## 2. Sticky Tab Navigation
+## API Endpoints — Tổng hợp (đầy đủ theo v2.9 mục 21.4)
 
-### Structure
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│  STICKY SECTION - Glass morphism effect                          │
-│  ┌────────────────────────────────────────────────────────────┐  │
-│  │ [Tab 1] [Tab 2] [Tab 3] [Tab 4]                           │  │
-│  └────────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────────┘
-```
+Public:
+POST   /api/v1/feedback-requests              -- Tạo góp ý mới (rate limit: 5/IP/15ph)
+POST   /api/v1/record-requests                -- Tạo yêu cầu trích sao
 
-### Implementation
-
-**Container:**
-```tsx
-<section className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-green-800/5 shadow-sm">
-  <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
-    <div className="flex overflow-x-auto scrollbar-hide py-4 gap-2">
-      {/* Tabs */}
-    </div>
-  </div>
-</section>
+Admin (cần auth):
+GET    /api/v1/feedback-requests              -- List + filter status/date
+GET    /api/v1/feedback-requests/:id          -- Chi tiết
+PATCH  /api/v1/feedback-requests/:id           -- Cập nhật status + admin_response
+GET    /api/v1/record-requests                -- List + filter status/date
+GET    /api/v1/record-requests/:id            -- Chi tiết + file đính kèm
+PATCH  /api/v1/record-requests/:id           -- Cập nhật status + admin_notes
+POST   /api/v1/record-requests/:id/files     -- Upload file (multipart → S3/MinIO)
 ```
 
-**Tab Button:**
-```tsx
-{DEPARTMENTS.map(dept => {
-  const Icon = dept.icon;
-  const isActive = activeTab === dept.key;
-  return (
-    <motion.button
-      key={dept.key}
-      onClick={() => setActiveTab(dept.key)}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold text-sm whitespace-nowrap transition-all cursor-pointer ${
-        isActive
-          ? `bg-gradient-to-r ${dept.color} text-white shadow-lg`
-          : "bg-gray-100 text-ink/70 hover:bg-gray-200"
-      }`}
-    >
-      <Icon className="w-5 h-5" />
-      <span>{dept.title}</span>
-    </motion.button>
-  );
-})}
-```
-
-**Department Color Configuration:**
-```tsx
-const DEPARTMENTS = [
-  { key: "ngoai-cap-cuu", title: "Ngoại & Cấp cứu", icon: Scissors, color: "from-red-500 to-rose-600", bgLight: "bg-red-50", textColor: "text-red-600" },
-  { key: "noi-tong-quat", title: "Nội tổng quát", icon: Stethoscope, color: "from-blue-500 to-cyan-600", bgLight: "bg-blue-50", textColor: "text-blue-600" },
-  { key: "san-nhi", title: "Sản & Nhi", icon: Baby, color: "from-pink-500 to-rose-600", bgLight: "bg-pink-50", textColor: "text-pink-600" },
-  { key: "can-lam-sang", title: "Cận lâm sàng", icon: Microscope, color: "from-purple-500 to-violet-600", bgLight: "bg-purple-50", textColor: "text-purple-600" }
-];
-```
+**Lưu ý bảo mật (v2.9 mục 21.1, 21.4):**
+- Endpoint public không cần auth nhưng bắt buộc rate limit
+- Endpoint admin bắt buộc auth theo mục 9.1
+- Không log nội dung góp ý/hồ sơ ra console (PHI-adjacent data)
+- File: lưu vào object storage (S3/MinIO), không lưu trong DB
 
 ---
 
-## 3. Featured Card Section
+## Admin Tabs — Tổng hợp theo v2.9
 
-### Structure
-```
-┌──────────────────────────────────────────────────────────────────┐
-│  FEATURED - Grid 2 columns                                       │
-│  ┌─────────────────────────┐  ┌────────────────────────────────┐ │
-│  │                         │  │ Dịch vụ nổi bật                │ │
-│  │   FEATURED IMAGE        │  │                                │ │
-│  │   [Clip-path reveal]    │  │ Description text...            │ │
-│  │   [Ken Burns effect]    │  │                                │ │
-│  │                         │  │ ✓ Item 1 [slide-in]            │ │
-│  │   [Gradient overlay]    │  │ ✓ Item 2 [slide-in]            │ │
-│  │   [Title on image]      │  │ ✓ Item 3 [slide-in]            │ │
-│  │                         │  │ ✓ Item 4 [slide-in]            │ │
-│  └─────────────────────────┘  └────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────────────┘
-```
+> Spec mục 9.2 + 21.4 bổ sung 2 tabs mới:
 
-### Implementation
-
-**Featured Image Container:**
-```tsx
-<motion.div
-  className="relative h-80 lg:h-96 overflow-hidden rounded-3xl"
-  initial={{ clipPath: "inset(100% 0 0 0)" }}
-  animate={{ clipPath: "inset(0% 0 0 0)" }}
-  transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
->
-  <motion.img
-    src={featuredItem.img}
-    alt={featuredItem.name}
-    className="w-full h-full object-cover"
-    initial={{ scale: 1.2 }}
-    animate={{ scale: 1 }}
-    transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-  />
-  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-  {/* Badge, title, description overlay */}
-</motion.div>
-```
-
-**Content Side:**
-```tsx
-<div className="flex flex-col justify-center p-8">
-  <motion.h3 initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="text-2xl font-display font-bold text-green-dark mb-4">
-    Dịch vụ nổi bật
-  </motion.h3>
-  <motion.p initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }} className="text-ink/70 leading-relaxed mb-6">
-    {currentData.description}
-  </motion.p>
-  <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }} className="space-y-3">
-    {checklistItems.map((item, idx) => (
-      <motion.div
-        key={item}
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.6 + idx * 0.1 }}
-        className="flex items-center gap-3"
-      >
-        <div className={`w-6 h-6 rounded-full bg-gradient-to-r ${currentDept.color} flex items-center justify-center`}>
-          <Check className="w-3 h-3 text-white" />
-        </div>
-        <span className="text-ink/80 font-medium">{item}</span>
-      </motion.div>
-    ))}
-  </motion.div>
-</div>
-```
+| Tab | File | Super Admin | Dept Admin | Doctor |
+|-----|------|-------------|------------|--------|
+| Tổng quan | OverviewTab.tsx | Read | Read | Read |
+| Lịch hẹn | BookingsTab.tsx | CRUD | CRUD khoa mình | Read |
+| Bệnh nhân | PatientsTab.tsx | Read | Read | Read |
+| Lịch trực | ShiftsTab.tsx | CRUD | CRUD khoa mình | Read |
+| Chuyên khoa | SpecialtiesTab.tsx | CRUD | — | — |
+| Bác sĩ | DoctorsTab.tsx | CRUD | — | Read |
+| Tin tức | NewsTab.tsx | CRUD | CRUD khoa mình | CRUD (bài của mình) |
+| Tổ chức | OrganizationTab.tsx | CRUD | — | — |
+| Nhật ký | LogsTab.tsx | Read | Read | Read |
+| Services | ServicesTab.tsx | CRUD | — | — |
+| Patient Guide | PatientTab.tsx | CRUD | — | — |
+| Tender | TenderTab.tsx | CRUD | CRUD khoa mình | — |
+| Contact | ContactTab.tsx | CRUD | — | — |
+| **Phản hồi** | FeedbackTab.tsx | CRUD đầy đủ | Xem + phản hồi khoa mình | Không |
+| **Yêu cầu trích sao** | RecordRequestsTab.tsx | CRUD đầy đủ | Xem + xử lý khoa mình | Không |
 
 ---
 
-## 4. Service Cards Grid
-
-### Structure
-```
-┌──────────────────────────────────────────────────────────────────┐
-│  GRID - Staggered reveal on scroll                              │
-│                                                                  │
-│  ┌────────────────────┐  ┌────────────────────┐ ┌────────────┐ │
-│  │ 3D TILT CARD       │  │ 3D TILT CARD       │ │ 3D TILT    │ │
-│  │                    │  │                    │ │ CARD       │ │
-│  │ [Image + Scale]    │  │ [Image + Scale]    │ │            │ │
-│  │                    │  │                    │ │            │ │
-│  │ Title              │  │ Title              │ │ Title      │ │
-│  │ Description        │  │ Description        │ │ Description│ │
-│  │                    │  │                    │ │            │ │
-│  │ Price   [Book]     │  │ Price   [Book]     │ │ Price [Book│ │
-│  └────────────────────┘  └────────────────────┘ └────────────┘ │
-│                                                                  │
-│  ┌────────────────────┐  ┌────────────────────┐                  │
-│  │ ...                │  │ ...                │                  │
-│  └────────────────────┘  └────────────────────┘                  │
-└──────────────────────────────────────────────────────────────────┘
-```
-
-### Card Component Implementation
-
-**Interface:**
-```tsx
-interface ServiceCardProps {
-  key?: string;
-  item: { name: string; desc: string; price: string; img: string };
-  dept: { key: string; title: string; icon: ElementType; color: string; bgLight: string; textColor: string };
-  index: number;
-  onBook?: () => void;
-}
-```
-
-**Card with 3D Tilt:**
-```tsx
-function ServiceCard({ item, dept, index, onBook }: ServiceCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(cardRef, { once: true, margin: "-50px" });
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const [isHovered, setIsHovered] = useState(false);
-
-  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    mouseX.set(x);
-    mouseY.set(y);
-  };
-
-  const rotateX = useTransform(mouseY, [-0.5, 0.5], [8, -8]);
-  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
-
-  return (
-    <motion.div
-      ref={cardRef}
-      initial={{ opacity: 0, y: 60 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
-      style={{ perspective: "1000px" }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="group cursor-pointer"
-    >
-      <motion.div
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        animate={isHovered ? { scale: 1.02 } : { scale: 1 }}
-        className="relative bg-white rounded-3xl overflow-hidden shadow-lg border border-green-800/5 transition-all duration-300 h-full flex flex-col"
-      >
-        {/* Glow effect background */}
-        <motion.div
-          className={`absolute inset-0 opacity-0 transition-opacity duration-500 ${isHovered ? "opacity-100" : ""}`}
-          style={{
-            background: `radial-gradient(circle at 50% 50%, ${getDeptGlowColor(dept.textColor)} 0%, transparent 70%)`
-          }}
-        />
-
-        {/* Animated border */}
-        <motion.div
-          className={`absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-500 ${isHovered ? "opacity-100" : ""}`}
-          style={{
-            padding: "2px",
-            background: `linear-gradient(${dept.color}, transparent)`,
-            WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-            WebkitMaskComposite: "xor",
-            maskComposite: "exclude"
-          }}
-        />
-
-        {/* Image */}
-        <div className="relative h-48 overflow-hidden">
-          <motion.img
-            src={item.img}
-            alt={item.name}
-            className="w-full h-full object-cover"
-            animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
-            transition={{ duration: 0.6 }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 + 0.3 }}
-            className={`absolute top-4 left-4 ${dept.bgLight} ${dept.textColor} text-xs font-bold px-3 py-1.5 rounded-full shadow-lg`}
-          >
-            {dept.title}
-          </motion.div>
-          <motion.div
-            className="absolute top-4 right-4 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center opacity-0 transition-all duration-300"
-            animate={isHovered ? { opacity: 1, x: 0 } : { opacity: 0, x: 10 }}
-          >
-            <ArrowRight className="w-4 h-4 text-green-dark" />
-          </motion.div>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 flex-grow flex flex-col relative" style={{ transform: "translateZ(30px)" }}>
-          <motion.h3
-            className="font-display font-bold text-lg text-green-dark mb-2 group-hover:text-brand-green transition-colors duration-300"
-            style={{ transform: isHovered ? "translateZ(20px)" : "translateZ(0)" }}
-          >
-            {item.name}
-          </motion.h3>
-          <motion.p
-            className="text-sm text-ink/70 leading-relaxed flex-grow"
-            style={{ transform: isHovered ? "translateZ(15px)" : "translateZ(0)" }}
-          >
-            {item.desc}
-          </motion.p>
-          <motion.div
-            className="flex items-center justify-between pt-4 mt-4 border-t border-green-800/5"
-            animate={isHovered ? { y: 0, opacity: 1 } : { y: 8, opacity: 0.8 }}
-            transition={{ duration: 0.3 }}
-          >
-            <span className="text-brand-green font-bold">{item.price}</span>
-            <button
-              onClick={(e) => { e.stopPropagation(); onBook?.(); }}
-              className={`px-4 py-2 bg-gradient-to-r ${dept.color} text-white text-sm font-semibold rounded-full hover:shadow-lg transition-all cursor-pointer`}
-            >
-              Đặt lịch
-            </button>
-          </motion.div>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-```
-
----
-
-## 5. AnimatePresence for Tab Transitions
-
-```tsx
-<AnimatePresence mode="wait">
-  <motion.div
-    key={activeTab}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -20 }}
-    transition={{ duration: 0.4 }}
-  >
-    {/* Tab content */}
-  </motion.div>
-</AnimatePresence>
-```
-
----
-
-## 6. Helper Components
-
-### FloatingShape
-```tsx
-function FloatingShape({ className, delay = 0 }: { className: string; delay?: number }) {
-  return (
-    <motion.div
-      className={`absolute rounded-full opacity-20 ${className}`}
-      animate={{ y: [0, -30, 0], x: [0, 15, 0], scale: [1, 1.1, 1] }}
-      transition={{ duration: 8, delay, repeat: Infinity, ease: "easeInOut" }}
-    />
-  );
-}
-```
-
----
-
-## 7. Imports Required
-
-```tsx
-import { useState, useEffect, useRef, MouseEvent, ElementType } from "react";
-import { useLocation } from "react-router-dom";
-import Layout from "../components/layout/Layout";
-import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
-import { Activity, Scissors, Stethoscope, Baby, Microscope, ArrowRight, Check } from "lucide-react";
-```
-
----
-
-## 8. Color System per Department
-
-| Department | Gradient | bgLight | textColor |
-|------------|----------|---------|-----------|
-| Ngoại & Cấp cứu | `from-red-500 to-rose-600` | `bg-red-50` | `text-red-600` |
-| Nội tổng quát | `from-blue-500 to-cyan-600` | `bg-blue-50` | `text-blue-600` |
-| Sản & Nhi | `from-pink-500 to-rose-600` | `bg-pink-50` | `text-pink-600` |
-| Cận lâm sàng | `from-purple-500 to-violet-600` | `bg-purple-50` | `text-purple-600` |
-| Dịch vụ trọn gói | `from-orange-500 to-amber-600` | `bg-orange-50` | `text-orange-600` |
-| Tại nhà & Vận chuyển | `from-blue-500 to-cyan-600` | `bg-blue-50` | `text-blue-600` |
-| Tiêm chủng | `from-green-500 to-emerald-600` | `bg-green-50` | `text-green-600` |
-| Bảo hiểm & VIP | `from-purple-500 to-violet-600` | `bg-purple-50` | `text-purple-600` |
-| Chi phí & Địa điểm | `from-blue-500 to-indigo-600` | `bg-blue-50` | `text-blue-600` |
-| Hướng dẫn tiện ích | `from-emerald-500 to-teal-600` | `bg-emerald-50` | `text-emerald-600` |
-| Cổng thông tin | `from-purple-500 to-pink-600` | `bg-purple-50` | `text-purple-600` |
-
----
-
-## 9. Stats Configuration Example
-
-```tsx
-const stats = [
-  { value: 12, label: "Chuyên khoa", icon: Activity },
-  { value: 50, label: "Bác sĩ", suffix: "+" },
-  { value: 200, label: "Giường bệnh" },
-  { value: 5, label: "Phòng mổ" }
-];
-
-// For DichVuPage
-const stats = [
-  { value: 50, label: "Dịch vụ", suffix: "+" },
-  { value: 5000, label: "Bệnh nhân", suffix: "+" },
-  { value: 98, label: "Hài lòng", suffix: "%" },
-  { value: 24, label: "Giờ hỗ trợ" }
-];
-
-// For ChoBenhNhanPage
-const stats = [
-  { value: 24, label: "Giờ cấp cứu" },
-  { value: 100, label: "Bệnh nhân", suffix: "+" },
-  { value: 15, label: "Năm kinh nghiệm" },
-  { value: 50, label: "Bác sĩ", suffix: "+" }
-];
-```
-
----
-
-## 10. Checklist Items per Section
-
-```tsx
-// ChuyenKhoaPage
-const checklist = ["Đội ngũ bác sĩ giàu kinh nghiệm", "Trang thiết bị hiện đại", "Quy trình chuẩn quốc tế", "Chăm sóc tận tâm 24/7"];
-
-// DichVuPage
-const checklist = ["Đội ngũ bác sĩ chuyên môn cao", "Trang thiết bị hiện đại", "Quy trình chuẩn quốc tế", "Hỗ trợ 24/7"];
-
-// ChoBenhNhanPage
-const checklist = ["Hỗ trợ 24/7 qua hotline", "Quy trình đơn giản", "Thông tin minh bạch", "Chăm sóc tận tâm"];
-```
-
----
-
-## 11. Performance Notes
-
-- Use `once: true` in `useInView` to only trigger animations once
-- Use `will-change: transform` sparingly on animated elements
-- Consider using `transform: translateZ(0)` to enable GPU acceleration
-- Use `useCallback` for event handlers in lists if needed
-- Lazy load images below the fold
-
----
-
-## 12. Accessibility Notes
-
-- All images have descriptive `alt` text
-- Focus states are preserved on interactive elements
-- Color contrast meets WCAG guidelines
-- Motion respects `prefers-reduced-motion`
-- Tab navigation works correctly
-
----
-
-## 13. File Structure
-
-```
-src/pages/
-├── ChuyenKhoaPage.tsx    # 527 lines
-├── DichVuPage.tsx        # 396 lines
-├── ChoBenhNhanPage.tsx   # 439 lines (with Patient Portal)
-
-src/components/public/
-├── PatientLookupForm.tsx    # Patient lookup form
-├── PatientPortalSection.tsx # Patient portal with 3 tabs
-├── RecordRequestModal.tsx   # Request medical records
-├── FeedbackModal.tsx        # Service feedback
-
-src/data/
-├── patient-portal-data.ts   # Mock data for patient portal
-
-src/types/models/
-├── medical-record.ts       # Medical record type
-├── clinical-test.ts        # Clinical test (CLS) type
-├── treatment-history.ts    # Treatment history type
-├── patient.ts              # Extended patient type with HIS fields
-```
-
-Each page follows the same pattern but uses different data sources.
-
----
-
-## 14. Future Improvements
-
-- [ ] Add skeleton loading states
-- [ ] Add skeleton for cards during tab switch
-- [ ] Implement virtualized list for large card grids
-- [ ] Add keyboard navigation for tabs
-- [ ] Add swipe gestures for tab navigation on mobile
-- [ ] Implement lazy loading for images
-- [ ] Add service worker for offline support
-
----
-
-# 📝 CHANGE LOG
-
-## PHASE 20 - EditModal Fields Enhancement (2026-07-20)
-
-**Mục tiêu:** Cải thiện UX của EditModal bằng cách thêm description, hint, suggestions cho tất cả fields, giúp người dùng admin hiểu rõ cần nhập gì.
-
-**Files affected:**
-- src/components/admin/tabs/HomeTab/index.tsx
-- src/components/admin/tabs/AboutTab.tsx
-- src/components/admin/tabs/ServicesTab.tsx
-- src/components/admin/tabs/PatientTab.tsx
-- src/components/admin/tabs/TenderTab.tsx
-- src/components/admin/tabs/ContactTab.tsx
-
-### Chi tiết từng Tab
-
-**HomeTab (5 sections):**
-| Section | Field | Enhancement |
-|---------|-------|-------------|
-| HeroSection | title | hint: "VD: Chăm sóc sức khỏe toàn diện" |
-| HeroSection | ctaLink | hint: "VD: /dat-lich, /chuyen-khoa, /lien-he" |
-| HeroSection | backgroundImage | description: "Ảnh hero section" |
-| QuickActions | title | hint: "VD: Đặt lịch khám, Chuyên khoa" |
-| QuickActions | link | hint: "Bắt đầu bằng /" |
-| QuickActions | icon | description: "Icon hiển thị trên nút" |
-| QuickActions | color | description: "Màu gradient của nút" |
-| WhyChooseUs | title | hint: "VD: Đội ngũ bác sĩ giỏi" |
-| WhyChooseUs | description | hint: "Mô tả ngắn 1-2 câu" |
-| Statistics | value | hint: "VD: 100+, 50+, 1M+" |
-| Statistics | label | hint: "VD: Năm kinh nghiệm, Bác sĩ chuyên khoa" |
-| Testimonials | name | hint: "VD: Nguyễn Văn A" |
-| Testimonials | role | hint: "VD: Bệnh nhân, Người nhà bệnh nhân" |
-| Testimonials | content | hint: "Viết cảm nhận thực tế, ngắn gọn 2-3 câu" |
-
-**AboutTab:**
-| Section | Field | Enhancement |
-|---------|-------|-------------|
-| WhyChooseSection | text | suggestions: [5 mẫu có sẵn] |
-| LeadershipSection | name | hint: "VD: BS CKII Nguyễn Văn A" |
-| LeadershipSection | role | description: "Chức vụ hiện tại" |
-| LeadershipSection | bio | hint: "VD: Bác sĩ chuyên khoa II với hơn 20 năm kinh nghiệm" |
-| PartnersSection | name | hint: "VD: BHYT Quảng Nam, Bảo Việt, Prudential" |
-| PartnersSection | website | hint: "VD: https://bhytquangnam.vn" |
-| FacilitiesSection | title | hint: "VD: Cơ sở vật chất, Hình ảnh bệnh viện" |
-| FacilitiesSection | description | hint: "Mô tả 1-2 câu về cơ sở vật chất" |
-
-**ServicesTab:**
-| Section | Field | Enhancement |
-|---------|-------|-------------|
-| ServiceCategories | title | hint: "VD: Dịch vụ trọn gói, Tiêm chủng, Gói khám" |
-| ServiceCategories | color | description: "Màu gradient hiển thị" |
-| ServiceItems | name | hint: "VD: Dịch vụ trọn gói, Kiến thức thai sản" |
-| ServiceItems | price | hint: "VD: Từ 500.000đ, Miễn phí" |
-
-**PatientTab:**
-| Section | Field | Enhancement |
-|---------|-------|-------------|
-| ProcessSection | title | hint: "VD: Đăng ký lịch hẹn, Đến bệnh viện" |
-| ProcessSection | desc | hint: "Mô tả ngắn gọn action cần thực hiện" |
-| FaqSection | question | hint: "VD: Giờ làm việc?, Làm sao đặt lịch khám?" |
-| FaqSection | answer | hint: "Trả lời ngắn gọn, dễ hiểu (1-3 câu)" |
-
-**TenderTab:**
-| Section | Field | Enhancement |
-|---------|-------|-------------|
-| TenderNotices | title | hint: "VD: Mua sắm vật tư y tế năm 2026" |
-| TenderNotices | tenderNumber | hint: "VD: BHYT-2026-001" |
-| TenderNotices | estimateValue | hint: "VD: 500.000.000đ" |
-| TenderNotices | endDate | hint: "VD: 30/08/2026" |
-
-**ContactTab:**
-| Section | Field | Enhancement |
-|---------|-------|-------------|
-| ContactInfo | address | hint: "VD: 107 Quang Trung, ..." |
-| ContactInfo | phone | hint: "VD: 0236 1234 567" |
-| ContactInfo | hotline | hint: "VD: 1900 1234" |
-| ContactInfo | email | hint: "VD: bvdk@quangnam.gov.vn" |
-| QuickLinks | label | hint: "VD: Trang chủ, Giới thiệu" |
-| QuickLinks | link | hint: "Bắt đầu bằng /" |
-| SupportLinks | label | hint: "VD: Đặt lịch khám, Bảng giá dịch vụ" |
-| SupportLinks | link | hint: "Bắt đầu bằng /" |
-
-**Commands:** npm run lint - Passed, npm run build - Passed
-
----
-
-## PHASE 19 - Admin UI Enhancements (2026-07-20)
-
-### EditModal.tsx Improvements
-- Header gradient với icon và helper text
-- Image preview với hover effect  
-- Prefix/suffix support cho input fields
-- Auto-close modal sau submit
-- Select dropdown với custom chevron icon
-- Better focus states và error styling
-- Keyboard navigation cho suggestions (Arrow Up/Down, Enter, Escape)
-
-### ItemCard.tsx - AddCard Component
-- Export `AddCard` component cho "Add new" actions
-- Color variants: green, blue, amber, rose
-- Hover scale animation, dashed border
-- Animation delay theo index
-
-### Tabs Integration
-Thay "actions" button bằng AddCard trong content area:
-
-| Tab | Section | Grid Change |
-|-----|---------|-------------|
-| HomeTab | QuickActions | lg:6 → lg:7 |
-| HomeTab | WhyChooseUs | lg:4 → lg:5 |
-| HomeTab | Testimonials | lg:3 → lg:4 |
-| AboutTab | Leadership | lg:3 → lg:4 |
-| AboutTab | Partners | lg:6 → lg:7 |
-| AboutTab | Facilities | lg:3 → lg:4 |
-| ContactTab | QuickLinks | lg:6 → lg:7 |
-| ContactTab | SupportLinks | lg:5 → lg:6 |
-| PatientTab | WhatToBring | lg:3 → lg:4 |
-| ServicesTab | ServiceItems | lg:3 → lg:4 |
-| TenderTab | TenderNotices | lg:3 → lg:4 |
-
-**Commands:** npm run lint - Passed, npm run build - Passed
-
----
-
-## PHASE 18 - Admin Panel Redesign (2026-07-19)
-
-### Base UI Components
-- **SectionCard:** Wrapper cho mỗi section với enable/disable toggle, collapsible, header actions
-- **ItemCard:** Display item với image, title, description, drag handle, action buttons  
-- **EditModal:** Reusable form modal với field types (text, textarea, select, image)
-- **ConfirmDialog:** Delete confirmation với variants (danger, warning, info)
-- **ImageUploader:** Drag-drop + paste image URL support
-
-### Content Tabs (9 tabs)
-- OverviewTab, BookingsTab, PatientsTab, ShiftsTab
-- SpecialtiesTab, DoctorsTab, NewsTab, OrganizationTab, LogsTab
-
-### Navigation Structure
-- Quản lý Nội dung: Home, About, Specialties, Services, Patient, News, Tender, Contact
-- Quản lý Nhân sự: Doctors, Phân ca
-- Quản lý Hoạt động: Đặt lịch, Bệnh nhân, Nhật ký
-
-**Commands:** npm run lint - Passed, npm run build - Passed
-
----
-
-## PHASE 25 - Patient Portal HIS Integration (2026-07-20)
-
-### Patient Portal Components
-
-**PatientLookupForm:**
-- 3 loại tra cứu: Mã KCB, CCCD/CMND, Số điện thoại
-- Validation input (CCCD 9/12 số, phone 10 số)
-- Loading state, error handling
-- PatientInfoCard hiển thị thông tin bệnh nhân
-
-**PatientPortalSection:**
-- 3 tabs: Lịch sử bệnh sử | CLS các lần khám | Lịch sử điều trị
-- Expandable cards với chi tiết đầy đủ
-- API callbacks interface: `onPatientLookup`, `onFetchMedicalRecords`, `onFetchClinicalTests`, `onFetchTreatmentHistories`
-- Mock mode: tự động load mock data khi không có API
-
-### Data Models cho HIS
-
-**MedicalRecord** (`src/types/models/medical-record.ts`):
-```typescript
-interface MedicalRecord {
-  id: string;
-  patientId: string;
-  date: string;
-  clinic: string;
-  doctorName: string;
-  symptoms: string;
-  diagnosis: string;
-  treatment: string;
-  prescriptions?: Prescription[];
-  followUpDate?: string;
-}
-```
-
-**ClinicalTest** (`src/types/models/clinical-test.ts`):
-```typescript
-type ClinicalTestType = 'xet-nghiem-mau' | 'x-quang' | 'sieu-am' | 'ecg' | 'ct-scan' | 'mri' | ...
-type ClinicalTestStatus = 'normal' | 'abnormal' | 'critical';
-
-interface ClinicalTest {
-  id: string;
-  testType: ClinicalTestType;
-  testName: string;
-  result: string;
-  status: ClinicalTestStatus;
-  indicators?: ClinicalTestIndicator[];
-}
-```
-
-**TreatmentHistory** (`src/types/models/treatment-history.ts`):
-```typescript
-type TreatmentType = 'noi-tru' | 'ngoai-tru' | 'thu-thuat' | 'phau-thuat' | 'cap-cuu';
-type TreatmentOutcome = 'khoi' | 'do' | 'chuyen-vien' | 'tai-kham';
-```
-
-### API Interface cho HIS Backend
-```typescript
-POST /api/patients/lookup
-  Body: { identifier: string, identifierType: 'patientCode' | 'cccd' | 'phone' }
-  Response: { patient: Patient }
-
-GET /api/patients/:id/medical-records
-GET /api/patients/:id/clinical-tests
-GET /api/patients/:id/treatment-histories
-```
-
-**Commands:** npm run lint - Passed, npm run build - Passed
-
----
-
-## PHASE 26 - Link Portal Actions (2026-07-20)
-
-### Cổng thông tin Items Link
-
-**InfoCard Enhancement:**
-- Thêm `onAction` callback vào item props
-- Button gọi `item.onAction()` khi bấm
-
-**RecordRequestModal:**
-- Form yêu cầu trích sao hồ sơ y tế
-- 4 loại: Hồ sơ y tế, Giấy chứng nhận, Kết quả khám, Đơn thuốc
-- Chọn ngày, phương thức nhận (tái khám/quầy/bưu điện)
-- Success state với mã yêu cầu
-
-**FeedbackModal:**
-- Form góp ý chất lượng dịch vụ
-- Chọn loại dịch vụ, rating 5 sao, nội dung
-- Success state
-
-### Click Flow
-1. **Tra cứu bệnh sử online** → scroll đến PatientPortalSection → nhập mã KCB/CCCD/phone → xem dữ liệu
-2. **Yêu cầu trích sao hồ sơ** → mở RecordRequestModal → điền form → submit → nhận mã yêu cầu
-3. **Góp ý chất lượng dịch vụ** → mở FeedbackModal → đánh giá → submit
-
-**Commands:** npm run lint - Passed, npm run build - Passed
-
----
-
-## PHASE 32 - API Mockup HIS Integration (2026-07-20)
-
-### Mục tiêu
-Xây dựng mockup API đầy đủ theo đặc tả kỹ thuật HIS, hỗ trợ:
-- JWT Authentication + OAuth 2.0 Client Credentials
-- OTP flow cho tra cứu PHI (Protected Health Information)
-- Check trùng bệnh nhân → Đặt lịch (2 bước)
-- ICD-10, LOINC codes
-
-### Bảo mật & Quy chuẩn
-
-**Authentication:**
-- JWT Bearer Token trong HTTP Header
-- `access_token` có hiệu lực 30 phút
-- Refresh token cho gia hạn
-
-**Rate Limiting:**
-- 50 requests/second cho API tra cứu
-- 10 requests/second cho API tạo mới
-
-**Mã hóa Y tế:**
-- ICD-10 cho mã bệnh danh (`diagnosis_codes`)
-- LOINC cho mã cận lâm sàng (`loinc_code`, `indicators[].loinc_code`)
-
-### API Endpoints
-
-#### Authentication APIs (`/api/v1/auth`)
-
-```typescript
-// 1. Gửi OTP
-POST /api/v1/auth/otp/send
-Body: { patientCode: string, phone: string }
-Response: { success: boolean, sessionId: string, expiresIn: 300 }
-```
-
-```typescript
-// 2. Xác thực OTP → nhận read_token (5 phút)
-POST /api/v1/auth/otp/verify
-Body: { sessionId: string, otpCode: string }
-Response: { success: boolean, readToken: string, expiresIn: 300 }
-```
-
-```typescript
-// 3. Refresh access token
-POST /api/v1/auth/token/refresh
-Body: { refreshToken: string }
-Response: { accessToken: string, expiresIn: 1800 }
-```
-
-```typescript
-// 4. Lấy access token (Client Credentials - cho system integration)
-POST /api/v1/auth/token/access
-Body: { patientCode: string }
-Response: { accessToken: string, refreshToken: string, expiresIn: 1800 }
-```
-
-#### Patient APIs (`/api/v1/patients`)
-
-```typescript
-// 1. Tra cứu bệnh nhân
-POST /api/v1/patients/lookup
-Body: { identifier: string, identifierType: 'patientCode' | 'cccd' | 'phone' }
-Response: { patient: Patient, message: string }
-```
-
-```typescript
-// 2. Lấy bệnh sử (yêu cầu read_token)
-GET /api/v1/patients/:patientId/medical-records?readToken=xxx
-Query: { startDate?: string, endDate?: string, clinicId?: string }
-Response: { records: MedicalRecord[], total, page, pageSize }
-```
-
-```typescript
-// 3. Lấy cận lâm sàng (yêu cầu read_token)
-GET /api/v1/patients/:patientId/clinical-tests?readToken=xxx
-Query: { startDate?: string, endDate?: string, testType?: string, status?: string }
-Response: { tests: ClinicalTest[], total, page, pageSize }
-```
-
-```typescript
-// 4. Lấy lịch sử điều trị (yêu cầu read_token)
-GET /api/v1/patients/:patientId/treatment-histories?readToken=xxx
-Response: { histories: TreatmentHistory[], total, page, pageSize }
-```
-
-#### Appointment APIs (`/api/v1/appointments`)
-
-```typescript
-// 1. Check trùng bệnh nhân (Luồng 2 bước - Bước 1)
-POST /api/v1/appointments/check-patient
-Body: { identity_card: string, full_name: string, dob: string, phone: string }
-Response: { exists: boolean, patientCode?: string, message: string }
-```
-
-```typescript
-// 2. Tạo lịch hẹn (Luồng 2 bước - Bước 2)
-POST /api/v1/appointments
-Body: { patientCode: string, specialtyId: string, appointmentDate: string, appointmentTime?: string, symptoms?: string }
-Response: { success: boolean, appointment: { maKCB, queueNumber, roomNumber, ... }, message: string }
-```
-
-```typescript
-// 3. Tra cứu lịch hẹn
-GET /api/v1/appointments/search?patientCode=xxx hoặc ?phone=xxx
-Response: { appointments: Appointment[] }
-```
-
-```typescript
-// 4. Hủy lịch hẹn
-PATCH /api/v1/appointments/:maKCB/cancel
-Response: { success: boolean, appointment, message }
-```
-
-### TypeScript Types Updates
-
-**Patient Types** (`src/types/models/patient.ts`):
-```typescript
-interface PatientLookupRequest { identifier: string; identifierType: 'patientCode' | 'cccd' | 'phone' }
-interface PatientCheckRequest { identity_card: string; full_name: string; dob: string; phone: string }
-interface OTPSendRequest { patientCode: string; phone: string }
-interface OTPVerifyRequest { sessionId: string; otpCode: string }
-interface RefreshTokenRequest { refreshToken: string }
-```
-
-**MedicalRecord** (`src/types/models/medical-record.ts`):
-```typescript
-interface MedicalRecord { ..., icd10_code?: string }
-interface GetMedicalRecordsRequest { patientId: string; readToken: string; ... }
-```
-
-**ClinicalTest** (`src/types/models/clinical-test.ts`):
-```typescript
-interface ClinicalTestIndicator { name: string; loinc_code?: string; value: string; ... }
-interface ClinicalTest { ..., loinc_code?: string; indicators?: ClinicalTestIndicator[] }
-interface GetClinicalTestsRequest { patientId: string; readToken: string; ... }
-```
-
-### Server Routes Files
-
-| File | Mô tả |
-|------|-------|
-| `server/routes/patient.routes.ts` | Patient lookup + PHI access |
-| `server/routes/auth.routes.ts` | OTP flow + token management |
-| `server/routes/appointment.routes.ts` | Check patient + booking |
-| `server/app.ts` | Updated with `/api/v1/*` routes |
-
-### Mock Data
-
-**3 mock patients** với đầy đủ profile:
-- BN-2020-00001: Nguyễn Văn Minh (1965)
-- BN-2021-00042: Trần Thị Hoa (1978)
-- BN-2022-00156: Lê Văn Sơn (1990)
-
-**Medical Records**: 3 records với ICD-10 codes (I25.10, K29.5, J03.90)
-
-**Clinical Tests**: 4 tests với LOINC codes (24331-1, 24581-2, 44500-6, 58413-6)
-
-**Treatment Histories**: 2 records với diagnosisCodes array
-
-**Appointments**: 2 appointments với maKCB format
-
-### Test Credentials
-
-**OTP Flow Test:**
-1. POST `/api/v1/auth/otp/send` với `{ patientCode: "BN-2020-00001", phone: "0912345678" }`
-2. Server returns `sessionId` (check console log cho mock OTP code)
-3. POST `/api/v1/auth/otp/verify` với sessionId + otpCode
-4. Server returns `readToken`
-
-**Commands:** npm run lint - Passed, npm run build - Passed
-
----
-
-## PHASE 34 - InfoCard Modal System (2026-07-20)
-
-### Mục tiêu
-Tất cả InfoCard trong 3 sections đều clickable, mở modal thay vì scroll inline.
-
-### Cấu trúc Modal System
-
-**Modal Components (5 files):**
-
-| Modal | File | Khi click vào |
-|-------|------|---------------|
-| MapModal | MapModal.tsx | "Cơ sở điều trị" (tab Chi phí) |
-| DrugLookupModal | DrugLookupModal.tsx | "Danh mục thuốc BHYT" (tab Chi phí) |
-| InpatientGuideModal | InpatientGuideModal.tsx | "Dành cho bệnh nhân nội trú" (tab Hướng dẫn) |
-| OutpatientGuideModal | OutpatientGuideModal.tsx | "Dành cho thăm khám ngoại trú" (tab Hướng dẫn) |
-| ServicesModal | ServicesModal.tsx | "Dịch vụ điều trị" (tab Hướng dẫn) |
-
-### Modal Details
-
-**MapModal:**
-```tsx
-- Google Maps iframe embed
-- Hospital address: 107 Quang Trung, Xã Đại Lộc, TP Đà Nẵng
-- Hotline: 1900 xxxx
-- Working hours display
-- Button to open Google Maps externally
-```
-
-**DrugLookupModal:**
-```tsx
-- Search input với debounce
-- Mock drug database (5 drugs)
-- BHYT coverage badge
-- Drug details: name, active ingredient, dosage, price, notes
-- Empty state khi không có kết quả
-```
-
-**InpatientGuideModal:**
-```tsx
-- 4 sections: Nhập viện, Thăm nom, Ăn uống, An ninh
-- Icon + title cho mỗi section
-- Bulleted checklist format
-- Emergency hotline note
-- Print button
-```
-
-**OutpatientGuideModal:**
-```tsx
-- 4 steps: Đăng ký, Chờ khám, Khám bệnh, Nhận kết quả
-- Step number overlay (01, 02, 03, 04)
-- Timeline-style layout
-- Working hours info
-- CTA button to book appointment
-```
-
-**ServicesModal:**
-```tsx
-- 9 departments grid (3x3)
-- Department icon, name, description
-- Hover effect on cards
-- CTA to book appointment
-```
-
-### Actions Mapping
-
-```typescript
-const getItemOnAction = (itemName: string) => {
-  if (activeTab === "chi-phi-dia-diem") {
-    if (itemName === "Cơ sở điều trị") return handleOpenMap;
-    if (itemName === "Danh mục thuốc BHYT") return handleOpenDrugLookup;
-  }
-  if (activeTab === "huong-dan-tien-ich") {
-    if (itemName === "Dịch vụ điều trị") return handleOpenServices;
-    if (itemName === "Dành cho bệnh nhân nội trú") return handleOpenInpatientGuide;
-    if (itemName === "Dành cho thăm khám ngoại trú") return handleOpenOutpatientGuide;
-  }
-  return undefined;
-};
-```
-
-### Removed Inline Sections
-- `#map-section` - inline map display (replaced by MapModal)
-- `#drug-lookup-section` - inline drug lookup (replaced by DrugLookupModal)
-
-### Benefits
-1. Page không bị kéo dài bởi inline content
-2. Clean UX - modal đóng là quay về page
-3. Tất cả InfoCards đều có action
-4. Content được tổ chức gọn gàng trong modals
-
-**Commands:** npm run lint - Passed, npm run build - Passed
-
----
-
-## PHASE 35 - Redesign Specialties Section (2026-07-20)
-
-### Mục tiêu
-Biến section "Chuyên khoa nổi bật" từ đơn điệu thành hiện đại, ưa nhìn.
-
-### Design Changes
-
-**1. 3D Tilt Cards**
-```tsx
-// Perspective wrapper
-<div style={{ perspective: "1000px" }}>
-  <motion.div
-    style={{
-      rotateX, rotateY,
-      transformStyle: "preserve-3d"
-    }}
-    whileHover={{ scale: 1.03 }}
-  >
-```
-
-**2. Spring Physics for Smooth Interaction**
-```tsx
-const springConfig = { damping: 20, stiffness: 300 };
-const rotateX = useSpring(
-  useTransform(mouseY, [-0.5, 0.5], [8, -8]),
-  springConfig
-);
-```
-
-**3. Hover Effects**
-- Scale 1.03 với shadow nâng cao
-- Gradient overlay fade in
-- Icon transform (scale + rotate)
-- Arrow indicator reveal
-- Border glow effect
-
-**4. Reveal Animations**
-```tsx
-<motion.div
-  initial={{ opacity: 0, y: 60, scale: 0.9 }}
-  animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-  transition={{ duration: 0.6, delay: index * 0.1 }}
-/>
-```
-
-**5. Modern Typography**
-- Gradient heading với animation
-- Animated underline (scaleX)
-- Badge với icon
-
-**6. Background Decoration**
-```tsx
-<div className="absolute inset-0 opacity-30">
-  <div className="absolute top-20 left-10 w-72 h-72 bg-brand-green/10 rounded-full blur-3xl" />
-  <div className="absolute bottom-10 right-10 w-96 h-96 bg-peach/10 rounded-full blur-3xl" />
-</div>
-```
-
-**7. Modern CTA Button**
-- Gradient background với hover transition
-- Shadow lift + translateY
-- Rotating Plus/Minus icon
-
-### Components Changed
-- Specialties.tsx: Complete redesign với animation
-
-### Benefits
-1. Eye-catching với 3D tilt effect
-2. Smooth interactions với spring physics
-3. Professional medical aesthetic
-4. Increased engagement với hover effects
-
-**Commands:** npm run lint - Passed, npm run build - Passed
-
----
-
-## Earlier Phases
-
-See `memory.md` for detailed history of Phase 0 - Phase 17.
+## Nhật ký thay đổi
+
+| Ngày | Mô tả |
+|------|--------|
+| 2026-07-22 | Bổ sung feedback_requests, record_requests (spec gap từ mục 20.2.1) |
+| 2026-07-22 | Review toàn bộ spec v2.9 — ghi nhận 6 bảng Nhóm B còn thiếu field-level, 5 bảng roadmap, các enum gaps, và 5 điểm cần bổ sung trước khi code |

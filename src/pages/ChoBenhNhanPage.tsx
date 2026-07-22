@@ -185,6 +185,11 @@ export default function ChoBenhNhanPage() {
   const location = useLocation();
   const reducedMotion = useReducedMotion();
   const [activeTab, setActiveTab] = useState("chi-phi-dia-diem");
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const [isRecordRequestOpen, setIsRecordRequestOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);

@@ -97,6 +97,11 @@ function FloatingShape({ className, delay = 0 }: { className: string; delay?: nu
 
 export default function SoDoToChucPage() {
   const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const heroRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [isOrgExpanded, setIsOrgExpanded] = useState(false);

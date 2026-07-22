@@ -1,56 +1,121 @@
-﻿import { useState, FormEvent } from "react";
+﻿import { useState } from "react";
 import { useHospital } from "../../../context/HospitalContext";
 import { useAdmin } from "../../../context/AdminContext";
 import { Card, Button } from "../../ui";
+import EditModal from "../ui/EditModal";
+import ConfirmDialog from "../ui/ConfirmDialog";
 import { Plus, Edit, Trash2, ShieldAlert } from "lucide-react";
 import { IconType } from "../../../types/models/specialty";
+
+const iconTypeOptions = [
+  { value: "general", label: "Tổng quát" },
+  { value: "cardiology", label: "Tim mạch" },
+  { value: "obstetrics", label: "Sản phụ" },
+  { value: "pediatrics", label: "Nhi" },
+  { value: "emergency", label: "Cấp cứu" },
+  { value: "diagnostics", label: "Chẩn đoán" },
+  { value: "ent", label: "Tai mũi họng" },
+  { value: "odontology", label: "Răng hàm mặt" }
+];
 
 export default function SpecialtiesTab() {
   const { specialties, addSpecialty, updateSpecialty, deleteSpecialty } = useHospital();
   const { activeUser } = useAdmin();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<typeof specialties[0] | null>(null);
-  const [form, setForm] = useState<{ name: string; description: string; iconType: IconType; detail: string }>({ name: "", description: "", iconType: "general", detail: "" });
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const isSuperAdmin = activeUser?.role === "Super Admin";
   const canEdit = isSuperAdmin;
 
   const handleOpen = (spec: typeof specialties[0] | null = null) => {
     if (!canEdit) return;
-    if (spec) {
-      setEditing(spec);
-      setForm({ name: spec.name, description: spec.description, iconType: spec.iconType, detail: spec.detail });
-    } else {
-      setEditing(null);
-      setForm({ name: "", description: "", iconType: "general", detail: "" });
-    }
+    setEditing(spec);
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!form.name.trim() || !form.description.trim()) return;
+  const handleClose = () => {
+    setIsModalOpen(false);
+    setEditing(null);
+  };
+
+  const handleSubmit = (data: Record<string, string | number | boolean | File | null>) => {
+    const payload = {
+      id: editing?.id || crypto.randomUUID(),
+      name: data.name as string,
+      description: data.description as string,
+      detail: (data.detail as string) || "",
+      iconType: data.iconType as IconType
+    };
 
     if (editing) {
-      updateSpecialty({ ...editing, ...form });
+      updateSpecialty({ ...editing, ...payload });
     } else {
-      addSpecialty({ ...form, id: crypto.randomUUID() });
+      addSpecialty(payload);
     }
-    setIsModalOpen(false);
+    handleClose();
   };
 
   const handleDelete = (id: string, name: string) => {
     if (!canEdit) return;
-    if (confirm(`Bạn có chắc chắn muốn xóa chuyên khoa ${name}?`)) {
-      deleteSpecialty(id);
+    setDeleteTarget({ id, name });
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteSpecialty(deleteTarget.id);
+      setDeleteTarget(null);
     }
   };
+
+  const fields = [
+    {
+      name: "name",
+      label: "Tên chuyên khoa",
+      type: "text" as const,
+      required: true,
+      description: "Tên hiển thị trên giao diện",
+      hint: "VD: Khoa Xét Nghiệm, Khoa Tim Mạch"
+    },
+    {
+      name: "description",
+      label: "Mô tả tóm tắt",
+      type: "text" as const,
+      required: true,
+      description: "Mô tả ngắn gọn chức năng chuyên khoa",
+      hint: "VD: Thực hiện các loại xét nghiệm máu, nước tiểu"
+    },
+    {
+      name: "detail",
+      label: "Mô tả chi tiết kỹ thuật",
+      type: "textarea" as const,
+      description: "Thông tin trang thiết bị, kỹ thuật chuyên sâu",
+      hint: "VD: Hệ thống xét nghiệm tự động cobas 8000, máy sinh hóa",
+      rows: 3
+    },
+    {
+      name: "iconType",
+      label: "Loại biểu tượng",
+      type: "select" as const,
+      required: true,
+      description: "Icon đại diện cho chuyên khoa",
+      hint: "Chọn biểu tượng phù hợp với chuyên khoa",
+      options: iconTypeOptions
+    }
+  ];
+
+  const initialData = editing ? {
+    name: editing.name,
+    description: editing.description,
+    detail: editing.detail || "",
+    iconType: editing.iconType
+  } : {};
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="font-display font-bold text-lg text-green-dark">Danh Sách Chuyên Khoa Lâm Sàng</h3>
-        <Button variant="primary" size="md" onClick={() => handleOpen()} disabled={!canEdit}>
+        <Button variant="primary" size="md" onClick={() => handleOpen(null)} disabled={!canEdit}>
           <Plus size={14} />
           <span>Thêm Chuyên Khoa Mới</span>
         </Button>
@@ -83,7 +148,7 @@ export default function SpecialtiesTab() {
                   <td className="p-3 max-w-[200px] truncate">{s.description}</td>
                   <td className="p-3 max-w-[300px] truncate">{s.detail}</td>
                   <td className="p-3 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
+<div className="flex items-center justify-end gap-1.5">
                       <button
                         onClick={() => handleOpen(s)}
                         disabled={!canEdit}
@@ -109,60 +174,26 @@ export default function SpecialtiesTab() {
         </div>
       </Card>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[20px] w-full max-w-lg overflow-hidden shadow-2xl border border-green-800/10">
-            <div className="bg-gradient-to-r from-brand-green to-green-dark p-5 text-white flex justify-between items-center">
-              <h3 className="font-display font-bold text-base">
-                {editing ? "Cập Nhật Chuyên Khoa" : "Thêm Chuyên Khoa Mới"}
-              </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-white/80 hover:text-white cursor-pointer">✕</button>
-            </div>
+      <EditModal
+        isOpen={isModalOpen}
+        onClose={handleClose}
+        onSubmit={handleSubmit}
+        title={editing ? "Cập Nhật Chuyên Khoa" : "Thêm Chuyên Khoa Mới"}
+        fields={fields}
+        initialData={initialData}
+        size="md"
+      />
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs font-medium text-green-dark">
-              <div className="space-y-1">
-                <label className="block text-[10px] uppercase font-bold tracking-wider">Tên chuyên khoa</label>
-                <input
-                  type="text"
-                  required
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="e.g. Khoa Xét Nghiệm"
-                  className="w-full p-2.5 bg-cream-white border border-green-800/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-[10px] uppercase font-bold tracking-wider">Mô tả tóm tắt ngắn</label>
-                <input
-                  type="text"
-                  required
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="e.g. Thực hiện xét nghiệm máu tự động..."
-                  className="w-full p-2.5 bg-cream-white border border-green-800/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-[10px] uppercase font-bold tracking-wider">Mô tả chi tiết</label>
-                <textarea
-                  value={form.detail}
-                  onChange={(e) => setForm({ ...form, detail: e.target.value })}
-                  rows={3}
-                  placeholder="Mô tả trang thiết bị, kỹ thuật..."
-                  className="w-full p-2.5 bg-cream-white border border-green-800/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green"
-                />
-              </div>
-
-              <div className="pt-4 flex items-center justify-end gap-2 border-t border-ink/5">
-                <Button type="button" variant="secondary" size="md" onClick={() => setIsModalOpen(false)}>Hủy bỏ</Button>
-                <Button type="submit" variant="primary" size="md">{editing ? "Cập Nhật" : "Tạo mới"}</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        title="Xác nhận xóa chuyên khoa"
+        message={`Bạn có chắc chắn muốn xóa chuyên khoa "${deleteTarget?.name}"? Hành động này không thể hoàn tác.`}
+        confirmText="Xóa bỏ"
+        cancelText="Hủy bỏ"
+        variant="danger"
+      />
     </div>
   );
 }

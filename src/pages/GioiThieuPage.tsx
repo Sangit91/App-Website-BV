@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, MouseEvent } from "react";
 import { useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
-import { Info, Users, Building2, Award, Heart, ArrowRight, Check, Activity, ChevronDown, type LucideIcon } from "lucide-react";
+import { Info, Users, Building2, Award, Heart, ArrowRight, Check, Activity, ChevronDown, X, type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import Organization from "../components/public/Organization";
 
@@ -144,9 +144,10 @@ interface FeatureCardProps {
   };
   index: number;
   color: string;
+  onClick: () => void;
 }
 
-function FeatureCard({ item, index, color }: FeatureCardProps) {
+function FeatureCard({ item, index, color, onClick }: FeatureCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true, margin: "-50px" });
   const mouseX = useMotionValue(0);
@@ -184,6 +185,7 @@ function FeatureCard({ item, index, color }: FeatureCardProps) {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
       className="group cursor-pointer"
     >
       <motion.div
@@ -343,6 +345,13 @@ function ProcessCard({ item, index }: ProcessCardProps) {
 export default function GioiThieuPage() {
   const location = useLocation();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState<{ title: string; icon: LucideIcon; image: string; items: string[] } | null>(null);
+  const [selectedValue, setSelectedValue] = useState<{ image: string; icon: typeof Heart; title: string; desc: string } | null>(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const heroRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
@@ -667,6 +676,7 @@ export default function GioiThieuPage() {
                 item={facility}
                 index={idx}
                 color={["green", "blue", "purple"][idx]}
+                onClick={() => setSelectedFeature(facility)}
               />
             ))}
           </div>
@@ -753,6 +763,7 @@ export default function GioiThieuPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1, duration: 0.5 }}
                     whileHover={{ y: -6, scale: 1.01 }}
+                    onClick={() => setSelectedValue(item)}
                     className="group relative overflow-hidden rounded-3xl shadow-lg cursor-pointer"
                   >
                     {/* Background Image */}
@@ -831,6 +842,95 @@ export default function GioiThieuPage() {
           </motion.div>
         </div>
       </section>
+
+      <AnimatePresence>
+        {selectedFeature && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="w-full max-w-2xl bg-cream-white rounded-[28px] shadow-2xl overflow-hidden my-8 flex flex-col max-h-[90vh]">
+              <div className="bg-green-dark px-6 py-4 text-white flex justify-between items-center shrink-0 border-b border-brand-green/20">
+                <div className="flex items-center gap-2">
+                  <Building2 size={18} className="text-peach" />
+                  <span className="font-display font-bold text-sm tracking-wide text-gray-200">Cơ sở vật chất</span>
+                </div>
+                <button
+                  onClick={() => setSelectedFeature(null)}
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto p-6 md:p-10 flex-grow bg-cream-white">
+                <div className="max-w-xl mx-auto space-y-6">
+                  {selectedFeature.image && (
+                    <div className="w-full h-56 rounded-2xl overflow-hidden">
+                      <img src={selectedFeature.image} alt={selectedFeature.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    </div>
+                  )}
+                  <div>
+                    <h1 className="font-display font-bold text-2xl md:text-3xl text-green-dark leading-tight">{selectedFeature.title}</h1>
+                    <div className="w-16 h-1 bg-brand-green rounded-full mt-3" />
+                  </div>
+                  <ul className="space-y-3">
+                    {selectedFeature.items.map((it, i) => (
+                      <li key={i} className="flex items-start gap-3 text-ink text-[15px]">
+                        <Check size={16} className="text-brand-green mt-0.5 shrink-0" />
+                        <span>{it}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 px-6 py-4 flex justify-end border-t border-gray-100 shrink-0">
+                <button onClick={() => setSelectedFeature(null)} className="px-5 py-2 rounded-full bg-brand-green hover:bg-brand-green/90 text-white text-xs font-bold cursor-pointer transition-all">
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {selectedValue && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="w-full max-w-2xl bg-cream-white rounded-[28px] shadow-2xl overflow-hidden my-8 flex flex-col max-h-[90vh]">
+              <div className="bg-green-dark px-6 py-4 text-white flex justify-between items-center shrink-0 border-b border-brand-green/20">
+                <div className="flex items-center gap-2">
+                  <Heart size={18} className="text-peach" />
+                  <span className="font-display font-bold text-sm tracking-wide text-gray-200">Giá trị cốt lõi</span>
+                </div>
+                <button
+                  onClick={() => setSelectedValue(null)}
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto p-6 md:p-10 flex-grow bg-cream-white">
+                <div className="max-w-xl mx-auto space-y-6">
+                  {selectedValue.image && (
+                    <div className="w-full h-56 rounded-2xl overflow-hidden">
+                      <img src={selectedValue.image} alt={selectedValue.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    </div>
+                  )}
+                  <div>
+                    <h1 className="font-display font-bold text-2xl md:text-3xl text-green-dark leading-tight">{selectedValue.title}</h1>
+                    <div className="w-16 h-1 bg-brand-green rounded-full mt-3" />
+                  </div>
+                  <p className="text-ink text-[15px] leading-relaxed">{selectedValue.desc}</p>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 px-6 py-4 flex justify-end border-t border-gray-100 shrink-0">
+                <button onClick={() => setSelectedValue(null)} className="px-5 py-2 rounded-full bg-brand-green hover:bg-brand-green/90 text-white text-xs font-bold cursor-pointer transition-all">
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </Layout>
   );
 }

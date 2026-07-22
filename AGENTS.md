@@ -15,20 +15,35 @@ Mục tiêu:
 
 ---
 
+## 📖 Tài liệu đặc tả UI/UX (nguồn tham chiếu chính)
+
+`dac-ta-uiux-tong-hop-vX.X.docx` là **single source of truth** cho hành vi UI/UX, design token, template trang, RBAC Admin và lược đồ CSDL. AGENTS.md không lặp lại nội dung đặc tả — chỉ nêu quy tắc vận hành khi code.
+
+Bắt buộc:
+
+* Khi một thay đổi làm lệch với đặc tả hiện có (đổi bố cục, đổi luồng, đổi trạng thái) → phải cập nhật docx tương ứng (đánh version mới, ghi vào mục "Nhật ký phiên bản") trong cùng phiên làm việc, không để lệch giữa code và tài liệu.
+* Khi một tính năng mới đã triển khai trên code nhưng chưa có trong docx (ví dụ: tính năng dựng nhanh theo yêu cầu gấp) → ghi nhận vào `memory.md` trước, và nêu rõ trong ghi chú "chưa đồng bộ vào đặc tả UI/UX — cần bổ sung ở lần cập nhật docx kế tiếp".
+* Không tự ý đổi số mục trong docx khi chỉ thêm nội dung — bổ sung mục mới nối tiếp (mục lớn nhất hiện có + 1), giữ nguyên số mục cũ để không phá cross-reference.
+
+---
+
 # 📋 BẮT ĐẦU MỖI SESSION
 
 ## Bắt buộc thực hiện
 
 ```bash
-# 1. Đọc memory.md trước tiên
+# 1. Đọc memory.md trước tiên (trạng thái hiện tại + pending tasks)
 cat memory.md
 
-# 2. Kiểm tra trạng thái git
+# 2. Nếu cần đối chiếu lịch sử chi tiết trước khi sửa 1 khu vực cụ thể
+grep -n "TênTrang\|TênComponent" memory/phase-history.md
+
+# 3. Kiểm tra trạng thái git
 git status
 git log --oneline -5
 ```
 
-Không được bỏ qua bước này.
+Không được bỏ qua bước này. Không cần đọc toàn bộ `memory/phase-history.md` mỗi session — chỉ tra cứu phần liên quan khi cần.
 
 ---
 
@@ -259,6 +274,17 @@ Khi card hiển thị thông tin chi tiết, ưu tiên **Modal** thay vì **inli
 
 ---
 
+## Đồng bộ ENUM trạng thái ↔ Badge component
+
+Khi thêm/sửa giá trị ENUM status của bất kỳ bảng nào, bắt buộc trong cùng session:
+
+1. Cập nhật Badge component — không được có giá trị enum nào thiếu màu badge tương ứng.
+2. Nếu thay đổi liên quan đến đặc tả UI/UX → cập nhật docx tương ứng (đánh version mới, ghi Nhật ký phiên bản).
+
+Không merge nếu ENUM trong DB nhiều hơn số trạng thái UI có thể hiển thị.
+
+---
+
 # 🎨 DESIGN SYSTEM
 
 ## Typography
@@ -416,6 +442,36 @@ Khi bật:
 
 ---
 
+### Shared Animation Hooks — Single Source of Truth
+
+Mọi logic animation dùng lặp lại ở nhiều trang **bắt buộc** tái sử dụng từ:
+
+```text
+src/hooks/useReducedMotion.ts
+src/components/shared/AnimatedCounter.tsx
+src/components/shared/FloatingShape.tsx
+```
+
+### Không được
+
+```text
+Tạo bản sao useReducedMotion/AnimatedCounter/FloatingShape riêng cho từng trang mới
+```
+
+### Đúng
+
+```tsx
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { AnimatedCounter } from '@/components/shared/AnimatedCounter';
+import { FloatingShape } from '@/components/shared/FloatingShape';
+```
+
+Khi thêm trang catalog mới theo Modern Page Design Pattern (mục 19.1 đặc tả UI/UX), chỉ cấu hình lại data source + bảng màu nhóm (mục 19.1.2) — không viết lại hook/component nền.
+
+Sau khi thêm animation mới ở bất kỳ trang nào: xác nhận lại `prefers-reduced-motion` vẫn tắt/rút gọn đúng hiệu ứng trên **toàn bộ** các trang đang dùng chung hook đó, không chỉ trang vừa sửa.
+
+---
+
 # 🧩 COMPONENT GOVERNANCE
 
 ## Reusable Components
@@ -431,6 +487,7 @@ Card
 Badge
 Spinner
 ErrorBoundary
+AddCard      (item "thêm mới" trong danh sách Admin — đổi màu qua prop, không tạo bản sao)
 ```
 
 ---
@@ -452,6 +509,21 @@ Hãy mở rộng component hiện có.
 * Responsive
 * Loading state nếu cần
 * Error state nếu cần
+
+---
+
+## EditModal — Chuẩn field bắt buộc (mọi tab CRUD Admin)
+
+Mỗi field trong EditModal phải có:
+
+* `description` — field dùng để làm gì (VD: "Ảnh hero section")
+* `hint` — ví dụ thực tế theo đúng ngữ cảnh bệnh viện (VD: "VD: Đặt lịch khám, Chuyên khoa")
+* Field dạng link nội bộ: hint luôn nhắc "Bắt đầu bằng /"
+* Field có nhiều lựa chọn nội dung mẫu: `suggestions` điều hướng được bằng bàn phím (↑/↓/Enter/Esc)
+* Ảnh: có preview + hiệu ứng hover
+* Modal tự đóng sau submit thành công
+
+Không tạo EditModal riêng cho từng tab — dùng chung 1 component, khác nhau ở cấu hình field.
 
 ---
 
@@ -599,6 +671,27 @@ Result State
 
 ---
 
+## Cổng thông tin bệnh nhân (Patient Portal — tích hợp HIS)
+
+Xem đặc tả chi tiết tại mục 20.1 tài liệu UI/UX. Bắt buộc có đủ 5 trạng thái:
+
+```text
+Loading                  — đang gọi API tra cứu, khoá input, chặn submit lặp
+Empty (chưa tra cứu)     — chỉ hiện PatientLookupForm
+Empty (không tìm thấy)   — thông báo thân thiện, không dùng mã lỗi kỹ thuật (VD "404")
+Error (API/mạng lỗi)     — banner trung tính + nút "Thử lại"
+Result                   — PatientInfoCard + 3 tab (Bệnh sử / CLS / Điều trị)
+```
+
+### Bảo mật dữ liệu PHI (Protected Health Information)
+
+* Mọi endpoint đọc dữ liệu bệnh sử/CLS/điều trị bắt buộc yêu cầu `readToken` (hiệu lực 5 phút) lấy từ luồng OTP — không bỏ qua bước xác thực này dù ở môi trường dev/mock.
+* Không log nội dung PHI ra console, kể cả khi debug.
+* Không lưu `readToken`/OTP trong `localStorage` — chỉ giữ trong state hoặc sessionStorage có thời hạn ngắn tương ứng hiệu lực token.
+* Tuân thủ nguyên tắc data minimization: kết quả tra cứu chỉ hiển thị thông tin cần thiết để xác nhận đúng bệnh nhân (họ tên, năm sinh, mã bệnh nhân), không hiển thị thừa.
+
+---
+
 ## AI Advisor
 
 Bắt buộc có:
@@ -656,6 +749,16 @@ Chỉ xử lý:
 
 ---
 
+### File Storage Naming Convention
+
+Mọi bảng file đính kèm dùng thống nhất tên cột `file_path` (không dùng `storage_path`/`file_url`/`path`...) — theo mục 15.11 + 21.8.5 spec.
+
+### Notification Logs — Polymorphic Pattern
+
+Không tạo bảng log riêng cho từng tính năng gửi thông báo (SMS/email/push). Dùng chung `notification_logs` với khoá polymorphic (`related_type`, `related_id`) — theo mục 21.5 spec. Vi phạm nguyên tắc này bị coi là Duplicate Component ở tầng dữ liệu.
+
+---
+
 ## Không được
 
 ```text
@@ -663,6 +766,14 @@ Route → Database
 ```
 
 bỏ qua Service Layer.
+
+---
+
+## 🗄️ DATA RETENTION GOVERNANCE
+
+* **activity_logs** = log tuân thủ (compliance) → **KHÔNG được** viết job xoá/cleanup dưới bất kỳ hình thức nào. Giữ theo quy định pháp luật (mục 14.2).
+* **notification_logs** = log vận hành → được phép cleanup job, retention khuyến nghị **180 ngày**, phải có index `(created_at)` trước khi bật job.
+* Trước khi thêm bảng log mới, xác định rõ nó thuộc nhóm nào trong 2 nhóm trên và ghi vào memory.md.
 
 ---
 
@@ -708,6 +819,15 @@ Bước 2: POST /api/v1/appointments
 
 * **ICD-10** cho mã bệnh danh (`icd10_code`)
 * **LOINC** cho mã cận lâm sàng (`loinc_code`)
+
+---
+
+## Public Form API Standards (feedback / record-request / contact / lab-test / teleconsult)
+
+* Mọi endpoint POST public (không auth) bắt buộc rate limit 5 request/IP/15 phút — không tự ý nới lỏng dù môi trường dev.
+* Toàn bộ bảng dạng "request-tracking" dùng chung ENUM status: `moi` / `dang_xu_ly` / `da_xu_ly`. Bảng `record_requests` thêm `da_huy`. Không đặt tên trạng thái mới khác cho tính năng tương tự.
+* Nếu form cho phép gửi ẩn danh (không patient_id) → bắt buộc validate có ít nhất 1 kênh liên hệ (`contact_phone` hoặc `contact_email`) trước khi cho submit — theo mục 21.11 spec.
+* Không log nội dung góp ý/hồ sơ trích sao ra console — cùng mức thận trọng như PHI dù không phải dữ liệu y tế.
 
 ---
 
@@ -758,7 +878,20 @@ Sau khi code xong phải tự đánh giá.
 
 # 📝 MEMORY MANAGEMENT
 
-## Bắt buộc cập nhật memory.md khi
+## Cấu trúc file memory
+
+```text
+memory.md                    → Trạng thái hiện tại: kiến trúc, design token, quy tắc đã chốt,
+                                pending tasks, backup gần nhất, con trỏ tới các file dưới.
+memory/phase-history.md      → Toàn bộ lịch sử Phase theo thứ tự thời gian tăng dần (append-only).
+memory/bugs-fixed.md         → Danh sách bug đã sửa.
+```
+
+`memory.md` chỉ giữ những gì cần tra cứu thường xuyên (trạng thái, quy tắc, việc đang dang dở). Lịch sử chi tiết từng Phase nằm ở `memory/phase-history.md`, không lặp lại trong `memory.md`.
+
+---
+
+## Bắt buộc cập nhật khi
 
 * Thêm feature
 * Sửa bug
@@ -766,6 +899,20 @@ Sau khi code xong phải tự đánh giá.
 * Backup
 * Config
 * Design System
+
+→ Ghi entry mới vào `memory/phase-history.md` (hoặc `bugs-fixed.md` nếu là bug), sau đó cập nhật phần "Trạng thái hiện tại" trong `memory.md` nếu thay đổi ảnh hưởng đến kiến trúc/quy tắc đang áp dụng.
+
+---
+
+## Đánh số Phase — bắt buộc kiểm tra trước khi ghi
+
+Trước khi tạo entry Phase mới:
+
+```bash
+grep -oE "^## PHASE [0-9]+" memory/phase-history.md | grep -oE "[0-9]+" | sort -n | tail -1
+```
+
+Số Phase mới = số lớn nhất hiện có + 1. **Không được** dùng lại số Phase đã tồn tại, kể cả khi phiên làm việc trước đó không nhìn thấy do file dài. Nếu phát hiện 2 Phase trùng số trong lịch sử cũ, không tự renumber (vì có thể đã bị tham chiếu ở dactaupdate.md hoặc tài liệu UI/UX) — disambiguate bằng hậu tố chữ cái (VD: `15-A`, `15-B`) và ghi chú lý do.
 
 ---
 

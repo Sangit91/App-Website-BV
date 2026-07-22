@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, MouseEvent } from "react";
 import { useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
-import { Activity, Scissors, Stethoscope, Baby, Microscope, ArrowRight, ChevronRight } from "lucide-react";
+import { Activity, Scissors, Stethoscope, Baby, Microscope, ArrowRight, ChevronRight, X } from "lucide-react";
 import { useReducedMotion } from "../hooks/useReducedMotion";
 import { AnimatedCounter } from "../hooks/AnimatedCounter";
 import { FloatingShape } from "../hooks/FloatingShape";
@@ -70,12 +70,14 @@ interface ServiceCardProps {
     name: string;
     desc: string;
     img: string;
+    highlight?: boolean;
   };
   dept: typeof DEPARTMENTS[0];
   index: number;
+  onClick: () => void;
 }
 
-function ServiceCard({ item, dept, index }: ServiceCardProps) {
+function ServiceCard({ item, dept, index, onClick }: ServiceCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true, margin: "-50px" });
   const mouseX = useMotionValue(0);
@@ -105,6 +107,7 @@ function ServiceCard({ item, dept, index }: ServiceCardProps) {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
       className="group cursor-pointer"
     >
       <motion.div
@@ -193,6 +196,12 @@ function ServiceCard({ item, dept, index }: ServiceCardProps) {
 export default function ChuyenKhoaPage() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("ngoai-cap-cuu");
+  const [selectedSpecialty, setSelectedSpecialty] = useState<{ name: string; desc: string; img: string } | null>(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const heroRef = useRef<HTMLDivElement>(null);
   const tabNavRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
@@ -484,13 +493,72 @@ export default function ChuyenKhoaPage() {
               </motion.h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {currentData.items.filter(item => !item.highlight).map((item, idx) => (
-                  <ServiceCard key={item.name} item={item} dept={currentDept} index={idx} />
+                  <ServiceCard key={item.name} item={item} dept={currentDept} index={idx} onClick={() => setSelectedSpecialty(item)} />
                 ))}
               </div>
             </motion.div>
           </AnimatePresence>
         </div>
       </section>
+
+      <AnimatePresence>
+        {selectedSpecialty && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="w-full max-w-2xl bg-cream-white rounded-[28px] shadow-2xl overflow-hidden my-8 flex flex-col max-h-[90vh]">
+              <div className="bg-green-dark px-6 py-4 text-white flex justify-between items-center shrink-0 border-b border-brand-green/20">
+                <div className="flex items-center gap-2">
+                  <Stethoscope size={18} className="text-peach" />
+                  <span className="font-display font-bold text-sm tracking-wide text-gray-200">Chi tiết chuyên khoa</span>
+                </div>
+                <button
+                  onClick={() => setSelectedSpecialty(null)}
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto p-6 md:p-10 flex-grow bg-cream-white">
+                <div className="max-w-xl mx-auto space-y-6">
+                  {selectedSpecialty.img && (
+                    <div className="w-full h-56 rounded-2xl overflow-hidden">
+                      <img
+                        src={selectedSpecialty.img}
+                        alt={selectedSpecialty.name}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <h1 className="font-display font-bold text-2xl md:text-3xl text-green-dark leading-tight">
+                      {selectedSpecialty.name}
+                    </h1>
+                    <div className="w-16 h-1 bg-brand-green rounded-full mt-3" />
+                  </div>
+                  <p className="text-ink text-[15px] leading-relaxed">
+                    {selectedSpecialty.desc}
+                  </p>
+                  <div className="bg-mint/40 border border-brand-green/10 rounded-xl p-5">
+                    <p className="text-sm text-green-dark font-medium leading-relaxed">
+                      Để được tư vấn và đặt lịch khám với chuyên khoa này, vui lòng liên hệ bệnh viện qua số hotline hoặc đến trực tiếp quầy tiếp nhận.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 px-6 py-4 flex justify-end border-t border-gray-100 shrink-0">
+                <button
+                  onClick={() => setSelectedSpecialty(null)}
+                  className="px-5 py-2 rounded-full bg-brand-green hover:bg-brand-green/90 text-white text-xs font-bold cursor-pointer transition-all"
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </Layout>
   );
 }

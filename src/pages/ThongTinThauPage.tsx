@@ -88,6 +88,7 @@ function TenderCard({ item, dept, index, onClick }: TenderCardProps) {
     <motion.div ref={cardRef} initial={{ opacity: 0, y: 60 }} animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: reducedMotion ? 0 : 0.6, delay: reducedMotion ? 0 : index * 0.1 }} style={{ perspective: "1000px" }}
       onMouseMove={handleMouseMove} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
       className="group cursor-pointer">
       <motion.div style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
         animate={isHovered ? { scale: 1.02 } : { scale: 1 }}
@@ -136,6 +137,11 @@ function TenderCard({ item, dept, index, onClick }: TenderCardProps) {
 export default function ThongTinThauPage() {
   const { news } = useHospital();
   const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const [activeDept, setActiveDept] = useState("PHÒNG CNTT");
   const [selectedTender, setSelectedTender] = useState<NewsItem | null>(null);
   const [downloadToast, setDownloadToast] = useState<string | null>(null);

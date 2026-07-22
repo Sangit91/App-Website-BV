@@ -1,13 +1,14 @@
 import { useRef, useState, useEffect } from "react";
 import Layout from "../components/layout/Layout";
 import News from "../components/public/News";
-import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion";
-import { Newspaper, FileText, Users, Shield, ArrowRight, Calendar, Heart, Stethoscope, Gavel, FileCheck } from "lucide-react";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { Newspaper, FileText, Users, Shield, ArrowRight, Calendar, Heart, Stethoscope, Gavel, FileCheck, X, Printer, Share2, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useHospital } from "../context/HospitalContext";
 import { useReducedMotion } from "../hooks/useReducedMotion";
 import { AnimatedCounter } from "../hooks/AnimatedCounter";
 import { FloatingShape } from "../hooks/FloatingShape";
+import { NewsItem } from "../types";
 
 const NEWS_TABS = [
   { key: "benh-vien", title: "Tin tức bệnh viện", icon: Newspaper, color: "from-green-500 to-emerald-600" },
@@ -26,8 +27,14 @@ export default function TinTucPage() {
   const heroRef = useRef<HTMLDivElement>(null);
   const tabNavRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const { news } = useHospital();
   const [activeTab, setActiveTab] = useState("benh-vien");
+  const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
@@ -147,7 +154,13 @@ export default function TinTucPage() {
                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }} className="mb-12">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-green-950/5 rounded-3xl overflow-hidden border border-green-800/5">
                     {hospitalNews[0] && (
-                      <motion.div className="relative h-80 lg:h-96 overflow-hidden" initial={{ clipPath: "inset(100% 0 0 0)" }} animate={{ clipPath: "inset(0% 0 0 0)" }} transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}>
+                      <motion.div
+                        className="relative h-80 lg:h-96 overflow-hidden cursor-pointer"
+                        initial={{ clipPath: "inset(100% 0 0 0)" }}
+                        animate={{ clipPath: "inset(0% 0 0 0)" }}
+                        transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        onClick={() => setSelectedNews(hospitalNews[0])}
+                      >
                         <motion.img src={hospitalNews[0].image} alt={hospitalNews[0].title} className="w-full h-full object-cover" referrerPolicy="no-referrer" initial={{ scale: 1.2 }} animate={{ scale: reducedMotion ? 1 : 1 }} transition={{ duration: reducedMotion ? 0 : 1.2, ease: [0.25, 0.46, 0.45, 0.94] }} />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-8">
@@ -218,6 +231,7 @@ export default function TinTucPage() {
                         initial={{ opacity: 0, y: 60 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: idx * 0.1 }}
+                        onClick={() => setSelectedNews(item)}
                         className="bg-white border border-green-800/5 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group"
                       >
                         <div className="relative h-48 overflow-hidden">
@@ -300,6 +314,7 @@ export default function TinTucPage() {
                         initial={{ opacity: 0, y: 60 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: idx * 0.1 }}
+                        onClick={() => setSelectedNews(item)}
                         className="bg-white border border-green-800/5 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group"
                       >
                         <div className="relative h-48 overflow-hidden">
@@ -410,6 +425,78 @@ export default function TinTucPage() {
           </AnimatePresence>
         </div>
       </section>
+
+      <AnimatePresence>
+        {selectedNews && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="w-full max-w-3xl bg-cream-white rounded-[28px] shadow-2xl overflow-hidden my-8 flex flex-col max-h-[90vh]">
+              <div className="bg-green-dark px-6 py-4 text-white flex justify-between items-center shrink-0 border-b border-brand-green/20">
+                <div className="flex items-center gap-2">
+                  <FileText size={18} className="text-peach" />
+                  <span className="font-display font-bold text-sm tracking-wide text-gray-200">
+                    Tin tức y khoa
+                  </span>
+                </div>
+                <button
+                  onClick={() => setSelectedNews(null)}
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto p-6 md:p-10 flex-grow bg-cream-white">
+                <div className="max-w-2xl mx-auto space-y-6">
+                  <div className="flex items-center gap-3 text-xs text-ink/50">
+                    <span className="bg-brand-green/10 text-brand-green font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                      {selectedNews.tag}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Calendar size={13} className="text-brand-green" />
+                      <span>{selectedNews.date}</span>
+                    </span>
+                  </div>
+
+                  <h1 className="font-display font-bold text-2xl md:text-3xl text-green-dark leading-tight tracking-tight text-left">
+                    {selectedNews.title}
+                  </h1>
+
+                  <div className="w-full h-64 md:h-80 rounded-2xl overflow-hidden">
+                    <img
+                      src={selectedNews.image}
+                      alt={selectedNews.title}
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+
+                  <div className="font-sans text-ink text-[14.5px] leading-relaxed space-y-4 text-left">
+                    {selectedNews.content ? (
+                      selectedNews.content.split("\n\n").map((paragraph, idx) => (
+                        <p key={idx}>{paragraph}</p>
+                      ))
+                    ) : (
+                      <>
+                        <p>{selectedNews.summary}</p>
+                        <p>Nội dung chi tiết đang được cập nhật. Vui lòng quay lại sau hoặc liên hệ bệnh viện để biết thêm thông tin.</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 px-6 py-4 flex justify-end border-t border-gray-100 shrink-0">
+                <button
+                  onClick={() => setSelectedNews(null)}
+                  className="px-5 py-2 rounded-full bg-brand-green hover:bg-brand-green/90 text-white text-xs font-bold cursor-pointer transition-all"
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </Layout>
   );
 }

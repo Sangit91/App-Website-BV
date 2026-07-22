@@ -1,7 +1,9 @@
-﻿import { useState, useEffect, FormEvent } from "react";
+﻿import { useState, useEffect } from "react";
 import { useHospital } from "../../../context/HospitalContext";
 import { useAdmin } from "../../../context/AdminContext";
 import { Card, Button } from "../../ui";
+import EditModal from "../ui/EditModal";
+import ConfirmDialog from "../ui/ConfirmDialog";
 import { Plus, Edit, Trash2, RefreshCw, Search } from "lucide-react";
 
 interface Department {
@@ -29,7 +31,7 @@ export default function OrganizationTab() {
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<{ divisionId: string; dept: Department } | null>(null);
-  const [form, setForm] = useState({ name: "", leader: "", phone: "", staffCount: 0, description: "", details: "" });
+  const [deleteTarget, setDeleteTarget] = useState<{ divisionId: string; deptId: string; deptName: string } | null>(null);
 
   const isSuperAdmin = activeUser?.role === "Super Admin";
 
@@ -61,52 +63,121 @@ export default function OrganizationTab() {
   const handleOpenModal = (divisionId: string, dept: Department | null = null) => {
     if (dept) {
       setEditing({ divisionId, dept });
-      setForm({ name: dept.name, leader: dept.leader, phone: dept.phone, staffCount: dept.staffCount, description: dept.description, details: dept.details || "" });
     } else {
       setEditing(null);
-      setForm({ name: "", leader: "", phone: "", staffCount: 0, description: "", details: "" });
     }
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditing(null);
+  };
+
+  const handleSubmit = async (data: Record<string, string | number | boolean | File | null>) => {
+    const form = {
+      name: data.name as string,
+      leader: data.leader as string,
+      phone: (data.phone as string) || "",
+      staffCount: Number(data.staffCount) || 0,
+      description: (data.description as string) || "",
+      details: (data.details as string) || ""
+    };
+
     if (!form.name.trim() || !form.leader.trim()) return;
 
     try {
       let res;
       if (editing) {
-        res = await fetch(`/api/organization/${editing.divisionId}/departments/${editing.dept.id}`, {
-          method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form)
+        res = await fetch("/api/organization/" + editing.divisionId + "/departments/" + editing.dept.id, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form)
         });
       } else {
-        res = await fetch(`/api/organization/${selectedDivision}/departments`, {
-          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form)
+        res = await fetch("/api/organization/" + selectedDivision + "/departments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form)
         });
       }
 
       if (res.ok) {
         await fetchData();
-        addLog(`Cập nhật sơ đồ tổ chức: ${editing ? "Sửa" : "Thêm"} khoa/phòng "${form.name}"`);
+        addLog("Cập nhật sơ đồ tổ chức: " + (editing ? "Sửa" : "Thêm") + " khoa/phòng \"" + form.name + "\"");
       }
     } catch (err) {
       console.error("Organization CRUD error:", err);
     }
-    setIsModalOpen(false);
+    handleCloseModal();
   };
 
-  const handleDelete = async (divisionId: string, deptId: string, deptName: string) => {
-    if (!confirm(`Bạn có chắc chắn muốn xóa khoa/phòng "${deptName}"?`)) return;
+  const handleDelete = (divisionId: string, deptId: string, deptName: string) => {
+    setDeleteTarget({ divisionId, deptId, deptName });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      const res = await fetch(`/api/organization/${divisionId}/departments/${deptId}`, { method: "DELETE" });
+      const res = await fetch("/api/organization/" + deleteTarget.divisionId + "/departments/" + deleteTarget.deptId, { method: "DELETE" });
       if (res.ok) {
         await fetchData();
-        addLog(`Xóa khoa/phòng "${deptName}" khỏi sơ đồ tổ chức`);
+        addLog("Xóa khoa/phòng \"" + deleteTarget.deptName + "\" khỏi sơ đồ tổ chức");
       }
     } catch (err) {
       console.error("Delete org dept error:", err);
     }
+    setDeleteTarget(null);
   };
+
+  const fields = [
+    {
+      name: "name",
+      label: "Tên Khoa/Phòng",
+      type: "text" as const,
+      required: true,
+      description: "Tên đầy đủ của khoa/phòng",
+      hint: "VD: Khoa Tim Mạch, Phòng Tài Chính"
+    },
+    {
+      name: "leader",
+      label: "Trưởng khoa",
+      type: "text" as const,
+      required: true,
+      description: "Họ tên người phụ trách",
+      hint: "VD: PGS. TS. Nguyễn Văn A"
+    },
+    {
+      name: "phone",
+      label: "Số Điện Thoại",
+      type: "text" as const,
+      description: "Số liên hệ nội bộ",
+      hint: "VD: 028 1234 5678"
+    },
+    {
+      name: "staffCount",
+      label: "Số Nhân Sự",
+      type: "number" as const,
+      description: "Số lượng nhân viên trong khoa/phòng",
+      hint: "VD: 25"
+    },
+    {
+      name: "description",
+      label: "Mô Tả Ngắn",
+      type: "textarea" as const,
+      description: "Mô tả chức năng của khoa/phòng",
+      hint: "VD: Chuyên điều trị các bệnh lý tim mạch",
+      rows: 2
+    }
+  ];
+
+  const initialData = editing ? {
+    name: editing.dept.name,
+    leader: editing.dept.leader,
+    phone: editing.dept.phone,
+    staffCount: editing.dept.staffCount,
+    description: editing.dept.description || ""
+  } : {};
 
   if (!isSuperAdmin) return null;
 
@@ -124,7 +195,7 @@ export default function OrganizationTab() {
           <div className="flex items-center gap-2 overflow-x-auto pb-2">
             {Object.values(divisions).map((div: Division) => (
               <button key={div.id} onClick={() => setSelectedDivision(div.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${selectedDivision === div.id ? `${div.color} text-white shadow-md` : "bg-white text-green-dark border border-green-800/10 hover:bg-cream-white"}`}>
+                className={"px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer " + (selectedDivision === div.id ? div.color + " text-white shadow-md" : "bg-white text-green-dark border border-green-800/10 hover:bg-cream-white")}>
                 {div.name}
               </button>
             ))}
@@ -191,50 +262,26 @@ export default function OrganizationTab() {
         </>
       )}
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[20px] w-full max-w-lg overflow-hidden shadow-2xl border border-green-800/10">
-            <div className="bg-gradient-to-r from-brand-green to-green-dark p-5 text-white flex justify-between items-center">
-              <h3 className="font-display font-bold text-base">{editing ? "Cập Nhật Khoa/Phòng" : "Thêm Khoa/Phòng Mới"}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-white/80 hover:text-white cursor-pointer">✕</button>
-            </div>
+      <EditModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSubmit={handleSubmit}
+        title={editing ? "Cập Nhật Khoa/Phòng" : "Thêm Khoa/Phòng Mới"}
+        fields={fields}
+        initialData={initialData}
+        size="md"
+      />
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs font-medium text-green-dark">
-              <div className="space-y-1">
-                <label className="block text-[10px] uppercase font-bold tracking-wider">Tên Khoa/Phòng <span className="text-red-500">*</span></label>
-                <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full p-2.5 bg-cream-white border border-green-800/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green" />
-              </div>
-              <div className="space-y-1">
-                <label className="block text-[10px] uppercase font-bold tracking-wider">Trưởng khoa <span className="text-red-500">*</span></label>
-                <input type="text" required value={form.leader} onChange={(e) => setForm({ ...form, leader: e.target.value })}
-                  className="w-full p-2.5 bg-cream-white border border-green-800/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="block text-[10px] uppercase font-bold tracking-wider">Số Điện Thoại</label>
-                  <input type="text" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    className="w-full p-2.5 bg-cream-white border border-green-800/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green" />
-                </div>
-                <div className="space-y-1">
-                  <label className="block text-[10px] uppercase font-bold tracking-wider">Số Nhân Sự</label>
-                  <input type="number" min="0" value={form.staffCount} onChange={(e) => setForm({ ...form, staffCount: parseInt(e.target.value) || 0 })}
-                    className="w-full p-2.5 bg-cream-white border border-green-800/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green" />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="block text-[10px] uppercase font-bold tracking-wider">Mô Tả Ngắn</label>
-                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2}
-                  className="w-full p-2.5 bg-cream-white border border-green-800/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green" />
-              </div>
-              <div className="pt-4 flex items-center justify-end gap-2 border-t border-ink/5">
-                <Button type="button" variant="secondary" size="md" onClick={() => setIsModalOpen(false)}>Hủy bỏ</Button>
-                <Button type="submit" variant="primary" size="md">{editing ? "Cập Nhật" : "Thêm Mới"}</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        title="Xác nhận xóa khoa/phòng"
+        message={"Bạn có chắc chắn muốn xóa khoa/phòng \"" + (deleteTarget?.deptName || "") + "\"? Hành động này không thể hoàn tác."}
+        confirmText="Xóa bỏ"
+        cancelText="Hủy bỏ"
+        variant="danger"
+      />
     </div>
   );
 }
