@@ -891,6 +891,28 @@ memory/bugs-fixed.md         → Danh sách bug đã sửa.
 
 ---
 
+## ⚠️ Memory Safety Rules (Ngăn rủi ro Outdated Memory / PHI Leakage / State Conflict)
+
+### Memory Invalidation — Ngăn Outdated Memory Pollution
+
+* Khi spec version tăng (VD: v2.9 → v2.10), **BẮT BUỘC** cập nhật memory.md TRONG CÙNG SESSION
+* Luôn verify memory vs file gốc (spec docx, source code) trước khi hành động — không trust memory khi nghi ngờ lệch
+* Nếu phát hiện memory lệch → cập nhật NGAY, không chờ
+
+### PHI Zero-Tolerance — Ngăn Security Compliance Leakage
+
+* **KHÔNG** lưu bất kỳ PHI nào vào memory (dù là sample/test data) — cấm tuyệt đối
+* Chỉ dùng **synthetic data** trong mọi test, không dùng dữ liệu thật của bệnh nhân
+* Nếu vô tình lưu PHI vào memory → phải invalidate NGAY lập tức
+
+### Single Source Alignment — Ngăn State Conflict
+
+* Khi dùng memory.md để hành động → luôn cross-check với file thực (spec, source code)
+* Không "nhảy cóc" bước dù memory có vẻ "đầy đủ"
+* Luôn đọc lại file trước khi confirm bất kỳ quyết định nào
+
+---
+
 ## Bắt buộc cập nhật khi
 
 * Thêm feature

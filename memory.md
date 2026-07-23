@@ -155,9 +155,8 @@ npm run lint && npm run build
 3. **Phase numbering** đã được chuẩn hóa trong `memory/phase-history.md` — không còn trùng số
 4. **prefers-reduced-motion** tự động disable: floating, parallax, 3D tilt, Ken Burns, bounce
 7. **Spec v2.9** đã chính thức hoá feedback_requests + record_requests (mục 21.2–21.4)
-8. **Spec v2.10** bổ sung field-level đầy đủ 9 bảng (21.8), appointments.status 5 giá trị (21.9), retention policy (21.10), contact_phone/email cho feedback_requests (21.11)
-9. **AGENTS.md** đã update 4 section: Public Form API Standards, Database Layer rules, Data Retention Governance, ENUM-Badge sync
-10. **Database spec score: ~4.5/5** — đủ đầy đủ để mở rộng, Phase 49 có thể bắt đầu được
+9. **AGENTS.md** da update 5 section: Public Form API Standards, Database Layer rules, Data Retention Governance, ENUM-Badge sync, Memory Safety Rules
+10. **Memory Safety Rules** bo sung (Outdated Memory Pollution, PHI Zero-Tolerance, Single Source Alignment) - ngan 3 rui ro tu Multi-Agent Architecture doc
 
 ---
 
