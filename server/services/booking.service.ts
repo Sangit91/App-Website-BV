@@ -1,4 +1,5 @@
-import { bookings, Booking } from "../db/database";
+import { prisma } from "../db/prisma";
+import { Appointment } from "../generated/prisma/client";
 
 export interface CreateBookingInput {
   patientName: string;
@@ -7,30 +8,64 @@ export interface CreateBookingInput {
   doctorName?: string;
   date: string;
   timeSlot: string;
-  symptoms: string;
+  symptoms?: string;
 }
 
 export const bookingService = {
-  getAll(): Booking[] {
-    return bookings;
+  async getAll(): Promise<Appointment[]> {
+    return prisma.appointment.findMany({
+      orderBy: { createdAt: "desc" },
+    });
   },
 
-  search(query: string): Booking[] {
-    return bookings.filter(b => 
-      b.phone.includes(query) || b.id === query
-    );
+  async search(query: string): Promise<Appointment[]> {
+    return prisma.appointment.findMany({
+      where: {
+        OR: [
+          { phone: { contains: query, mode: "insensitive" } },
+          { bookingCode: { contains: query, mode: "insensitive" } },
+          { patientName: { contains: query, mode: "insensitive" } },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+    });
   },
 
-  create(input: CreateBookingInput): Booking {
-    const id = `LH-${Math.floor(100000 + Math.random() * 900000)}`;
-    const newBooking: Booking = {
-      ...input,
-      id,
-      symptoms: input.symptoms || "Không có",
-      createdAt: new Date().toISOString()
-    };
-    bookings.unshift(newBooking);
-    return newBooking;
+  async create(input: CreateBookingInput): Promise<Appointment> {
+    const bookingCode = `LH-${Math.floor(100000 + Math.random() * 900000)}`;
+    return prisma.appointment.create({
+      data: {
+        patientName: input.patientName,
+        phone: input.phone,
+        serviceType: "kham-benh",
+        specialtyName: input.specialty,
+        doctorName: input.doctorName || null,
+        appointmentDate: new Date(input.date),
+        timeSlot: input.timeSlot,
+        symptoms: input.symptoms || "Không có",
+        bookingCode,
+        status: "cho_xac_nhan",
+      },
+    });
+  },
+
+  async updateStatus(
+    id: string,
+    status: string,
+    extra?: { cancelledAt?: Date; cancelReason?: string; cancelledBy?: string }
+  ): Promise<Appointment> {
+    return prisma.appointment.update({
+      where: { id },
+      data: {
+        status,
+        ...(status === "da_xac_nhan" && { confirmedAt: new Date() }),
+        ...(status === "da_huy" && {
+          cancelledAt: extra?.cancelledAt || new Date(),
+          cancelReason: extra?.cancelReason || null,
+          cancelledBy: extra?.cancelledBy || null,
+        }),
+      },
+    });
   },
 
   validateInput(input: Partial<CreateBookingInput>): string | null {

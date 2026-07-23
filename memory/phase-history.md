@@ -1383,3 +1383,64 @@ Implement Phase 49: feedback_requests + record_requests API (in-memory), connect
 
 - npm run lint — Passed
 - npm run build — Passed
+
+---
+
+## PHASE 50 — PostgreSQL + Prisma Migration Phase 1 (2026-07-23)
+
+### Mục tiêu
+
+Set up PostgreSQL database with Prisma ORM for Phase 50 — replacing in-memory stores with PostgreSQL persistence.
+
+**Database:** PostgreSQL 18 on localhost, database `bvdh_db`, connection via `DATABASE_URL` in `.env`
+
+### Prisma Schema
+
+**Files affected:**
+- `prisma/schema.prisma`: Full schema with 19 models (admin_users, patients, appointments, doctors, doctor_schedules, specialties, news, organization_units, feedback_requests, record_requests, record_request_files, notification_logs, service_groups, services, news_categories, price_list, testimonials, contact_messages, activity_logs, medical_records, clinical_tests, treatment_history)
+- `prisma/migrations/20260723012247_init/`: Initial migration applied
+
+**Prisma Client output:** `server/generated/prisma/` (Prisma 7 with ESM adapter pattern)
+
+### Prisma Client Setup
+
+**Files affected:**
+- `server/db/prisma.ts`: New — PrismaClient singleton using `@prisma/adapter-pg` + `pg` Pool
+- `server/generated/prisma/`: Generated Prisma 7 client
+
+### Service Updates
+
+**Files affected:**
+- `server/services/booking.service.ts`: In-memory → Prisma async calls (getAll, search, create, updateStatus)
+- `server/services/feedback.service.ts`: In-memory → Prisma async calls (getAll, getById, create, update)
+- `server/services/record-request.service.ts`: In-memory → Prisma async calls (getAll, getById, create, update)
+- `server/routes/feedback.routes.ts`: Updated to async/await
+- `server/routes/record-requests.routes.ts`: Updated to async/await
+- `server/routes/booking.routes.ts`: Updated to async/await
+
+**Dependencies installed:** `prisma @prisma/client @prisma/adapter-pg pg`
+
+**Bug fixes:**
+- `prisma.ts`: Prisma 7 requires adapter — switched from direct URL to `@prisma/adapter-pg` + `pg.Pool`
+- `booking.service.ts`: Added missing `serviceType: "kham-benh"` to Appointment create
+- `feedback.service.ts`: Used `FeedbackRequestUncheckedUpdateInput` (checked variant missing `respondedBy` scalar)
+- `record-request.service.ts`: Used `RecordRequestUncheckedUpdateInput` (checked variant missing `processedBy` scalar)
+- Fixed all import paths: services import from `../generated/prisma/client`, prisma.ts imports from `./generated/prisma/client`
+
+### Database Details
+
+- **Host:** localhost:5432
+- **Database:** bvdh_db
+- **User:** postgres
+- **Password:** (from .env DATABASE_URL)
+- **Tables:** 19 tables migrated
+
+### Known Issue
+
+⚠️ Prisma 7 generated client uses ESM `import.meta.url` in CommonJS output — warning shown during build but non-blocking in dev mode (tsx handles ESM). Production server may need to switch to ESM format.
+
+### Commands
+
+- npm run build — Passed (vite + esbuild + tsc)
+- `npx prisma migrate dev --name init` — Applied (`20260723012247_init`)
+- `npx prisma generate` — Generated to `server/generated/prisma/`

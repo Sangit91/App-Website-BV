@@ -1,0 +1,545 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../server/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// ADMIN USERS
+// ============================================================
+model AdminUser {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  passwordHash  String    @map("password_hash")
+  fullName      String    @map("full_name")
+  email         String?   @db.VarChar(255)
+  phone         String?   @db.VarChar(20)
+  role          String    @default("Receptionist") // Super Admin | Receptionist | Doctor | Department Admin
+  departmentId  String?   @map("department_id")
+  mfaEnabled    Boolean   @default(false) @map("mfa_enabled")
+  mfaSecret     String?   @map("mfa_secret")
+  lastLogin     DateTime? @map("last_login")
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  department    OrganizationUnit? @relation("AdminDepartments", fields: [departmentId], references: [id])
+  feedbackResponses FeedbackRequest[] @relation("FeedbackResponder")
+  recordRequestProcessed RecordRequest[] @relation("RecordRequestProcessor")
+
+  @@map("admin_users")
+}
+
+// ============================================================
+// PATIENTS
+// ============================================================
+model Patient {
+  id              String    @id @default(cuid())
+  patientCode     String    @unique @map("patient_code")
+  fullName        String    @map("full_name")
+  cccd            String?   @unique @db.VarChar(20)
+  cccdEncrypted   String?   @map("cccd_encrypted") @db.Text
+  phone           String    @db.VarChar(20)
+  birthDate       DateTime? @map("birth_date") @db.Date
+  gender          String?   @db.VarChar(10) // nam | nữ | khác
+  address         String?   @db.Text
+  email           String?   @db.VarChar(255)
+  insuranceCode   String?   @map("insurance_code") @db.VarChar(50)
+  insuranceExpire DateTime? @map("insurance_expire") @db.Date
+  visitCount      Int       @default(0) @map("visit_count")
+  registeredAt    DateTime? @map("registered_at") @db.Date
+  createdBy       String?   @map("created_by")
+  isActive        Boolean   @default(true) @map("is_active")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  appointments    Appointment[]
+  feedbackRequests FeedbackRequest[]
+  recordRequests  RecordRequest[]
+  medicalRecords  MedicalRecord[]
+  clinicalTests   ClinicalTest[]
+  treatmentHistories TreatmentHistory[]
+  contactMessages ContactMessage[]
+  testimonials    Testimonial[]
+
+  @@map("patients")
+}
+
+// ============================================================
+// APPOINTMENTS
+// ============================================================
+model Appointment {
+  id              String    @id @default(cuid())
+  patientId       String?   @map("patient_id")
+  patientName     String    @map("patient_name")
+  patientCode     String?   @map("patient_code")
+  phone           String    @db.VarChar(20)
+  serviceType     String    @map("service_type") // kham-benh | noi-tru | cap-cuu | ban-si | other
+  specialtyId     String?   @map("specialty_id")
+  specialtyName   String?   @map("specialty_name")
+  doctorId        String?   @map("doctor_id")
+  doctorName      String?   @map("doctor_name")
+  appointmentDate DateTime  @map("appointment_date") @db.Date
+  timeSlot        String    @map("time_slot")
+  symptoms        String?   @db.Text
+  status          String    @default("cho_xac_nhan") @map("status")
+  // cho_xac_nhan | da_xac_nhan | da_huy | da_kham | khong_toi
+  bookingCode     String?   @unique @map("booking_code")
+  confirmedAt     DateTime? @map("confirmed_at")
+  confirmedBy     String?   @map("confirmed_by")
+  cancelledAt     DateTime? @map("cancelled_at")
+  cancelReason    String?   @map("cancel_reason") @db.Text
+  cancelledBy     String?   @map("cancelled_by")
+  notes           String?   @db.Text
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  patient         Patient?  @relation(fields: [patientId], references: [id])
+  specialty       Specialty? @relation(fields: [specialtyId], references: [id])
+  doctor          Doctor?   @relation(fields: [doctorId], references: [id])
+
+  @@map("appointments")
+}
+
+// ============================================================
+// DOCTORS
+// ============================================================
+model Doctor {
+  id            String    @id @default(cuid())
+  fullName      String    @map("full_name")
+  title         String    @db.VarChar(100) // BS. CKI, ThS. BS, BS. CKII, etc.
+  specialtyId   String?   @map("specialty_id")
+  phone         String?   @db.VarChar(20)
+  email         String?   @db.VarChar(255)
+  image         String?   @db.Text
+  experienceYear Int?     @map("experience_year")
+  bio           String?   @db.Text
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  specialty     Specialty? @relation(fields: [specialtyId], references: [id])
+  schedules     DoctorSchedule[]
+  appointments  Appointment[]
+  testimonials  Testimonial[]
+
+  @@map("doctors")
+}
+
+// ============================================================
+// DOCTOR SCHEDULES
+// ============================================================
+model DoctorSchedule {
+  id        String  @id @default(cuid())
+  doctorId  String  @map("doctor_id")
+  monday    String  @default("nghi") @db.VarChar(20) // ca_sang | ca_chieu | nghi
+  tuesday   String  @default("nghi") @db.VarChar(20)
+  wednesday String  @default("nghi") @db.VarChar(20)
+  thursday  String  @default("nghi") @db.VarChar(20)
+  friday    String  @default("nghi") @db.VarChar(20)
+  saturday  String  @default("nghi") @db.VarChar(20)
+  sunday    String  @default("nghi") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@map("doctor_schedules")
+}
+
+// ============================================================
+// SPECIALTIES
+// ============================================================
+model Specialty {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?   @db.Text
+  icon        String?   @db.VarChar(50)
+  detail      String?   @db.Text
+  sortOrder   Int       @default(0) @map("sort_order")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  doctors      Doctor[]
+  appointments Appointment[]
+
+  @@map("specialties")
+}
+
+// ============================================================
+// NEWS
+// ============================================================
+model News {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  summary         String?   @db.Text
+  category        String    @default("Tin tức") @db.VarChar(50) // Tin y học | Thông báo | Sự kiện
+  content         String?   @db.Text
+  image           String?   @db.Text
+  author          String?   @map("author") @db.VarChar(100)
+  isFeatured      Boolean   @default(false) @map("is_featured")
+  isTender        Boolean   @default(false) @map("is_tender")
+  tenderNumber    String?   @map("tender_number") @db.VarChar(50)
+  tenderStartDate DateTime? @map("tender_start_date") @db.Date
+  tenderEndDate   DateTime? @map("tender_end_date") @db.Date
+  tenderMethod    String?   @map("tender_method") @db.VarChar(100)
+  tenderEstimate  String?   @map("tender_estimate") @db.VarChar(100)
+  tenderReceived  String?   @map("tender_received_location") @db.Text
+  contactName     String?   @map("contact_name") @db.VarChar(100)
+  contactPhone    String?   @map("contact_phone") @db.VarChar(20)
+  contactEmail    String?   @map("contact_email") @db.VarChar(255)
+  downloadCount   Int       @default(0) @map("download_count")
+  viewCount       Int       @default(0) @map("view_count")
+  isActive        Boolean   @default(true) @map("is_active")
+  publishedAt     DateTime? @map("published_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@map("news")
+}
+
+// ============================================================
+// ORGANIZATION UNITS
+// ============================================================
+model OrganizationUnit {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   @default("khoa_lam_sang") @map("unit_type")
+  // khoa_lam_sang | phong_ban_hanh_chinh
+  address     String?  @db.Text
+  phone       String?  @db.VarChar(20)
+  email       String?  @db.VarChar(255)
+  parentId    String?  @map("parent_id")
+  sortOrder   Int      @default(0) @map("sort_order")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  parent      OrganizationUnit?  @relation("OrgUnitTree", fields: [parentId], references: [id])
+  children    OrganizationUnit[] @relation("OrgUnitTree")
+  admins      AdminUser[]       @relation("AdminDepartments")
+
+  @@map("organization_units")
+}
+
+// ============================================================
+// FEEDBACK REQUESTS
+// ============================================================
+model FeedbackRequest {
+  id             String    @id @default(cuid())
+  patientId      String?   @map("patient_id")
+  patientName    String    @map("patient_name")
+  serviceType    String    @map("service_type") // kham-benh | noi-tru | cap-cuu | ban-si | other
+  rating         Int       // 1-5 stars
+  content        String    @db.Text
+  status         String    @default("moi") @map("status")
+  // moi | dang_xu_ly | da_xu_ly
+  adminResponse  String?   @map("admin_response") @db.Text
+  respondedBy    String?   @map("responded_by")
+  contactPhone   String?   @map("contact_phone") @db.VarChar(20)
+  contactEmail   String?   @map("contact_email") @db.VarChar(255)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  patient        Patient?    @relation(fields: [patientId], references: [id])
+  responder      AdminUser? @relation("FeedbackResponder", fields: [respondedBy], references: [id])
+
+  @@map("feedback_requests")
+}
+
+// ============================================================
+// RECORD REQUESTS
+// ============================================================
+model RecordRequest {
+  id              String    @id @default(cuid())
+  patientId       String?   @map("patient_id")
+  patientName     String    @map("patient_name")
+  patientCode     String?   @map("patient_code")
+  requestType     String    @map("request_type")
+  // ho-so-y-te | phieu-xet-nghiem | anh-pha | don-thuoc | giay-chung-nhan | other
+  dateFrom        DateTime? @map("date_from") @db.Date
+  dateTo          DateTime? @map("date_to") @db.Date
+  deliveryMethod  String?   @map("delivery_method")
+  // tai-kham | nhan-tai-quay | chuyen-bo-post
+  reason          String?   @db.Text
+  status          String    @default("moi") @map("status")
+  // moi | dang_xu_ly | da_xu_ly | da_huy
+  adminNotes      String?   @map("admin_notes") @db.Text
+  requestCode     String    @unique @map("request_code")
+  assignedTo      String?   @map("assigned_to")
+  processedBy     String?   @map("processed_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  patient         Patient?    @relation(fields: [patientId], references: [id])
+  processor       AdminUser?  @relation("RecordRequestProcessor", fields: [processedBy], references: [id])
+  files           RecordRequestFile[]
+
+  @@map("record_requests")
+}
+
+// ============================================================
+// RECORD REQUEST FILES
+// ============================================================
+model RecordRequestFile {
+  id              String    @id @default(cuid())
+  recordRequestId String   @map("record_request_id")
+  fileName        String    @map("file_name") @db.VarChar(255)
+  filePath        String    @map("file_path") @db.Text
+  mimeType        String?   @map("mime_type") @db.VarChar(100)
+  size            Int?      // bytes
+  uploadedBy      String?   @map("uploaded_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  recordRequest   RecordRequest @relation(fields: [recordRequestId], references: [id], onDelete: Cascade)
+
+  @@map("record_request_files")
+}
+
+// ============================================================
+// NOTIFICATION LOGS (Polymorphic)
+// ============================================================
+model NotificationLog {
+  id          String    @id @default(cuid())
+  relatedType String?   @map("related_type") @db.VarChar(50)
+  // feedback_request | record_request | appointment | patient | etc.
+  relatedId   String?   @map("related_id") @db.VarChar(50)
+  channel     String    @db.VarChar(20) // sms | email | push
+  recipient   String    @db.VarChar(255)
+  title       String?   @db.VarChar(255)
+  content     String    @db.Text
+  status      String    @default("pending") @map("status")
+  // pending | sent | failed | delivered
+  sentAt      DateTime? @map("sent_at")
+  errorMsg    String?   @map("error_message") @db.Text
+  attemptCount Int      @default(0) @map("attempt_count")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("notification_logs")
+}
+
+// ============================================================
+// SERVICE GROUPS
+// ============================================================
+model ServiceGroup {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?   @db.Text
+  icon        String?   @map("icon_key") @db.VarChar(50)
+  sortOrder   Int       @default(0) @map("sort_order")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  services    Service[]
+  priceItems  PriceList[]
+
+  @@map("service_groups")
+}
+
+// ============================================================
+// SERVICES
+// ============================================================
+model Service {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  groupId     String?   @map("group_id")
+  icon        String?   @map("icon_key") @db.VarChar(50)
+  description String?   @db.Text
+  price       Decimal?  @db.Decimal(12, 2)
+  sortOrder   Int       @default(0) @map("sort_order")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  group       ServiceGroup? @relation(fields: [groupId], references: [id])
+  priceItems  PriceList[]
+  testimonials Testimonial[]
+
+  @@map("services")
+}
+
+// ============================================================
+// NEWS CATEGORIES
+// ============================================================
+model NewsCategory {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?   @db.Text
+  sortOrder   Int       @default(0) @map("sort_order")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("news_categories")
+}
+
+// ============================================================
+// PRICE LIST
+// ============================================================
+model PriceList {
+  id           String       @id @default(cuid())
+  serviceId    String?      @map("service_id")
+  groupId      String?      @map("group_id")
+  itemName     String       @map("item_name")
+  price        Decimal      @db.Decimal(12, 2)
+  unit         String?      @db.VarChar(50)
+  insuranceNote String?    @map("insurance_note") @db.Text
+  isActive     Boolean      @default(true) @map("is_active")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  service      Service?     @relation(fields: [serviceId], references: [id])
+  group        ServiceGroup? @relation(fields: [groupId], references: [id])
+
+  @@map("price_list")
+}
+
+// ============================================================
+// TESTIMONIALS
+// ============================================================
+model Testimonial {
+  id          String    @id @default(cuid())
+  patientId   String?   @map("patient_id")
+  patientName String    @map("patient_name")
+  doctorId    String?   @map("doctor_id")
+  serviceId   String?   @map("service_id")
+  content     String    @db.Text
+  rating      Int       // 1-5
+  isApproved  Boolean   @default(false) @map("is_approved")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  patient     Patient?   @relation(fields: [patientId], references: [id])
+  doctor      Doctor?    @relation(fields: [doctorId], references: [id])
+  service     Service?   @relation(fields: [serviceId], references: [id])
+
+  @@map("testimonials")
+}
+
+// ============================================================
+// CONTACT MESSAGES
+// ============================================================
+model ContactMessage {
+  id          String    @id @default(cuid())
+  patientId   String?   @map("patient_id")
+  name        String    @db.VarChar(100)
+  email       String?   @db.VarChar(255)
+  phone       String?   @db.VarChar(20)
+  subject     String?   @db.VarChar(255)
+  content     String    @db.Text
+  status      String    @default("moi") @map("status")
+  // moi | dang_xu_ly | da_xu_ly
+  adminNotes  String?   @map("admin_notes") @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  patient     Patient?  @relation(fields: [patientId], references: [id])
+
+  @@map("contact_messages")
+}
+
+// ============================================================
+// ACTIVITY LOGS (Read-only audit log)
+// ============================================================
+model ActivityLog {
+  id          String    @id @default(cuid())
+  userId      String?   @map("user_id")
+  userName    String    @map("user_name") @db.VarChar(100)
+  action      String    @db.VarChar(255)
+  details     String?   @map("details") @db.Text
+  ipAddress   String?   @map("ip_address") @db.VarChar(45)
+  userAgent   String?   @map("user_agent") @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("activity_logs")
+}
+
+// ============================================================
+// MEDICAL RECORDS (HIS)
+// ============================================================
+model MedicalRecord {
+  id           String    @id @default(cuid())
+  patientId    String    @map("patient_id")
+  recordNumber String    @unique @map("record_number")
+  admissionDate DateTime @map("admission_date") @db.Date
+  dischargeDate DateTime? @map("discharge_date") @db.Date
+  diagnosis    String?   @db.Text
+  icd10Code    String?   @map("icd10_code") @db.VarChar(20)
+  treatment    String?   @db.Text
+  doctorId     String?   @map("doctor_id")
+  specialtyId  String?   @map("specialty_id")
+  notes        String?   @db.Text
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  patient      Patient   @relation(fields: [patientId], references: [id])
+  clinicalTests ClinicalTest[]
+  treatments   TreatmentHistory[]
+
+  @@map("medical_records")
+}
+
+// ============================================================
+// CLINICAL TESTS (HIS)
+// ============================================================
+model ClinicalTest {
+  id            String    @id @default(cuid())
+  patientId     String    @map("patient_id")
+  medicalRecordId String? @map("medical_record_id")
+  testCode      String    @map("test_code")
+  testName      String    @map("test_name")
+  loincCode     String?   @map("loinc_code") @db.VarChar(20)
+  resultValue   String?   @map("result_value") @db.Text
+  resultUnit    String?   @map("result_unit") @db.VarChar(50)
+  referenceRange String?  @map("reference_range") @db.VarChar(100)
+  resultStatus  String?   @map("result_status") @db.VarChar(20)
+  // normal | high | low | critical
+  testDate      DateTime  @map("test_date") @db.Date
+  performedBy   String?   @map("performed_by")
+  specimenType  String?   @map("specimen_type") @db.VarChar(50)
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  patient       Patient        @relation(fields: [patientId], references: [id])
+  medicalRecord MedicalRecord? @relation(fields: [medicalRecordId], references: [id])
+
+  @@map("clinical_tests")
+}
+
+// ============================================================
+// TREATMENT HISTORY (HIS)
+// ============================================================
+model TreatmentHistory {
+  id            String    @id @default(cuid())
+  patientId     String    @map("patient_id")
+  medicalRecordId String? @map("medical_record_id")
+  treatmentDate DateTime  @map("treatment_date") @db.Date
+  diagnosis     String?   @db.Text
+  icd10Code     String?   @map("icd10_code") @db.VarChar(20)
+  prescription  String?   @map("prescription") @db.Text
+  doctorId      String?   @map("doctor_id")
+  specialtyId   String?   @map("specialty_id")
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  patient       Patient        @relation(fields: [patientId], references: [id])
+  medicalRecord MedicalRecord? @relation(fields: [medicalRecordId], references: [id])
+
+  @@map("treatment_history")
+}

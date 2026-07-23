@@ -184,3 +184,4 @@ POST   /api/v1/record-requests/:id/files     -- Upload file (multipart → S3/Mi
 | 2026-07-22 | Bổ sung feedback_requests, record_requests (spec gap từ mục 20.2.1) |
 | 2026-07-22 | Review toàn bộ spec v2.9 — ghi nhận 6 bảng Nhóm B còn thiếu field-level, 5 bảng roadmap, các enum gaps, và 5 điểm cần bổ sung trước khi code |
 | 2026-07-23 | Phase 49 hoàn thành: feedback_requests + record_requests API (in-memory), FeedbackModal + RecordRequestModal connected to API, FeedbackTab + RecordRequestsTab admin |
+| 2026-07-23 | Phase 50 hoàn thành: PostgreSQL + Prisma migration — database bvdh_db đã tạo, schema 19 tables đã migrate, booking/feedback/record-request services đã chuyển sang Prisma |

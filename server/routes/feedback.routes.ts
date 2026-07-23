@@ -3,7 +3,7 @@ import { feedbackService } from "../services/feedback.service";
 
 const router = Router();
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const { patient_name, patient_id, service_type, rating, content, contact_phone, contact_email } = req.body;
 
@@ -12,7 +12,7 @@ router.post("/", (req, res) => {
       return res.status(400).json({ error: validationError });
     }
 
-    const newFeedback = feedbackService.create({ patient_name, patient_id, service_type, rating, content, contact_phone, contact_email });
+    const newFeedback = await feedbackService.create({ patient_name, patient_id, service_type, rating, content, contact_phone, contact_email });
     res.status(201).json({
       success: true,
       message: "Góp ý đã được ghi nhận",
@@ -23,10 +23,10 @@ router.post("/", (req, res) => {
   }
 });
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const { status, from, to } = req.query;
-    const allFeedback = feedbackService.getAll({
+    const allFeedback = await feedbackService.getAll({
       status: status as any,
       from: from as string,
       to: to as string
@@ -37,9 +37,9 @@ router.get("/", (req, res) => {
   }
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
-    const feedback = feedbackService.getById(req.params.id);
+    const feedback = await feedbackService.getById(req.params.id);
     if (!feedback) {
       return res.status(404).json({ error: "Không tìm thấy góp ý" });
     }
@@ -49,10 +49,10 @@ router.get("/:id", (req, res) => {
   }
 });
 
-router.patch("/:id", (req, res) => {
+router.patch("/:id", async (req, res) => {
   try {
     const { status, admin_response, responded_by } = req.body;
-    const updated = feedbackService.update(req.params.id, { status, admin_response, responded_by });
+    const updated = await feedbackService.update(req.params.id, { status, admin_response, responded_by });
 
     if (!updated) {
       return res.status(404).json({ error: "Không tìm thấy góp ý" });

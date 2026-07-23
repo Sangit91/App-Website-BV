@@ -68,9 +68,11 @@ src/
 
 server/
 ├── routes/               # patient.routes, auth.routes, appointment.routes
-├── services/             # Business logic
-├── db/                   # Mock data
-└── middleware/           # Auth middleware
+├── services/             # Business logic (booking, feedback, record-request, ai)
+├── db/                   # prisma.ts (Prisma client singleton), database.ts (legacy + getGeminiClient)
+├── middleware/            # Auth middleware
+└── generated/
+    └── prisma/           # Generated Prisma Client (Prisma 7)
 ```
 
 ---
@@ -106,6 +108,7 @@ npm run lint && npm run build
 | PatientsTab BHYT/CCCD Masking (Phase 47) | ✅ Hoàn thành |
 | feedback_requests + record_requests API + Modal integration (Phase 49) | ✅ Hoàn thành |
 | FeedbackTab + RecordRequestsTab admin (Phase 49) | ✅ Hoàn thành |
+| PostgreSQL + Prisma migration Phase 1 (22 tables, Prisma Client, services updated) | ✅ Hoàn thành (2026-07-23) |
 | Spec v2.9 review + Database gap analysis | ✅ Hoàn thành (2026-07-22) |
 | dactaupdate.md updated with DB gaps | ✅ Hoàn thành |
 | Expert System Review Report (report-review.md) | ✅ Hoàn thành |
@@ -118,30 +121,24 @@ npm run lint && npm run build
 
 ## 🚧 Pending Tasks
 
-### Phase 49 (Ngay lập tức)
-1. **Implement feedback_requests + record_requests API:**
-   - Tạo in-memory storage (sau này migrate PostgreSQL)
-   - Kết nối FeedbackModal → API (hiện chỉ mock submit 1.5s)
-   - Kết nối RecordRequestModal → API
-   - Tạo FeedbackTab + RecordRequestsTab trong admin
-   - Spec: dac-ta-uiux-tong-hop-v2.9.md mục 21.2–21.4
+### Phase 49 (Hoàn thành)
+1. ✅ Implement feedback_requests + record_requests API
+2. ✅ Kết nối FeedbackModal + RecordRequestModal → API
+3. ✅ Tạo FeedbackTab + RecordRequestsTab trong admin
 
-2. **Bổ sung field-level chi tiết cho 6 bảng Nhóm B:**
-   - service_groups: thêm id, slug, sort_order, is_active
-   - services: thêm id, slug, sort_order, is_active, price
-   - news_categories: thêm id, slug, description, sort_order
-   - price_list: thêm id (PK), service_id FK, group_id FK, is_active
-   - testimonials: thêm full schema (id, patient_name, service_id, rating, content, is_approved)
-   - contact_messages: thêm full schema
-   - lab_test_requests: thêm full schema
-   - teleconsult_requests: thêm full schema
-
-### Phase 50 (2-3 tuần)
-- Database migration: PostgreSQL + Prisma
-- Migrate tất cả 22 bảng (spec mục 15 + 21)
+### Phase 50 (Hoàn thành)
+- ✅ PostgreSQL database `bvdh_db` đã tạo trên localhost:5432
+- ✅ Prisma schema với 19 tables (admin_users, patients, appointments, doctors, doctor_schedules, specialties, news, organization_units, feedback_requests, record_requests, record_request_files, notification_logs, service_groups, services, news_categories, price_list, testimonials, contact_messages, activity_logs, medical_records, clinical_tests, treatment_history)
+- ✅ Migration applied: `20260723012247_init`
+- ✅ Prisma Client generated tại `server/generated/prisma/`
+- ✅ booking.service.ts → Prisma (async)
+- ✅ feedback.service.ts → Prisma (async)
+- ✅ record-request.service.ts → Prisma (async)
+- ⚠️ Note: Prisma 7 ESM/CJS warning (non-blocking, dev mode OK với tsx)
 
 ### Phase 51 (1-2 tuần)
 - Security hardening (JWT, 2FA, rate limiting)
+- Migrate HospitalContext localStorage data → PostgreSQL (patients, doctors, specialties, news, bookings)
 
 ### Phase 52 (2-3 tháng)
 - HIS integration thật

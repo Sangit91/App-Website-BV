@@ -1,4 +1,8 @@
-import { feedbackRequests, FeedbackRequest, FeedbackStatus, FeedbackServiceType } from "../db/database";
+import { prisma } from "../db/prisma";
+import { FeedbackRequest, Prisma } from "../generated/prisma/client";
+
+export type FeedbackStatus = "moi" | "dang_xu_ly" | "da_xu_ly";
+export type FeedbackServiceType = "kham-benh" | "noi-tru" | "cap-cuu" | "ban-si" | "other";
 
 export interface CreateFeedbackInput {
   patient_name: string;
@@ -17,74 +21,66 @@ export interface UpdateFeedbackInput {
 }
 
 export const feedbackService = {
-  getAll(filters?: { status?: FeedbackStatus; from?: string; to?: string }): FeedbackRequest[] {
-    let results = [...feedbackRequests];
+  async getAll(filters?: { status?: FeedbackStatus; from?: string; to?: string }): Promise<FeedbackRequest[]> {
+    const where: Prisma.FeedbackRequestWhereInput = {};
 
     if (filters?.status) {
-      results = results.filter(f => f.status === filters.status);
+      where.status = filters.status;
     }
 
-    if (filters?.from) {
-      const fromDate = new Date(filters.from);
-      results = results.filter(f => new Date(f.created_at) >= fromDate);
+    if (filters?.from || filters?.to) {
+      where.createdAt = {
+        ...(filters.from && { gte: new Date(filters.from) }),
+        ...(filters.to && { lte: new Date(filters.to) }),
+      };
     }
 
-    if (filters?.to) {
-      const toDate = new Date(filters.to);
-      results = results.filter(f => new Date(f.created_at) <= toDate);
+    return prisma.feedbackRequest.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+    });
+  },
+
+  async getById(id: string): Promise<FeedbackRequest | null> {
+    return prisma.feedbackRequest.findUnique({ where: { id } });
+  },
+
+  async create(input: CreateFeedbackInput): Promise<FeedbackRequest> {
+    return prisma.feedbackRequest.create({
+      data: {
+        patientName: input.patient_name || "Khách vãng lai",
+        patientId: input.patient_id || null,
+        serviceType: input.service_type,
+        rating: input.rating,
+        content: input.content,
+        status: "moi",
+        contactPhone: input.contact_phone || null,
+        contactEmail: input.contact_email || null,
+      },
+    });
+  },
+
+  async update(id: string, input: UpdateFeedbackInput): Promise<FeedbackRequest | null> {
+    const data: Prisma.FeedbackRequestUncheckedUpdateInput = {};
+    if (input.status) data.status = input.status;
+    if (input.admin_response !== undefined) data.adminResponse = input.admin_response;
+    if (input.responded_by !== undefined) data.respondedBy = input.responded_by;
+
+    try {
+      return await prisma.feedbackRequest.update({ where: { id }, data });
+    } catch {
+      return null;
     }
-
-    return results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  },
-
-  getById(id: string): FeedbackRequest | undefined {
-    return feedbackRequests.find(f => f.id === id);
-  },
-
-  create(input: CreateFeedbackInput): FeedbackRequest {
-    const id = `fb-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-    const now = new Date().toISOString();
-
-    const newFeedback: FeedbackRequest = {
-      id,
-      patient_name: input.patient_name || 'Khách vãng lai',
-      patient_id: input.patient_id || null,
-      service_type: input.service_type,
-      rating: input.rating,
-      content: input.content,
-      status: 'moi',
-      admin_response: null,
-      responded_by: null,
-      contact_phone: input.contact_phone || null,
-      contact_email: input.contact_email || null,
-      created_at: now,
-      updated_at: now
-    };
-
-    feedbackRequests.unshift(newFeedback);
-    return newFeedback;
-  },
-
-  update(id: string, input: UpdateFeedbackInput): FeedbackRequest | null {
-    const feedback = feedbackRequests.find(f => f.id === id);
-    if (!feedback) return null;
-
-    if (input.status) feedback.status = input.status;
-    if (input.admin_response !== undefined) feedback.admin_response = input.admin_response;
-    if (input.responded_by !== undefined) feedback.responded_by = input.responded_by;
-    feedback.updated_at = new Date().toISOString();
-
-    return feedback;
   },
 
   validateInput(input: Partial<CreateFeedbackInput>): string | null {
-    if (!input.content?.trim()) return 'Vui lòng nhập nội dung góp ý';
-    if (!input.rating || input.rating < 1 || input.rating > 5) return 'Vui lòng chọn đánh giá từ 1-5 sao';
-    if (!input.service_type) return 'Vui lòng chọn loại dịch vụ';
+    if (!input.content?.trim()) return "Vui lòng nhập nội dung góp ý";
+    if (!input.rating || input.rating < 1 || input.rating > 5) return "Vui lòng chọn đánh giá từ 1-5 sao";
+    if (!input.service_type) return "Vui lòng chọn loại dịch vụ";
 
     const hasContact = input.contact_phone || input.contact_email;
     if (!input.patient_id && !hasContact) {
-      return 'Vui lòng cung cấp số điện thoại hoặc email để chúng tôi có thể phản hồi';
+      return "Vui lòng cung cấp số điện thoại hoặc email để chúng tôi có thể phản hồi";
     }
 
     return null;
