@@ -371,6 +371,20 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     const updatedDocs = [...doctors, newDoc];
     saveDoctors(updatedDocs);
 
+    // Call API to persist to PostgreSQL
+    fetch("/api/v1/doctors", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fullName: docInput.name,
+        title: docInput.title,
+        specialtyId: docInput.specialtyId,
+        image: docInput.image,
+        experienceYear: parseInt(docInput.experience) || null,
+        bio: docInput.experience,
+      }),
+    }).catch(err => console.error("Error syncing doctor to API:", err));
+
     // Also auto-add doctor schedule
     const newSched: DoctorSchedule = {
       doctorId: newId,
@@ -419,12 +433,36 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     const newSpec: Specialty = { ...specInput, id: newId };
     const updated = [...specialties, newSpec];
     saveSpecialties(updated);
+
+    fetch("/api/v1/specialties", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: specInput.name,
+        description: specInput.description,
+        icon: specInput.iconType,
+        detail: specInput.detail,
+      }),
+    }).catch(err => console.error("Error syncing specialty to API:", err));
+
     addLog(`Thêm mới chuyên khoa: ${newSpec.name}`);
   };
 
   const updateSpecialty = (spec: Specialty) => {
     const updated = specialties.map(s => s.id === spec.id ? spec : s);
     saveSpecialties(updated);
+
+    fetch(`/api/v1/specialties/${spec.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: spec.name,
+        description: spec.description,
+        icon: spec.iconType,
+        detail: spec.detail,
+      }),
+    }).catch(err => console.error("Error syncing specialty update to API:", err));
+
     addLog(`Cập nhật chuyên khoa: ${spec.name}`);
   };
 
@@ -432,6 +470,11 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     const specToDelete = specialties.find(s => s.id === id);
     const updated = specialties.filter(s => s.id !== id);
     saveSpecialties(updated);
+
+    fetch(`/api/v1/specialties/${id}`, {
+      method: "DELETE",
+    }).catch(err => console.error("Error syncing specialty deletion to API:", err));
+
     if (specToDelete) {
       addLog(`Xóa chuyên khoa: ${specToDelete.name}`);
     }
@@ -443,12 +486,58 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     const newNews: NewsItem = { ...newsInput, id: newId };
     const updated = [newNews, ...news];
     saveNews(updated);
+
+    fetch("/api/v1/news", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: newsInput.title,
+        summary: newsInput.summary,
+        category: newsInput.tag,
+        content: newsInput.content || "",
+        image: newsInput.image,
+        isTender: newsInput.isTender || false,
+        tenderNumber: newsInput.tenderNumber,
+        tenderStartDate: newsInput.tenderStartDate,
+        tenderEndDate: newsInput.tenderEndDate,
+        tenderMethod: newsInput.tenderMethod,
+        tenderEstimate: newsInput.tenderEstimateValue,
+        tenderReceived: newsInput.tenderReceivedLocation,
+        contactName: newsInput.tenderContact,
+        contactPhone: newsInput.tenderContactPhone,
+        publishedAt: newsInput.date ? new Date(newsInput.date).toISOString() : new Date().toISOString(),
+      }),
+    }).catch(err => console.error("Error syncing news to API:", err));
+
     addLog(`Đăng tin tức mới: ${newNews.title}`);
   };
 
   const updateNews = (newsInput: NewsItem) => {
     const updated = news.map(n => n.id === newsInput.id ? newsInput : n);
     saveNews(updated);
+
+    fetch(`/api/v1/news/${newsInput.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: newsInput.title,
+        summary: newsInput.summary,
+        category: newsInput.tag,
+        content: newsInput.content || "",
+        image: newsInput.image,
+        isTender: newsInput.isTender || false,
+        tenderNumber: newsInput.tenderNumber,
+        tenderStartDate: newsInput.tenderStartDate,
+        tenderEndDate: newsInput.tenderEndDate,
+        tenderMethod: newsInput.tenderMethod,
+        tenderEstimate: newsInput.tenderEstimateValue,
+        tenderReceived: newsInput.tenderReceivedLocation,
+        contactName: newsInput.tenderContact,
+        contactPhone: newsInput.tenderContactPhone,
+        publishedAt: newsInput.date ? new Date(newsInput.date).toISOString() : new Date().toISOString(),
+      }),
+    }).catch(err => console.error("Error syncing news update to API:", err));
+
     addLog(`Cập nhật tin tức: ${newsInput.title}`);
   };
 
@@ -456,6 +545,11 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     const newsToDelete = news.find(n => n.id === id);
     const updated = news.filter(n => n.id !== id);
     saveNews(updated);
+
+    fetch(`/api/v1/news/${id}`, {
+      method: "DELETE",
+    }).catch(err => console.error("Error syncing news deletion to API:", err));
+
     if (newsToDelete) {
       addLog(`Xóa tin tức: ${newsToDelete.title}`);
     }

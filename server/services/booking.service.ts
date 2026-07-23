@@ -1,4 +1,4 @@
-import { prisma } from "../db/prisma";
+import { getPrisma } from "../db/prisma";
 import { Appointment } from "../generated/prisma/client";
 
 export interface CreateBookingInput {
@@ -13,13 +13,13 @@ export interface CreateBookingInput {
 
 export const bookingService = {
   async getAll(): Promise<Appointment[]> {
-    return prisma.appointment.findMany({
+    return getPrisma().appointment.findMany({
       orderBy: { createdAt: "desc" },
     });
   },
 
   async search(query: string): Promise<Appointment[]> {
-    return prisma.appointment.findMany({
+    return getPrisma().appointment.findMany({
       where: {
         OR: [
           { phone: { contains: query, mode: "insensitive" } },
@@ -33,7 +33,7 @@ export const bookingService = {
 
   async create(input: CreateBookingInput): Promise<Appointment> {
     const bookingCode = `LH-${Math.floor(100000 + Math.random() * 900000)}`;
-    return prisma.appointment.create({
+    return getPrisma().appointment.create({
       data: {
         patientName: input.patientName,
         phone: input.phone,
@@ -54,7 +54,7 @@ export const bookingService = {
     status: string,
     extra?: { cancelledAt?: Date; cancelReason?: string; cancelledBy?: string }
   ): Promise<Appointment> {
-    return prisma.appointment.update({
+    return getPrisma().appointment.update({
       where: { id },
       data: {
         status,

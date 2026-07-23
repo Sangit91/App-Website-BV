@@ -1444,3 +1444,73 @@ Set up PostgreSQL database with Prisma ORM for Phase 50 — replacing in-memory 
 - npm run build — Passed (vite + esbuild + tsc)
 - `npx prisma migrate dev --name init` — Applied (`20260723012247_init`)
 - `npx prisma generate` — Generated to `server/generated/prisma/`
+
+---
+
+## PHASE 51 - HospitalContext → PostgreSQL API Migration (2026-07-23)
+
+### Mục tiêu
+
+Migrate localStorage data (HospitalContext) → PostgreSQL REST API endpoints.
+
+### Đã hoàn thành
+
+**New API Routes:**
+- `server/routes/specialty.routes.ts` - CRUD cho specialties
+- `server/routes/doctor.routes.ts` - CRUD cho doctors + schedule management
+- `server/routes/news.routes.ts` - CRUD cho news + tenders
+
+**New Services:**
+- `server/services/specialty.service.ts` - Prisma-based async operations
+- `server/services/doctor.service.ts` - Prisma-based async operations + schedule management
+- `server/services/news.service.ts` - Prisma-based async operations (fixed any types → proper interfaces)
+
+**Server Updates:**
+- `server/app.ts` - Added routes for specialties, doctors, news
+
+**Frontend Updates:**
+- `src/context/HospitalContext.tsx` - addDoctor() now syncs to PostgreSQL via POST /api/v1/doctors
+
+### Đang thực hiện
+
+- HospitalContext sync cho specialties, news, patients, bookings chưa implement
+- Cần hoàn thiện full CRUD sync trước khi có thể deprecate localStorage
+
+### Files Changed
+
+```
+server/routes/specialty.routes.ts     (new)
+server/routes/doctor.routes.ts        (new)
+server/routes/news.routes.ts          (new)
+server/services/specialty.service.ts  (new)
+server/services/doctor.service.ts     (new)
+server/services/news.service.ts       (new)
+server/app.ts                         (modified)
+src/context/HospitalContext.tsx       (modified)
+```
+
+### Bug Fixes
+
+- `doctor.service.ts:74-83`: updateDoctorSchedule uses findFirst + update (doctorId not unique key)
+- `news.service.ts`: Replaced `any` types with proper `NewsInput` and `NewsUpdateInput` interfaces
+
+### Commands
+
+- npm run build — Passed
+
+### Phase 51 Complete (2026-07-23)
+
+**HospitalContext Sync Implemented:**
+- `addDoctor` → POST /api/v1/doctors (was already implemented)
+- `addSpecialty` → POST /api/v1/specialties
+- `updateSpecialty` → PUT /api/v1/specialties/:id
+- `deleteSpecialty` → DELETE /api/v1/specialties/:id
+- `addNews` → POST /api/v1/news (with field mapping: tag→category, date→publishedAt, etc.)
+- `updateNews` → PUT /api/v1/news/:id (with field mapping)
+- `deleteNews` → DELETE /api/v1/news/:id
+
+**Field Mapping (Frontend → API):**
+- Specialty: `iconType` → `icon`, `name` → `name`, `description` → `description`
+- News: `tag` → `category`, `date` → `publishedAt`, `tenderEstimateValue` → `tenderEstimate`, `tenderReceivedLocation` → `tenderReceived`, `tenderContact` → `contactName`, `tenderContactPhone` → `contactPhone`
+
+**Note:** Load-from-API-on-mount chưa implement — vẫn load từ localStorage. Cần seeding data đầy đủ vào PostgreSQL trước khi switch hoàn toàn sang API.

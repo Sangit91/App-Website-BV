@@ -1,4 +1,4 @@
-import { prisma } from "../db/prisma";
+import { getPrisma } from "../db/prisma";
 import { RecordRequest, Prisma } from "../generated/prisma/client";
 
 export type RecordRequestStatus = "moi" | "dang_xu_ly" | "da_xu_ly" | "da_huy";
@@ -25,19 +25,14 @@ export interface UpdateRecordRequestInput {
 export const recordRequestService = {
   async getAll(filters?: { status?: RecordRequestStatus; from?: string; to?: string }): Promise<RecordRequest[]> {
     const where: Prisma.RecordRequestWhereInput = {};
-
-    if (filters?.status) {
-      where.status = filters.status;
-    }
-
+    if (filters?.status) where.status = filters.status;
     if (filters?.from || filters?.to) {
       where.createdAt = {
         ...(filters.from && { gte: new Date(filters.from) }),
         ...(filters.to && { lte: new Date(filters.to) }),
       };
     }
-
-    return prisma.recordRequest.findMany({
+    return getPrisma().recordRequest.findMany({
       where,
       include: { files: true },
       orderBy: { createdAt: "desc" },
@@ -45,7 +40,7 @@ export const recordRequestService = {
   },
 
   async getById(id: string): Promise<RecordRequest | null> {
-    return prisma.recordRequest.findUnique({
+    return getPrisma().recordRequest.findUnique({
       where: { id },
       include: { files: true },
     });
@@ -53,8 +48,7 @@ export const recordRequestService = {
 
   async create(input: CreateRecordRequestInput): Promise<RecordRequest> {
     const requestCode = `YC-${Math.floor(100000 + Math.random() * 900000)}`;
-
-    return prisma.recordRequest.create({
+    return getPrisma().recordRequest.create({
       data: {
         patientName: input.patient_name || "Khách vãng lai",
         patientId: input.patient_id || null,
@@ -75,10 +69,10 @@ export const recordRequestService = {
     if (input.status) data.status = input.status;
     if (input.admin_notes !== undefined) data.adminNotes = input.admin_notes;
     if (input.processed_by !== undefined) data.processedBy = input.processed_by;
-
     try {
-      return await prisma.recordRequest.update({ where: { id }, data });
-    } catch {
+      return await getPrisma().recordRequest.update({ where: { id }, data });
+    } catch (err) {
+      console.error("[recordRequestService.update] error:", err);
       return null;
     }
   },

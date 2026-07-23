@@ -136,9 +136,13 @@ npm run lint && npm run build
 - ✅ record-request.service.ts → Prisma (async)
 - ⚠️ Note: Prisma 7 ESM/CJS warning (non-blocking, dev mode OK với tsx)
 
-### Phase 51 (1-2 tuần)
-- Security hardening (JWT, 2FA, rate limiting)
-- Migrate HospitalContext localStorage data → PostgreSQL (patients, doctors, specialties, news, bookings)
+### Phase 51 (1-2 tuần) - ✅ Hoàn thành (2026-07-23)
+- Security hardening (JWT, 2FA, rate limiting) - Pending
+- Migrate HospitalContext localStorage data → PostgreSQL:
+  - ✅ New API routes: `/api/v1/specialties`, `/api/v1/doctors`, `/api/v1/news`
+  - ✅ Services: specialty.service.ts, doctor.service.ts, news.service.ts (fixed any types)
+  - ✅ HospitalContext sync: doctors, specialties, news (add/update/delete → API)
+  - ⚠️ Load-from-API-on-mount: Chưa implement (vẫn dùng localStorage, cần seeding data đầy đủ trước)
 
 ### Phase 52 (2-3 tháng)
 - HIS integration thật
