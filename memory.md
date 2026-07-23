@@ -104,14 +104,15 @@ npm run lint && npm run build
 | TinTucPage News Card Modal (Phase 45) | ✅ Hoàn thành |
 | All Admin Tabs EditModal + ConfirmDialog (Phase 47) | ✅ Hoàn thành |
 | PatientsTab BHYT/CCCD Masking (Phase 47) | ✅ Hoàn thành |
+| feedback_requests + record_requests API + Modal integration (Phase 49) | ✅ Hoàn thành |
+| FeedbackTab + RecordRequestsTab admin (Phase 49) | ✅ Hoàn thành |
 | Spec v2.9 review + Database gap analysis | ✅ Hoàn thành (2026-07-22) |
 | dactaupdate.md updated with DB gaps | ✅ Hoàn thành |
 | Expert System Review Report (report-review.md) | ✅ Hoàn thành |
 | AGENTS.md updated with v2.10 spec (Public Form API, DB Layer rules, Data Retention, ENUM-Badge sync) | ✅ Hoàn thành |
 
 **Admin Tabs hiện tại (15 tabs):**
-- 13 hoàn thành: Overview, Bookings, Patients, Shifts, Specialties, Doctors, News, Organization, Logs, Services, PatientTab, Tender, Contact
-- 2 pending: FeedbackTab, RecordRequestsTab (chờ Phase 49)
+- 15 hoàn thành: Overview, Bookings, Patients, Shifts, Specialties, Doctors, News, Organization, Logs, Services, PatientTab, Tender, Contact, Feedback, RecordRequests
 
 ---
 

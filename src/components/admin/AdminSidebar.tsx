@@ -5,7 +5,7 @@ import {
   Newspaper, FileText, Phone, MapPin,
   Calendar, Users, CalendarRange, User,
   ClipboardList, Settings, LogOut, ArrowLeft, ShieldAlert,
-  ChevronRight
+  ChevronRight, MessageSquare, FileStack
 } from "lucide-react";
 import { Button } from "../ui";
 
@@ -72,6 +72,8 @@ export default function AdminSidebar({
         { id: "bookings", label: "Đặt lịch khám", icon: <Calendar size={14} />, badge: pendingCount },
         { id: "patients", label: "Bệnh nhân", icon: <Heart size={14} /> },
         { id: "logs", label: "Nhật ký hệ thống", icon: <ClipboardList size={14} /> },
+        { id: "feedback", label: "Phản hồi góp ý", icon: <MessageSquare size={14} /> },
+        { id: "record-requests", label: "Trích sao hồ sơ", icon: <FileStack size={14} /> },
       ]
     },
   ];

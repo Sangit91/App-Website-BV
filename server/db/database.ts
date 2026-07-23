@@ -104,3 +104,161 @@ export function getGeminiClient(): GoogleGenAI | null {
   }
   return aiClient;
 }
+
+// ===== In-memory storage for Public Forms (Phase 49) =====
+// See spec v2.10 mục 21.2, 21.3
+
+export type FeedbackStatus = 'moi' | 'dang_xu_ly' | 'da_xu_ly';
+export type FeedbackServiceType = 'kham-benh' | 'noi-tru' | 'cap-cuu' | 'ban-si' | 'other';
+
+export interface FeedbackRequest {
+  id: string;
+  patient_name: string;
+  patient_id: string | null;
+  service_type: FeedbackServiceType;
+  rating: number;
+  content: string;
+  status: FeedbackStatus;
+  admin_response: string | null;
+  responded_by: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type RecordRequestStatus = 'moi' | 'dang_xu_ly' | 'da_xu_ly' | 'da_huy';
+export type RecordRequestType = 'ho-so-y-te' | 'giay-chung-nhan' | 'ket-qua-kham' | 'don-thuoc';
+export type DeliveryMethod = 'tai-kham' | 'nhan-tai-quay' | 'chuyen-bo-post';
+
+export interface RecordRequest {
+  id: string;
+  patient_name: string;
+  patient_id: string | null;
+  patient_code: string | null;
+  request_type: RecordRequestType;
+  date_from: string;
+  date_to: string;
+  delivery_method: DeliveryMethod;
+  reason: string | null;
+  status: RecordRequestStatus;
+  admin_notes: string | null;
+  request_code: string;
+  assigned_to: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RecordRequestFile {
+  id: string;
+  record_request_id: string;
+  file_path: string;
+  file_name: string;
+  mime_type: string;
+  size: number;
+  uploaded_by: string | null;
+  created_at: string;
+}
+
+// In-memory stores
+export const feedbackRequests: FeedbackRequest[] = [
+  {
+    id: 'fb-001',
+    patient_name: 'Nguyễn Thị Minh',
+    patient_id: null,
+    service_type: 'kham-benh',
+    rating: 5,
+    content: 'Nhân viên tại quầy tiếp đón rất niềm nở, bác sĩ khám kỹ lưỡng. Tôi rất hài lòng với dịch vụ.',
+    status: 'da_xu_ly',
+    admin_response: 'Cảm ơn bạn đã góp ý. Chúng tôi sẽ tiếp tục duy trì chất lượng phục vụ tốt nhất.',
+    responded_by: 'admin-001',
+    contact_phone: '0905123456',
+    contact_email: null,
+    created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+    updated_at: new Date(Date.now() - 86400000 * 4).toISOString()
+  },
+  {
+    id: 'fb-002',
+    patient_name: 'Trần Văn Hùng',
+    patient_id: null,
+    service_type: 'noi-tru',
+    rating: 3,
+    content: 'Khoa Nội sạch sẽ, nhưng thời gian chờ khám hơi lâu. Cần cải thiện quy trình đặt lịch.',
+    status: 'dang_xu_ly',
+    admin_response: null,
+    responded_by: null,
+    contact_phone: null,
+    contact_email: 'tranvanhung@gmail.com',
+    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+    updated_at: new Date(Date.now() - 86400000 * 2).toISOString()
+  },
+  {
+    id: 'fb-003',
+    patient_name: 'Lê Thị Hương',
+    patient_id: null,
+    service_type: 'cap-cuu',
+    rating: 1,
+    content: 'Tôi đợi 2 tiếng mới được gặp bác sĩ trong tình trạng đau bụng cấp. Cần cải thiện quy trình cấp cứu.',
+    status: 'moi',
+    admin_response: null,
+    responded_by: null,
+    contact_phone: '0932123456',
+    contact_email: null,
+    created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
+    updated_at: new Date(Date.now() - 3600000 * 8).toISOString()
+  }
+];
+
+export const recordRequests: RecordRequest[] = [
+  {
+    id: 'rr-001',
+    patient_name: 'Phạm Thị Lan',
+    patient_id: null,
+    patient_code: 'BN-123456',
+    request_type: 'ket-qua-kham',
+    date_from: '2026-06-01',
+    date_to: '2026-07-15',
+    delivery_method: 'tai-kham',
+    reason: 'Làm hồ sơ bảo hiểm',
+    status: 'da_xu_ly',
+    admin_notes: 'Đã trả kết quả cho bệnh nhân ngày 20/07/2026',
+    request_code: 'YC-789012',
+    assigned_to: 'admin-001',
+    created_at: new Date(Date.now() - 86400000 * 7).toISOString(),
+    updated_at: new Date(Date.now() - 86400000 * 3).toISOString()
+  },
+  {
+    id: 'rr-002',
+    patient_name: 'Hoàng Văn Đức',
+    patient_id: null,
+    patient_code: null,
+    request_type: 'don-thuoc',
+    date_from: '2026-07-01',
+    date_to: '2026-07-22',
+    delivery_method: 'chuyen-bo-post',
+    reason: 'Gửi về tỉnh',
+    status: 'dang_xu_ly',
+    admin_notes: null,
+    request_code: 'YC-345678',
+    assigned_to: null,
+    created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
+    updated_at: new Date(Date.now() - 86400000 * 3).toISOString()
+  },
+  {
+    id: 'rr-003',
+    patient_name: 'Đặng Thị Mai',
+    patient_id: null,
+    patient_code: 'BN-987654',
+    request_type: 'ho-so-y-te',
+    date_from: '2025-01-01',
+    date_to: '2026-07-20',
+    delivery_method: 'nhan-tai-quay',
+    reason: ' Xin việc mới',
+    status: 'moi',
+    admin_notes: null,
+    request_code: 'YC-111222',
+    assigned_to: null,
+    created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
+    updated_at: new Date(Date.now() - 3600000 * 5).toISOString()
+  }
+];

@@ -13,3 +13,5 @@ export { default as PatientsTab } from "./PatientsTab";
 export { default as ShiftsTab } from "./ShiftsTab";
 export { default as LogsTab } from "./LogsTab";
 export { default as OrganizationTab } from "./OrganizationTab";
+export { default as FeedbackTab } from "./FeedbackTab";
+export { default as RecordRequestsTab } from "./RecordRequestsTab";

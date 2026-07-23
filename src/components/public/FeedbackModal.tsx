@@ -26,7 +26,7 @@ export default function FeedbackModal({
   onClose,
   patientName
 }: FeedbackModalProps) {
-  const [serviceType, setServiceType] = useState<ServiceType>('kham-benh');
+  const [service_type, setServiceType] = useState<ServiceType>('kham-benh');
   const [rating, setRating] = useState<Rating>(5);
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,10 +36,32 @@ export default function FeedbackModal({
     e.preventDefault();
     setIsSubmitting(true);
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      const response = await fetch("/api/v1/feedback-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_name: patientName || "Khách vãng lai",
+          service_type,
+          rating,
+          content,
+          contact_phone: null,
+          contact_email: null
+        })
+      });
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Không thể gửi góp ý");
+      }
+
+      setIsSubmitted(true);
+    } catch (error: any) {
+      alert(error.message || "Không thể gửi góp ý");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
@@ -115,7 +137,7 @@ export default function FeedbackModal({
                   type="button"
                   onClick={() => setServiceType(type.value)}
                   className={`px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                    serviceType === type.value
+                    service_type === type.value
                       ? 'bg-brand-green text-white'
                       : 'bg-gray-100 text-ink/70 hover:bg-gray-200'
                   }`}

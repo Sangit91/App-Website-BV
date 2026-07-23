@@ -18,6 +18,8 @@ import {
   ShiftsTab,
   LogsTab,
   OrganizationTab,
+  FeedbackTab,
+  RecordRequestsTab,
 } from "../components/admin/tabs";
 
 export default function AdminPage() {
@@ -47,6 +49,8 @@ export default function AdminPage() {
       case "shifts": return <ShiftsTab />;
       case "logs": return <LogsTab />;
       case "organization": return <OrganizationTab />;
+      case "feedback": return <FeedbackTab />;
+      case "record-requests": return <RecordRequestsTab />;
       default: return <OverviewTab onNavigate={setActiveTab} />;
     }
   };

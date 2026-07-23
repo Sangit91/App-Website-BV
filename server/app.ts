@@ -6,6 +6,8 @@ import organizationRoutes from "./routes/organization.routes";
 import patientRoutes from "./routes/patient.routes";
 import authRoutes from "./routes/auth.routes";
 import appointmentRoutes from "./routes/appointment.routes";
+import feedbackRoutes from "./routes/feedback.routes";
+import recordRequestsRoutes from "./routes/record-requests.routes";
 
 const app = express();
 
@@ -23,5 +25,7 @@ app.use("/api/organization", organizationRoutes);
 app.use("/api/v1/patients", patientRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/appointments", appointmentRoutes);
+app.use("/api/v1/feedback-requests", feedbackRoutes);
+app.use("/api/v1/record-requests", recordRequestsRoutes);
 
 export default app;

@@ -33,19 +33,49 @@ export default function RecordRequestModal({
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedCode, setSubmittedCode] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      const response = await fetch("/api/v1/record-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_name: patientName || "Khách vãng lai",
+          patient_code: patientCode || null,
+          request_type: requestType,
+          date_from: dateRange.from,
+          date_to: dateRange.to,
+          delivery_method: deliveryMethod,
+          reason: reason || null
+        })
+      });
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Không thể gửi yêu cầu");
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || "Không thể gửi yêu cầu");
+      }
+
+      setSubmittedCode(data.data?.request_code || `YC-${Date.now().toString().slice(-6)}`);
+      setIsSubmitted(true);
+    } catch (error: any) {
+      alert(error.message || "Không thể gửi yêu cầu");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
     setIsSubmitted(false);
+    setSubmittedCode(null);
     setRequestType('ho-so-y-te');
     setDateRange({ from: '', to: '' });
     setReason('');
@@ -65,7 +95,7 @@ export default function RecordRequestModal({
           </motion.div>
           <h3 className="font-display font-bold text-xl text-green-dark mb-2">Yêu cầu đã được tiếp nhận</h3>
           <p className="text-sm text-ink/70 mb-6">
-            Mã yêu cầu: <span className="font-bold text-brand-green">YC-{Date.now().toString().slice(-6)}</span>
+            Mã yêu cầu: <span className="font-bold text-brand-green">{submittedCode}</span>
             <br />
             Thời gian xử lý: 3-5 ngày làm việc
           </p>
