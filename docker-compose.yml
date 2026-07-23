@@ -1,0 +1,103 @@
+services:
+  # Frontend: Vite dev server with HMR
+  public-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: bvdh-frontend
+    ports:
+      - "3000:3000"  # Vite dev server (for testing HMR)
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost/api
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - admin-api
+    networks:
+      - bvdh-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend: Express API server
+  admin-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: bvdh-backend
+    ports:
+      - "3001:3001"  # Direct access to API (for debugging)
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:devpass@db:5432/bvdh_db?schema=public
+      - JWT_SECRET=dev-secret-change-in-production-min-32-chars
+      - JWT_REFRESH_SECRET=dev-refresh-secret-change-in-production
+      - PORT=3001
+    volumes:
+      - ./server:/app/server
+      - ./prisma:/app/prisma
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - bvdh-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: ["npx", "tsx", "watch", "server.ts"]
+
+  # Database: PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: bvdh-db
+    ports:
+      - "5432:5432"  # Direct access for dev tools (DBeaver, psql)
+    environment:
+      - POSTGRES_DB=bvdh_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=devpass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - bvdh-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bvdh_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nginx: Reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: bvdh-nginx
+    ports:
+      - "80:80"
+      - "443:443"  # Reserved for SSL
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./public:/usr/share/nginx/html:ro  # Static assets (if any)
+    depends_on:
+      - public-web
+      - admin-api
+    networks:
+      - bvdh-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  bvdh-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    name: bvdh-postgres-data

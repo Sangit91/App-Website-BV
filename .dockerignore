@@ -1,0 +1,65 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Build outputs
+dist
+build
+*.cjs
+*.js.map
+
+# Environment files (use .env.docker instead)
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Git
+.git
+.gitignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker (don't include docker files in build context)
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Documentation
+*.md
+!README.md
+
+# Logs
+*.log
+error.log
+server-output.log
+
+# Test coverage
+coverage
+.nyc_output
+
+# Prisma migrations (re-run inside container)
+prisma/migrations
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Secrets (should be passed via environment variables)
+*.pem
+*.key
+*.crt
+
+# Admin portal (separate deployment in future)
+admin-portal
+
+# Node.js
+package-lock.json

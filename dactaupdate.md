@@ -177,6 +177,155 @@ POST   /api/v1/record-requests/:id/files     -- Upload file (multipart → S3/Mi
 
 ---
 
+## Deployment Architecture Options — DMZ Server (2026-07-23)
+
+> Phân tích 3 phương án triển khai trên DMZ server cho bệnh viện.
+
+### PHƯƠNG ÁN A: Docker Containers trên Single VM ✅ ĐÃ IMPLEMENT (2026-07-23)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     DMZ SERVER (Single VM)                  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │                   Docker Engine                       │  │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐   │  │
+│  │  │ Container 1 │  │ Container 2 │  │ Container 3 │   │  │
+│  │  │ Public Web  │  │ Admin API   │  │ PostgreSQL  │   │  │
+│  │  │ :3000       │  │ :3001       │  │ :5432       │   │  │
+│  │  └──────┬──────┘  └──────┬──────┘  └─────────────┘   │  │
+│  │         │                │                            │  │
+│  │  ┌──────┴────────────────┴──────┐                    │  │
+│  │  │       Nginx Reverse Proxy     │                    │  │
+│  │  │  :80 → bvdh.vn (public)       │                    │  │
+│  │  │  :443 → admin.bvdh.vn        │                    │  │
+│  │  └──────────────────────────────┘                    │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Ưu điểm:**
+- ✅ Container isolation (no container escape)
+- ✅ Network segmentation (Docker network)
+- ✅ TLS termination at nginx
+- ✅ Resource limits per container
+- ✅ Easy backup/restore với Docker volumes
+
+**Nhược điểm:**
+- ❌ Cần Docker knowledge
+- ❌ More complex deployment
+
+**Thời gian implement:** 8-12 tuần
+**Chi phí:** 1 VM + Docker
+
+---
+
+### PHƯƠNG ÁN B: Same App, Subdirectory Routing ✅ CHỌN (TẠM THỜI)
+
+**Ghi chú:** Chọn phương án này để triển khai trước, có thể chuyển sang phương án A (Docker) khi có resource đầy đủ.
+
+**Trạng thái:** Đã quyết định (2026-07-23)
+
+---
+
+### PHƯƠNG ÁN C: 2 VMs (Nếu có resource)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    VM 1: Public Site                         │
+│  - bvdh.vn                                                   │
+│  - Public API                                                │
+│  - React App (public pages only)                            │
+│  - Security: Standard firewall                              │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                    Internal Network
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    VM 2: Admin Portal                        │
+│  - admin.bvdh.vn (hoặc internal IP)                         │
+│  - Admin API (JWT + 2FA)                                    │
+│  - PostgreSQL                                               │
+│  - React Admin App                                          │
+│  - Security: Strict firewall, IP whitelisting, 2FA         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Ưu điểm:**
+- ✅ Complete isolation
+- ✅ Independent scaling
+- ✅ Maximum security
+
+**Nhược điểm:**
+- ❌ 2 VMs required
+- ❌ More expensive
+- ❌ More complex infrastructure
+
+**Thời gian implement:** 10-14 tuần
+**Chi phí:** 2 VMs
+
+---
+
+### Security Requirements bắt buộc (cho mọi phương án)
+
+```typescript
+// 1. JWT Tokens
+// Access Token: 15-30 min expiry
+// Refresh Token: 7 days, httpOnly cookie
+
+// 2. Password Security
+// Bcrypt salt rounds = 12 (OWASP recommended)
+
+// 3. Rate Limiting
+// Public API: 100 requests/minute
+// Admin Auth: 5 requests/minute
+// Login attempts: max 5 → lockout 30 minutes
+
+// 4. RBAC Roles
+type Role = 'Super Admin' | 'Receptionist' | 'Doctor' | 'Department Admin';
+
+// 5. Audit Logging
+// Mọi action của admin đều log: userId, action, IP, timestamp, duration
+// PHI access: log riêng với dataAccessed: 'PHI'
+
+// 6. Security Headers
+- Strict-Transport-Security: max-age=31536000
+- X-Frame-Options: DENY (admin), SAMEORIGIN (public)
+- Content-Security-Policy: default-src 'self'
+- X-Content-Type-Options: nosniff
+- Referrer-Policy: strict-origin-when-cross-origin
+- Permissions-Policy: geolocation=(), microphone=(), camera=()
+
+// 7. Network Security (DMZ)
+// - PostgreSQL: internal-only (port 5432 không expose)
+// - Redis: internal-only
+// - UFW: whitelist only necessary ports
+// - Fail2ban: chống brute force
+```
+
+### RBAC Permissions Matrix
+
+| Permission | Super Admin | Receptionist | Doctor | Dept Admin |
+|------------|-------------|--------------|--------|------------|
+| users:read | ✅ | ✅ | ❌ | ❌ |
+| users:write | ✅ | ❌ | ❌ | ❌ |
+| users:delete | ✅ | ❌ | ❌ | ❌ |
+| appointments:read | ✅ | ✅ | ✅ (own) | ✅ |
+| appointments:write | ✅ | ✅ | ❌ | ✅ |
+| appointments:cancel | ✅ | ✅ | ❌ | ✅ |
+| medical-records:read | ✅ | ❌ | ✅ (own) | ❌ |
+| medical-records:write | ✅ | ❌ | ❌ | ❌ |
+| reports:read | ✅ | ❌ | ❌ | ✅ |
+| reports:export | ✅ | ❌ | ❌ | ❌ |
+| settings:read | ✅ | ❌ | ❌ | ✅ |
+| settings:write | ✅ | ❌ | ❌ | ❌ |
+
+### Khuyến nghị
+
+**Cho DMZ server:** Phương án A (Docker) nếu có đủ resource (4GB+ RAM). Phương án B nếu server yếu.
+
+---
+
 ## Nhật ký thay đổi
 
 | Ngày | Mô tả |
@@ -185,3 +334,4 @@ POST   /api/v1/record-requests/:id/files     -- Upload file (multipart → S3/Mi
 | 2026-07-22 | Review toàn bộ spec v2.9 — ghi nhận 6 bảng Nhóm B còn thiếu field-level, 5 bảng roadmap, các enum gaps, và 5 điểm cần bổ sung trước khi code |
 | 2026-07-23 | Phase 49 hoàn thành: feedback_requests + record_requests API (in-memory), FeedbackModal + RecordRequestModal connected to API, FeedbackTab + RecordRequestsTab admin |
 | 2026-07-23 | Phase 50 hoàn thành: PostgreSQL + Prisma migration — database bvdh_db đã tạo, schema 19 tables đã migrate, booking/feedback/record-request services đã chuyển sang Prisma |
+| 2026-07-23 | Bổ sung Deployment Architecture Options: 3 phương án triển khai trên DMZ server (Docker containers, Same app subdirectory, 2 VMs), security requirements, RBAC permissions matrix |

@@ -1,0 +1,20 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies first (layer caching)
+COPY package*.json tsconfig.json server.ts prisma.config.ts ./
+RUN npm install
+
+# Copy server code (app, routes, services, middleware, db)
+COPY server/ ./server/
+COPY prisma/ ./prisma/
+
+# Generate Prisma Client
+RUN npx prisma generate --schema=./prisma/schema.prisma
+
+# Expose API port
+EXPOSE 3001
+
+# Start server with tsx watch (auto-reload on changes)
+CMD ["npx", "tsx", "watch", "server.ts"]
