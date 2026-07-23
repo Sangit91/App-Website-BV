@@ -10,5 +10,6 @@
     "outDir": "../../dist-server",
     "rootDir": "."
   },
-  "include": ["./**/*.ts"]
+  "include": ["./**/*.ts"],
+  "exclude": ["scripts/**/*", "generated/**/*"]
 }
