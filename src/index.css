@@ -123,3 +123,41 @@ html {
 .animate-glow {
   animation: glow-pulse 3s ease-in-out infinite;
 }
+
+/* ===== Custom Scrollbar - BVĐK Website ===== */
+/* Dùng màu brand green #2FA968 trên nền cream #FCFBF7 — nhất quán với design system */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2FA968 #FCFBF7;
+}
+
+/* Chrome, Safari, Edge */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FCFBF7;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2FA968;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #164B36;
+}
+
+/* Horizontal scrollbar for overflow-x containers */
+::-webkit-scrollbar-track:horizontal {
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb:horizontal {
+  border-radius: 3px;
+}
