@@ -142,7 +142,10 @@ npm run lint && npm run build
   - ✅ New API routes: `/api/v1/specialties`, `/api/v1/doctors`, `/api/v1/news`
   - ✅ Services: specialty.service.ts, doctor.service.ts, news.service.ts (fixed any types)
   - ✅ HospitalContext sync: doctors, specialties, news (add/update/delete → API)
-  - ⚠️ Load-from-API-on-mount: Chưa implement (vẫn dùng localStorage, cần seeding data đầy đủ trước)
+  - ✅ Load-from-API-on-mount: specialties, doctors, news fetched from PostgreSQL on app init
+  - ✅ DB image paths updated to local storage: `/images/doctors/*.jpg`, `/images/news/*.jpg`
+  - ✅ External Pexels images downloaded to `public/images/` for local serving
+  - ⚠️ Bookings, patients, schedules, logs vẫn dùng localStorage (chưa migrate sang PostgreSQL)
 
 ### Phase 52 (2-3 tháng)
 - HIS integration thật

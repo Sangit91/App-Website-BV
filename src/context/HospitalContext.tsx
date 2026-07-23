@@ -105,192 +105,270 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
   const [activeUser, setActiveUser] = useState<ActiveUser | null>(null);
 
   useEffect(() => {
-    // Doctors
-    const localDoctors = localStorage.getItem("hosp_doctors");
-    if (localDoctors) {
-      setDoctors(JSON.parse(localDoctors));
-    } else {
-      localStorage.setItem("hosp_doctors", JSON.stringify(DOCTORS));
-      setDoctors(DOCTORS);
-    }
+    // Load specialties, doctors, news from PostgreSQL API (source of truth)
+    // Load bookings, patients, schedules, logs, activeUser from localStorage (still local-only)
+    const init = async () => {
+      // --- API data: specialties, doctors, news ---
+      try {
+        const [specRes, docRes, newsRes] = await Promise.all([
+          fetch('/api/v1/specialties'),
+          fetch('/api/v1/doctors'),
+          fetch('/api/v1/news'),
+        ]);
 
-    // Specialties
-    const localSpecialties = localStorage.getItem("hosp_specialties");
-    if (localSpecialties) {
-      setSpecialties(JSON.parse(localSpecialties));
-    } else {
-      localStorage.setItem("hosp_specialties", JSON.stringify(SPECIALTIES));
-      setSpecialties(SPECIALTIES);
-    }
-
-    // News
-    const localNews = localStorage.getItem("hosp_news");
-    if (localNews) {
-      setNews(JSON.parse(localNews));
-    } else {
-      localStorage.setItem("hosp_news", JSON.stringify(NEWS));
-      setNews(NEWS);
-    }
-
-    // Bookings
-    const localBookings = localStorage.getItem("hosp_bookings");
-    if (localBookings) {
-      setBookings(JSON.parse(localBookings));
-    } else {
-      const defaultBookings: Booking[] = [
-        {
-          id: "LH-987213",
-          patientName: "Nguyễn Văn An",
-          phone: "0905123456",
-          specialty: "Khoa Tim Mạch",
-          doctorName: "BS. CKII. Nguyễn Minh Trí",
-          date: "2026-07-20",
-          timeSlot: "08:00 - 09:00",
-          symptoms: "Hay bị đau tức ngực trái khi gắng sức",
-          status: "Chờ xác nhận",
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: "LH-523145",
-          patientName: "Trần Thị Bình",
-          phone: "0905111222",
-          specialty: "Khoa Sản Phụ Khoa",
-          doctorName: "ThS. BS. Nguyễn Thị Phương Mai",
-          date: "2026-07-21",
-          timeSlot: "09:30 - 10:30",
-          symptoms: "Khám thai định kỳ tuần thứ 24",
-          status: "Đã xác nhận",
-          createdAt: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          id: "LH-812390",
-          patientName: "Phạm Văn Cường",
-          phone: "0905888999",
-          specialty: "Khoa Nhi",
-          doctorName: "BS. CKI. Phan Thanh Hải",
-          date: "2026-07-22",
-          timeSlot: "14:00 - 15:00",
-          symptoms: "Cháu nhỏ sốt nhẹ kèm ho khan",
-          status: "Đã xác nhận",
-          createdAt: new Date(Date.now() - 7200000).toISOString()
-        },
-        {
-          id: "LH-222333",
-          patientName: "Lê Văn Dũng",
-          phone: "0914222333",
-          specialty: "Khoa Ngoại Tổng Hợp",
-          doctorName: "BS. Lê Thị Thu Hồng",
-          date: "2026-07-23",
-          timeSlot: "15:30 - 16:30",
-          symptoms: "Tư vấn mổ nội soi sỏi mật",
-          status: "Đã hủy",
-          createdAt: new Date(Date.now() - 10800000).toISOString()
+        if (specRes.ok) {
+          const dbSpecs = await specRes.json();
+          const mappedSpecs: Specialty[] = dbSpecs.map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            description: s.description || '',
+            iconType: s.icon as Specialty['iconType'],
+            detail: s.detail || '',
+          }));
+          setSpecialties(mappedSpecs);
+          localStorage.setItem('hosp_specialties', JSON.stringify(mappedSpecs));
         }
-      ];
-      localStorage.setItem("hosp_bookings", JSON.stringify(defaultBookings));
-      setBookings(defaultBookings);
-    }
 
-    // Patients
-    const localPatients = localStorage.getItem("hosp_patients");
-    if (localPatients) {
-      setPatients(JSON.parse(localPatients));
-    } else {
-      const defaultPatients: Patient[] = [
-        { id: "P-1", name: "Cô Trương Thị Hoa", cccd: "049152003841", phone: "0905777888", visitCount: 5 },
-        { id: "P-2", name: "Anh Nguyễn Văn Hoàng", cccd: "049092004512", phone: "0905666777", visitCount: 2 },
-        { id: "P-3", name: "Chị Phan Thị Vy", cccd: "049182009123", phone: "0905555666", visitCount: 1 },
-        { id: "P-4", name: "Nguyễn Văn An", cccd: "049093001234", phone: "0905123456", visitCount: 3 },
-        { id: "P-5", name: "Trần Thị Bình", cccd: "049193005678", phone: "0905111222", visitCount: 4 },
-        { id: "P-6", name: "Phạm Văn Cường", cccd: "049073009999", phone: "0905888999", visitCount: 6 }
-      ];
-      localStorage.setItem("hosp_patients", JSON.stringify(defaultPatients));
-      setPatients(defaultPatients);
-    }
-
-    // Schedules
-    const localSchedules = localStorage.getItem("hosp_schedules");
-    if (localSchedules) {
-      setSchedules(JSON.parse(localSchedules));
-    } else {
-      const defaultSchedules: DoctorSchedule[] = [
-        {
-          doctorId: "dr-tri",
-          doctorName: "BS. CKII. Nguyễn Minh Trí",
-          monday: "Ca Sáng",
-          tuesday: "Ca Sáng",
-          wednesday: "Ca Sáng",
-          thursday: "Ca Sáng",
-          friday: "Ca Sáng",
-          saturday: "Nghỉ",
-          sunday: "Nghỉ"
-        },
-        {
-          doctorId: "dr-mai",
-          doctorName: "ThS. BS. Nguyễn Thị Phương Mai",
-          monday: "Ca Chiều",
-          tuesday: "Ca Chiều",
-          wednesday: "Ca Chiều",
-          thursday: "Ca Chiều",
-          friday: "Nghỉ",
-          saturday: "Nghỉ",
-          sunday: "Nghỉ"
-        },
-        {
-          doctorId: "dr-hai",
-          doctorName: "BS. CKI. Phan Thanh Hải",
-          monday: "Nghỉ",
-          tuesday: "Ca Sáng",
-          wednesday: "Ca Sáng",
-          thursday: "Ca Sáng",
-          friday: "Ca Sáng",
-          saturday: "Nghỉ",
-          sunday: "Nghỉ"
-        },
-        {
-          doctorId: "dr-hong",
-          doctorName: "BS. Lê Thị Thu Hồng",
-          monday: "Ca Chiều",
-          tuesday: "Ca Chiều",
-          wednesday: "Ca Chiều",
-          thursday: "Nghỉ",
-          friday: "Nghỉ",
-          saturday: "Nghỉ",
-          sunday: "Nghỉ"
+        if (docRes.ok) {
+          const dbDocs = await docRes.json();
+          const mappedDocs: Doctor[] = dbDocs.map((d: any) => ({
+            id: d.id,
+            name: d.fullName,
+            title: d.title,
+            specialtyId: d.specialtyId || '',
+            specialtyName: d.specialty?.name || '',
+            image: d.image || '/images/doctors/doctor-placeholder.jpeg',
+            experience: d.bio || '',
+            schedule: '',
+          }));
+          setDoctors(mappedDocs);
+          localStorage.setItem('hosp_doctors', JSON.stringify(mappedDocs));
         }
-      ];
-      localStorage.setItem("hosp_schedules", JSON.stringify(defaultSchedules));
-      setSchedules(defaultSchedules);
-    }
 
-    // Logs
-    const localLogs = localStorage.getItem("hosp_logs");
-    if (localLogs) {
-      setLogs(JSON.parse(localLogs));
-    } else {
-      const defaultLogs: AuditLog[] = [
-        {
-          id: "L-1",
-          timestamp: "16/07/2026 09:15",
-          user: "Lễ tân Hoa",
-          action: "Xác nhận Lịch hẹn #LH-987213"
-        },
-        {
-          id: "L-2",
-          timestamp: "16/07/2026 10:30",
-          user: "Super Admin",
-          action: "Cập nhật lịch trực BS. Nguyễn Minh Trí"
+        if (newsRes.ok) {
+          const dbNews = await newsRes.json();
+          const mappedNews: NewsItem[] = dbNews.map((n: any) => ({
+            id: n.id,
+            title: n.title,
+            summary: n.summary || '',
+            tag: n.category as NewsItem['tag'],
+            date: n.publishedAt ? new Date(n.publishedAt).toLocaleDateString('vi-VN') : '',
+            image: n.image || '/images/pages/hero-thongtin.jpeg',
+            content: n.content,
+            isTender: n.isTender || false,
+            tenderNumber: n.tenderNumber,
+            tenderStartDate: n.tenderStartDate || '',
+            tenderEndDate: n.tenderEndDate || '',
+            tenderDept: n.tenderDept,
+            tenderMethod: n.tenderMethod,
+            tenderEstimateValue: n.tenderEstimate,
+            tenderReceivedLocation: n.tenderReceived,
+            tenderContact: n.contactName,
+            tenderContactPhone: n.contactPhone,
+            tenderFile: n.tenderFile,
+            tenderDownloadCount: n.downloadCount,
+          }));
+          setNews(mappedNews);
+          localStorage.setItem('hosp_news', JSON.stringify(mappedNews));
         }
-      ];
-      localStorage.setItem("hosp_logs", JSON.stringify(defaultLogs));
-      setLogs(defaultLogs);
-    }
+      } catch (err) {
+        console.error('Error loading from API, falling back to localStorage:', err);
+      }
 
-    // Active User / Session
-    const localUser = localStorage.getItem("hosp_active_user");
-    if (localUser) {
-      setActiveUser(JSON.parse(localUser));
-    }
+      // --- localStorage-only data ---
+
+      // Doctors (fallback)
+      const localDoctors = localStorage.getItem('hosp_doctors');
+      if (localDoctors) {
+        const parsed = JSON.parse(localDoctors);
+        if (parsed.length > 0) setDoctors(parsed);
+      } else {
+        localStorage.setItem('hosp_doctors', JSON.stringify(DOCTORS));
+        setDoctors(DOCTORS);
+      }
+
+      // Specialties (fallback)
+      const localSpecs = localStorage.getItem('hosp_specialties');
+      if (localSpecs) {
+        const parsed = JSON.parse(localSpecs);
+        if (parsed.length > 0) setSpecialties(parsed);
+      } else {
+        localStorage.setItem('hosp_specialties', JSON.stringify(SPECIALTIES));
+        setSpecialties(SPECIALTIES);
+      }
+
+      // News (fallback)
+      const localNews = localStorage.getItem('hosp_news');
+      if (localNews) {
+        const parsed = JSON.parse(localNews);
+        if (parsed.length > 0) setNews(parsed);
+      } else {
+        localStorage.setItem('hosp_news', JSON.stringify(NEWS));
+        setNews(NEWS);
+      }
+
+      // Bookings
+      const localBookings = localStorage.getItem('hosp_bookings');
+      if (localBookings) {
+        setBookings(JSON.parse(localBookings));
+      } else {
+        const defaultBookings: Booking[] = [
+          {
+            id: 'LH-987213',
+            patientName: 'Nguyễn Văn An',
+            phone: '0905123456',
+            specialty: 'Khoa Tim Mạch',
+            doctorName: 'BS. CKII. Nguyễn Minh Trí',
+            date: '2026-07-20',
+            timeSlot: '08:00 - 09:00',
+            symptoms: 'Hay bị đau tức ngực trái khi gắng sức',
+            status: 'Chờ xác nhận',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'LH-523145',
+            patientName: 'Trần Thị Bình',
+            phone: '0905111222',
+            specialty: 'Khoa Sản Phụ Khoa',
+            doctorName: 'ThS. BS. Nguyễn Thị Phương Mai',
+            date: '2026-07-21',
+            timeSlot: '09:30 - 10:30',
+            symptoms: 'Khám thai định kỳ tuần thứ 24',
+            status: 'Đã xác nhận',
+            createdAt: new Date(Date.now() - 3600000).toISOString()
+          },
+          {
+            id: 'LH-812390',
+            patientName: 'Phạm Văn Cường',
+            phone: '0905888999',
+            specialty: 'Khoa Nhi',
+            doctorName: 'BS. CKI. Phan Thanh Hải',
+            date: '2026-07-22',
+            timeSlot: '14:00 - 15:00',
+            symptoms: 'Cháu nhỏ sốt nhẹ kèm ho khan',
+            status: 'Đã xác nhận',
+            createdAt: new Date(Date.now() - 7200000).toISOString()
+          },
+          {
+            id: 'LH-222333',
+            patientName: 'Lê Văn Dũng',
+            phone: '0914222333',
+            specialty: 'Khoa Ngoại Tổng Hợp',
+            doctorName: 'BS. Lê Thị Thu Hồng',
+            date: '2026-07-23',
+            timeSlot: '15:30 - 16:30',
+            symptoms: 'Tư vấn mổ nội soi sỏi mật',
+            status: 'Đã hủy',
+            createdAt: new Date(Date.now() - 10800000).toISOString()
+          }
+        ];
+        localStorage.setItem('hosp_bookings', JSON.stringify(defaultBookings));
+        setBookings(defaultBookings);
+      }
+
+      // Patients
+      const localPatients = localStorage.getItem('hosp_patients');
+      if (localPatients) {
+        setPatients(JSON.parse(localPatients));
+      } else {
+        const defaultPatients: Patient[] = [
+          { id: 'P-1', name: 'Cô Trương Thị Hoa', cccd: '049152003841', phone: '0905777888', visitCount: 5 },
+          { id: 'P-2', name: 'Anh Nguyễn Văn Hoàng', cccd: '049092004512', phone: '0905666777', visitCount: 2 },
+          { id: 'P-3', name: 'Chị Phan Thị Vy', cccd: '049182009123', phone: '0905555666', visitCount: 1 },
+          { id: 'P-4', name: 'Nguyễn Văn An', cccd: '049093001234', phone: '0905123456', visitCount: 3 },
+          { id: 'P-5', name: 'Trần Thị Bình', cccd: '049193005678', phone: '0905111222', visitCount: 4 },
+          { id: 'P-6', name: 'Phạm Văn Cường', cccd: '049073009999', phone: '0905888999', visitCount: 6 }
+        ];
+        localStorage.setItem('hosp_patients', JSON.stringify(defaultPatients));
+        setPatients(defaultPatients);
+      }
+
+      // Schedules
+      const localSchedules = localStorage.getItem('hosp_schedules');
+      if (localSchedules) {
+        setSchedules(JSON.parse(localSchedules));
+      } else {
+        const defaultSchedules: DoctorSchedule[] = [
+          {
+            doctorId: 'dr-tri',
+            doctorName: 'BS. CKII. Nguyễn Minh Trí',
+            monday: 'Ca Sáng',
+            tuesday: 'Ca Sáng',
+            wednesday: 'Ca Sáng',
+            thursday: 'Ca Sáng',
+            friday: 'Ca Sáng',
+            saturday: 'Nghỉ',
+            sunday: 'Nghỉ'
+          },
+          {
+            doctorId: 'dr-mai',
+            doctorName: 'ThS. BS. Nguyễn Thị Phương Mai',
+            monday: 'Ca Chiều',
+            tuesday: 'Ca Chiều',
+            wednesday: 'Ca Chiều',
+            thursday: 'Ca Chiều',
+            friday: 'Nghỉ',
+            saturday: 'Nghỉ',
+            sunday: 'Nghỉ'
+          },
+          {
+            doctorId: 'dr-hai',
+            doctorName: 'BS. CKI. Phan Thanh Hải',
+            monday: 'Nghỉ',
+            tuesday: 'Ca Sáng',
+            wednesday: 'Ca Sáng',
+            thursday: 'Ca Sáng',
+            friday: 'Ca Sáng',
+            saturday: 'Nghỉ',
+            sunday: 'Nghỉ'
+          },
+          {
+            doctorId: 'dr-hong',
+            doctorName: 'BS. Lê Thị Thu Hồng',
+            monday: 'Ca Chiều',
+            tuesday: 'Ca Chiều',
+            wednesday: 'Ca Chiều',
+            thursday: 'Nghỉ',
+            friday: 'Nghỉ',
+            saturday: 'Nghỉ',
+            sunday: 'Nghỉ'
+          }
+        ];
+        localStorage.setItem('hosp_schedules', JSON.stringify(defaultSchedules));
+        setSchedules(defaultSchedules);
+      }
+
+      // Logs
+      const localLogs = localStorage.getItem('hosp_logs');
+      if (localLogs) {
+        setLogs(JSON.parse(localLogs));
+      } else {
+        const defaultLogs: AuditLog[] = [
+          {
+            id: 'L-1',
+            timestamp: '16/07/2026 09:15',
+            user: 'Lễ tân Hoa',
+            action: 'Xác nhận Lịch hẹn #LH-987213'
+          },
+          {
+            id: 'L-2',
+            timestamp: '16/07/2026 10:30',
+            user: 'Super Admin',
+            action: 'Cập nhật lịch trực BS. Nguyễn Minh Trí'
+          }
+        ];
+        localStorage.setItem('hosp_logs', JSON.stringify(defaultLogs));
+        setLogs(defaultLogs);
+      }
+
+      // Active User / Session
+      const localUser = localStorage.getItem('hosp_active_user');
+      if (localUser) {
+        setActiveUser(JSON.parse(localUser));
+      }
+    };
+
+    init();
   }, []);
 
   // Helper helper to write to storage and state

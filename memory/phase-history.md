@@ -1513,4 +1513,23 @@ src/context/HospitalContext.tsx       (modified)
 - Specialty: `iconType` → `icon`, `name` → `name`, `description` → `description`
 - News: `tag` → `category`, `date` → `publishedAt`, `tenderEstimateValue` → `tenderEstimate`, `tenderReceivedLocation` → `tenderReceived`, `tenderContact` → `contactName`, `tenderContactPhone` → `contactPhone`
 
-**Note:** Load-from-API-on-mount chưa implement — vẫn load từ localStorage. Cần seeding data đầy đủ vào PostgreSQL trước khi switch hoàn toàn sang API.
+### Phase 51 Final (2026-07-23) — Load-from-API + Image Local Storage
+
+**Load-from-API-on-mount (HospitalContext):**
+- On app init, fetches specialties/doctors/news from PostgreSQL API
+- Maps DB fields to frontend types (fullName→name, icon→iconType, category→tag, publishedAt→date)
+- Falls back to localStorage if API fails
+- Bookings, patients, schedules, logs remain localStorage-only
+
+**Image Local Storage Fix:**
+- Downloaded 11 Pexels images (4 doctor + 7 news) to `public/images/` as local assets
+- Updated `data.ts` to use local paths: `/images/doctors/dr-*.jpg`, `/images/news/news-*.jpg`, `/images/news/tender-*.jpg`
+- Updated DB `doctor.image` and `news.image` fields to local paths
+- DB image migration script: `scripts/update-db-images.mts`
+- Image download script: `scripts/download-images.cjs`
+
+**DB Image Paths After Migration:**
+- Doctors: `/images/doctors/dr-tri.jpg`, `/images/doctors/dr-mai.jpg`, `/images/doctors/dr-hai.jpg`, `/images/doctors/dr-hong.jpg`
+- News: `/images/news/news-1.jpg` through `/images/news/tender-4.jpg`
+
+**Note:** Only specialties, doctors, and news have PostgreSQL sync. Other entities (bookings, patients, schedules, logs) still use localStorage.
