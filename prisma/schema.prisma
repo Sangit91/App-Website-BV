@@ -66,6 +66,7 @@ model Patient {
   treatmentHistories TreatmentHistory[]
   contactMessages ContactMessage[]
   testimonials    Testimonial[]
+  patientConsents PatientConsent[]
 
   @@map("patients")
 }
@@ -519,6 +520,47 @@ model ClinicalTest {
   medicalRecord MedicalRecord? @relation(fields: [medicalRecordId], references: [id])
 
   @@map("clinical_tests")
+}
+
+// ============================================================
+// CONSENT POLICIES
+// ============================================================
+model ConsentPolicy {
+  id            String    @id @default(cuid())
+  version       String    @unique @db.VarChar(20)
+  title         String    @map("title") @db.VarChar(255)
+  contentHtml   String    @map("content_html") @db.Text
+  effectiveDate DateTime  @map("effective_date") @db.Date
+  isActive      Boolean   @default(true) @map("is_active")
+  createdBy     String?   @map("created_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  patientConsents PatientConsent[]
+
+  @@map("consent_policies")
+}
+
+// ============================================================
+// PATIENT CONSENTS (Polymorphic)
+// ============================================================
+model PatientConsent {
+  id            String    @id @default(cuid())
+  patientId     String    @map("patient_id")
+  policyVersion String    @map("policy_version") @db.VarChar(20)
+  isAgreed      Boolean   @default(false) @map("is_agreed")
+  agreedScopes  Json      @default("[]") @map("agreed_scopes")
+  agreedAt      DateTime? @map("agreed_at")
+  withdrawnAt   DateTime? @map("withdrawn_at")
+  ipAddress     String?   @map("ip_address") @db.VarChar(45)
+  userAgent     String?   @map("user_agent") @db.Text
+  consentHash   String?   @map("consent_hash") @db.VarChar(64)
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  patient       Patient       @relation(fields: [patientId], references: [id])
+  policy        ConsentPolicy @relation(fields: [policyVersion], references: [version])
+
+  @@index([patientId, policyVersion, isAgreed])
+  @@map("patient_consents")
 }
 
 // ============================================================

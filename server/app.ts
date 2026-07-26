@@ -12,6 +12,7 @@ import recordRequestsRoutes from "./routes/record-requests.routes";
 import specialtyRoutes from "./routes/specialty.routes";
 import doctorRoutes from "./routes/doctor.routes";
 import newsRoutes from "./routes/news.routes";
+import consentRoutes from "./routes/consent.routes";
 
 const app = express();
 
@@ -48,5 +49,6 @@ app.use("/api/v1/record-requests", recordRequestsRoutes);
 app.use("/api/v1/specialties", specialtyRoutes);
 app.use("/api/v1/doctors", doctorRoutes);
 app.use("/api/v1/news", newsRoutes);
+app.use("/api/v1/consent", consentRoutes);
 
 export default app;
