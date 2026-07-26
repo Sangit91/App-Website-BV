@@ -110,6 +110,7 @@ npm run lint && npm run build
 | FeedbackTab + RecordRequestsTab admin (Phase 49) | ✅ Hoàn thành |
 | PostgreSQL + Prisma migration Phase 1 (22 tables, Prisma Client, services updated) | ✅ Hoàn thành (2026-07-23) |
 | Docker Dev Environment (Option 1 architecture) | ✅ Hoàn thành (2026-07-23) |
+| Consent Management (Phase 68 - NĐ 13/2023): ConsentPolicy + PatientConsent models, consent service/routes/middleware, PatientConsentModal, PHI protection | ✅ Hoàn thành (2026-07-26) |
 | Spec v2.9 review + Database gap analysis | ✅ Hoàn thành (2026-07-22) |
 | dactaupdate.md updated with DB gaps | ✅ Hoàn thành |
 | Expert System Review Report (report-review.md) | ✅ Hoàn thành |

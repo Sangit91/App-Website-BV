@@ -1533,3 +1533,57 @@ src/context/HospitalContext.tsx       (modified)
 - News: `/images/news/news-1.jpg` through `/images/news/tender-4.jpg`
 
 **Note:** Only specialties, doctors, and news have PostgreSQL sync. Other entities (bookings, patients, schedules, logs) still use localStorage.
+
+---
+
+## PHASE 68 - Consent Management (NĐ 13/2023/NĐ-CP) (2026-07-26)
+
+### Mục tiêu
+Implement Consent Management module per spec v2.13 Mục 24 — đảm bảo tuân thủ NĐ 13/2023/NĐ-CP trước go-live.
+
+### Đã hoàn thành
+
+**Prisma Schema:**
+- `ConsentPolicy` model: version, title, contentHtml, effectiveDate, isActive, createdBy
+- `PatientConsent` model (polymorphic): patientId, policyVersion, isAgreed, agreedScopes (Json), agreedAt, withdrawnAt, ipAddress, userAgent, consentHash
+- Relations: Patient → PatientConsent → ConsentPolicy
+- Index: (patientId, policyVersion, isAgreed)
+
+**Backend:**
+- `server/services/consent.service.ts` — CRUD với SHA-256 hash, validateSubmitInput check
+- `server/routes/consent.routes.ts` — GET /policy/active, GET /check/:patientId, POST /submit, POST /withdraw
+- `server/middleware/consent.middleware.ts` — ConsentCheckMiddleware bảo vệ PHI endpoints
+
+**Frontend:**
+- `src/components/public/PatientConsentModal.tsx` — 3 scopes: treatment_required (bắt buộc), notification_opt_in + research_opt_in (tùy chọn)
+
+**Integrations:**
+- `server/app.ts` — Added /api/v1/consent routes
+
+### Files Changed
+
+```
+prisma/schema.prisma                            (ConsentPolicy + PatientConsent models)
+prisma/migrations/20260726042414_add_consent_tables/migration.sql
+server/services/consent.service.ts              (new)
+server/routes/consent.routes.ts                 (new)
+server/middleware/consent.middleware.ts         (new)
+server/app.ts                                   (consent routes added)
+src/components/public/PatientConsentModal.tsx   (new)
+src/components/public/PatientPortalSection.tsx  (existing, consent check integrated)
+memory.md                                       (Phase 68 added to completed list)
+memory/phase-history.md                         (Phase 68 appended)
+```
+
+### Commands
+
+```bash
+npm run migrate:deploy   # Apply consent migration
+npm run dev             # Start server
+npm run lint && npm run build  # Verify
+```
+
+### Ghi chú
+- PatientPortalSection.tsx đã có từ phase trước — chỉ integrate consent check chứ không tạo mới
+- PHI protection: mọi endpoint đọc bệnh sử/CLS/điều trị yêu cầu readToken từ luồng OTP 5 phút
+- rate limit: 5 request/IP/15 phút cho public consent endpoints
