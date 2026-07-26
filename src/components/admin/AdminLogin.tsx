@@ -6,6 +6,7 @@ import {
   AlertCircle, CheckCircle, Loader2, Activity
 } from "lucide-react";
 import { FloatingShape } from "../../hooks/FloatingShape";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 
 interface AdminLoginProps {
   onBackToHome: () => void;
@@ -21,6 +22,7 @@ const scopeTabs = [
 
 export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
   const { login } = useAdmin();
+  const reducedMotion = useReducedMotion();
   const [selectedScope, setSelectedScope] = useState<ScopeId>("admin");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +34,6 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
   const [isSuccess, setIsSuccess] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  const mousePos = useRef({ x: 0, y: 0 });
   const spotlightRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -42,8 +43,9 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
   }, []);
 
   useEffect(() => {
+    if (reducedMotion) return;
+
     const handleMouseMove = (e: MouseEvent) => {
-      mousePos.current = { x: e.clientX, y: e.clientY };
       if (spotlightRef.current) {
         spotlightRef.current.style.left = `${e.clientX - 150}px`;
         spotlightRef.current.style.top = `${e.clientY - 150}px`;
@@ -51,7 +53,7 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
     };
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
+  }, [reducedMotion]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -127,78 +129,96 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
     <div
       ref={containerRef}
       className="fixed inset-0 z-50 overflow-hidden"
-      style={{ background: "linear-gradient(135deg, #08140E 0%, #0F2218 50%, #08140E 100%)" }}
+      style={{ background: "linear-gradient(145deg, #030F0A 0%, #0A241A 40%, #030F0A 100%)" }}
     >
-      <div className="absolute inset-0 opacity-[0.08]" style={{
-        backgroundImage: `
-          linear-gradient(rgba(47, 169, 104, 0.3) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(47, 169, 104, 0.3) 1px, transparent 1px)
-        `,
-        backgroundSize: "60px 60px"
-      }} />
+      <div
+        className="absolute inset-0 opacity-[0.06]"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(47, 169, 104, 0.4) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(47, 169, 104, 0.4) 1px, transparent 1px)
+          `,
+          backgroundSize: "60px 60px"
+        }}
+      />
 
       <div
         className="absolute pointer-events-none"
         style={{
-          width: 400,
-          height: 400,
+          width: 500,
+          height: 500,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(0, 255, 157, 0.15) 0%, transparent 70%)",
-          top: "-100px",
-          left: "-100px",
-          filter: "blur(60px)"
+          background: "radial-gradient(circle, rgba(47, 169, 104, 0.18) 0%, transparent 70%)",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          filter: "blur(80px)"
         }}
       />
       <div
         className="absolute pointer-events-none"
         style={{
-          width: 300,
-          height: 300,
+          width: 350,
+          height: 350,
           borderRadius: "50%",
           background: "radial-gradient(circle, rgba(255, 162, 101, 0.1) 0%, transparent 70%)",
-          bottom: "10%",
-          right: "-50px",
-          filter: "blur(60px)"
+          top: "55%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          filter: "blur(70px)"
         }}
       />
 
-      <div className="absolute inset-0 overflow-hidden">
-        <FloatingShape className="w-64 h-64 bg-brand-green/10" delay={0} />
-        <FloatingShape className="w-48 h-48 bg-peach/5" delay={2} />
-        <FloatingShape className="w-32 h-32 bg-brand-green/5" delay={4} />
-        <FloatingShape className="w-40 h-40 bg-mint/5" delay={1} />
-      </div>
+      {!reducedMotion && (
+        <div className="absolute inset-0 overflow-hidden">
+          <FloatingShape className="w-72 h-72 bg-brand-green/8" delay={0} />
+          <FloatingShape className="w-56 h-56 bg-peach/4" delay={2} />
+          <FloatingShape className="w-40 h-40 bg-brand-green/5" delay={4} />
+          <FloatingShape className="w-48 h-48 bg-mint/4" delay={1} />
+        </div>
+      )}
 
-      <div
-        ref={spotlightRef}
-        className="absolute w-[300px] h-[300px] rounded-full pointer-events-none transition-all duration-1000 ease-out"
-        style={{
-          border: "2px solid rgba(47, 169, 104, 0.2)",
-          boxShadow: "0 0 60px rgba(47, 169, 104, 0.15), inset 0 0 60px rgba(47, 169, 104, 0.05)",
-          opacity: 0.6
-        }}
-      />
+      {!reducedMotion && (
+        <div
+          ref={spotlightRef}
+          className="absolute w-[300px] h-[300px] rounded-full pointer-events-none transition-all duration-1000 ease-out"
+          style={{
+            border: "2px solid rgba(47, 169, 104, 0.25)",
+            boxShadow: "0 0 60px rgba(47, 169, 104, 0.15), inset 0 0 60px rgba(47, 169, 104, 0.05)",
+            opacity: 0.6
+          }}
+        />
+      )}
 
       <div className="relative z-10 min-h-screen flex flex-col">
-        <header className="flex items-center justify-between p-6">
+        <header className="flex items-center justify-between px-8 py-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[12px] bg-brand-green flex items-center justify-center">
+            <div
+              className="w-11 h-11 rounded-[12px] flex items-center justify-center"
+              style={{
+                background: "linear-gradient(135deg, #2FA968 0%, #164B36 100%)",
+                boxShadow: "0 4px 20px rgba(47, 169, 104, 0.4), 0 0 40px rgba(47, 169, 104, 0.2)"
+              }}
+            >
               <ShieldCheck className="text-white w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-white font-display font-semibold text-sm tracking-wide">
+              <h1 className="text-white/90 font-display font-semibold text-sm tracking-wide">
                 Bệnh Viện Đa Khoa KV Miền Núi Phía Bắc Quảng Nam
               </h1>
-              <p className="text-white/50 text-[10px] font-medium">Cổng Quản trị Nội bộ</p>
+              <p className="text-white/40 text-[10px] font-medium">Cổng Quản trị Nội bộ</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="text-white/60 text-xs font-medium">
+            <div
+              className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[#EAF7EE] text-xs font-mono font-medium tracking-wider"
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
               {currentTime.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
             </div>
             <button
               onClick={onBackToHome}
-              className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/70 text-xs font-medium hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+              className="px-4 py-2 rounded-full bg-white/[0.06] backdrop-blur-sm border border-white/15 text-white/60 text-xs font-medium hover:bg-white/10 hover:text-white hover:border-white/25 transition-all cursor-pointer"
             >
               Hướng dẫn
             </button>
@@ -207,19 +227,46 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
 
         <main className="flex-1 flex items-center justify-center p-4">
           <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reducedMotion ? 0 : 0.5, ease: "easeOut" }}
+          >
+          <motion.div
             variants={cardVariants}
             animate={isShake ? "shake" : "idle"}
-            className="w-full max-w-[460px] bg-white/95 backdrop-blur-xl rounded-[28px] p-8 sm:p-10 shadow-2xl border border-brand-green/20"
+            className="w-full max-w-[460px] bg-white/[0.94] backdrop-blur-2xl rounded-[32px] p-8 sm:p-10 border border-white/80 ring-1 ring-[#2FA968]/15"
+            style={{
+              boxShadow: "0 24px 80px rgba(2, 30, 22, 0.5), 0 8px 32px rgba(2, 30, 22, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
+            }}
           >
-            <div className="text-center mb-8">
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-green-dark to-brand-green flex items-center justify-center mb-4 shadow-lg">
-                <ShieldCheck className="text-white w-7 h-7" />
+            <div className="text-center mb-7">
+              <div
+                className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 relative"
+                style={{
+                  background: "linear-gradient(135deg, #164B36 0%, #2FA968 100%)",
+                  boxShadow: "0 8px 32px rgba(47, 169, 104, 0.4), 0 0 48px rgba(47, 169, 104, 0.15)"
+                }}
+              >
+                <ShieldCheck className="text-white w-8 h-8" />
+                <div
+                  className="absolute -right-1 -top-1 w-3 h-3 rounded-full bg-[#00FF9D]"
+                  style={{
+                    boxShadow: "0 0 8px #00FF9D, 0 0 16px #00FF9D",
+                    animation: reducedMotion ? "none" : "pulse 2s ease-in-out infinite"
+                  }}
+                />
               </div>
-              <h2 className="font-display font-bold text-xl text-green-dark">Đăng nhập hệ thống</h2>
-              <p className="text-ink/60 text-xs mt-1">Cổng quản trị nội bộ • Chuẩn ATTT Cấp độ 3</p>
+              <h2 className="font-display font-bold text-2xl text-[#164B36] mb-1">
+                Đăng nhập hệ thống
+              </h2>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EAF7EE] text-[#164B36] text-xs font-semibold">
+                <span>Cổng quản trị nội bộ</span>
+                <span className="w-1 h-1 rounded-full bg-[#2FA968]" />
+                <span>Chuẩn ATTT Cấp độ 3</span>
+              </div>
             </div>
 
-            <div className="relative flex p-1.5 bg-mint rounded-[20px] mb-6">
+            <div className="relative flex p-1.5 bg-[#EAF7EE]/80 backdrop-blur-md rounded-[22px] mb-6 border border-[#2FA968]/15">
               {scopeTabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -229,13 +276,16 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
                 >
                   {selectedScope === tab.id && (
                     <motion.div
-                      layoutId="activeScopePill"
-                      className="absolute inset-0 bg-gradient-to-r from-brand-green to-green-dark rounded-[16px] shadow-md"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      layoutId="activeLuxuryPill"
+                      className="absolute inset-0 bg-gradient-to-r from-[#2FA968] to-[#164B36] rounded-[18px]"
+                      style={{
+                        boxShadow: "0 4px 16px rgba(47, 169, 104, 0.35)"
+                      }}
+                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
                     />
                   )}
                   <span className={`relative z-20 flex items-center justify-center gap-1.5 ${
-                    selectedScope === tab.id ? "text-white" : "text-ink"
+                    selectedScope === tab.id ? "text-white" : "text-[#22302A]"
                   }`}>
                     <tab.icon className="w-4 h-4" />
                     {tab.label}
@@ -247,36 +297,36 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
             <AnimatePresence mode="wait">
               {errorMessage && (
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="mb-5 p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2 text-red-600 text-xs"
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  className="mb-5 p-3.5 rounded-xl bg-red-50/90 backdrop-blur-sm border border-red-200/60 flex items-center gap-2.5 text-red-600 text-xs"
                 >
-                  <AlertCircle size={14} className="shrink-0" />
+                  <AlertCircle size={15} className="shrink-0" />
                   <span>{errorMessage}</span>
                 </motion.div>
               )}
 
               {isSuccess && (
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-5 p-3 rounded-xl bg-green-50 border border-green-200 flex items-center gap-2 text-green-600 text-xs"
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  className="mb-5 p-3.5 rounded-xl bg-green-50/90 backdrop-blur-sm border border-green-200/60 flex items-center gap-2.5 text-green-600 text-xs"
                 >
-                  <CheckCircle size={14} className="shrink-0" />
+                  <CheckCircle size={15} className="shrink-0" />
                   <span>Đăng nhập thành công! Đang chuyển hướng...</span>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-xs font-bold text-green-dark uppercase tracking-wide mb-1.5">
+                <label className="block text-xs font-bold text-[#164B36] uppercase tracking-wider mb-2">
                   Tên đăng nhập
                 </label>
                 <div className="relative">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-green">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2FA968] transition-colors">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                       <circle cx="12" cy="7" r="4" />
                     </svg>
@@ -286,7 +336,7 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Nhập tên đăng nhập"
-                    className="w-full pl-10 pr-4 py-3 bg-cream-white border border-green-800/10 rounded-xl text-sm text-green-dark focus:outline-none focus:ring-2 focus:ring-brand-green transition-all"
+                    className="w-full pl-11 pr-4 py-3.5 bg-[#FCFBF7] border border-[#2FA968]/20 rounded-[18px] text-sm text-[#164B36] placeholder:text-[#22302A]/40 focus:outline-none focus:ring-2 focus:ring-[#2FA968]/30 focus:border-[#2FA968]/50 transition-all"
                     disabled={isLoading}
                     autoComplete="username"
                   />
@@ -294,12 +344,12 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-green-dark uppercase tracking-wide mb-1.5">
+                <label className="block text-xs font-bold text-[#164B36] uppercase tracking-wider mb-2">
                   Mật khẩu
                 </label>
                 <div className="relative">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-green">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2FA968] transition-colors">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
@@ -309,32 +359,35 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Nhập mật khẩu"
-                    className="w-full pl-10 pr-12 py-3 bg-cream-white border border-green-800/10 rounded-xl text-sm text-green-dark focus:outline-none focus:ring-2 focus:ring-brand-green transition-all"
+                    className="w-full pl-11 pr-12 py-3.5 bg-[#FCFBF7] border border-[#2FA968]/20 rounded-[18px] text-sm text-[#164B36] placeholder:text-[#22302A]/40 focus:outline-none focus:ring-2 focus:ring-[#2FA968]/30 focus:border-[#2FA968]/50 transition-all"
                     disabled={isLoading}
                     autoComplete="current-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink/40 hover:text-brand-green transition-colors cursor-pointer"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#22302A]/40 hover:text-[#2FA968] transition-colors cursor-pointer"
                     tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded border-green-800/20 text-brand-green focus:ring-brand-green cursor-pointer"
+                    className="w-4.5 h-4.5 rounded border-[#2FA968]/30 text-[#2FA968] focus:ring-[#2FA968]/30 focus:ring-offset-0 cursor-pointer bg-white"
                   />
-                  <span className="text-xs text-ink/70 font-medium">Ghi nhớ đăng nhập</span>
+                  <span className="text-xs text-[#22302A]/70 font-medium">Ghi nhớ đăng nhập</span>
                 </label>
-                <a href="#" className="text-xs text-peach hover:underline font-medium">
+                <a
+                  href="#"
+                  className="text-xs text-[#FFA265] font-semibold hover:underline hover:text-[#FFA265]/80 transition-colors"
+                >
                   Quên mật khẩu?
                 </a>
               </div>
@@ -342,22 +395,40 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
               <button
                 type="submit"
                 disabled={isLoading || isSuccess}
-                className="w-full py-3.5 mt-2 bg-gradient-to-r from-brand-green to-green-dark text-white font-semibold rounded-xl text-sm shadow-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-brand-green/25 active:scale-[0.98]"
+                className="relative overflow-hidden w-full py-4 rounded-full bg-gradient-to-r from-[#2FA968] via-[#239056] to-[#164B36] text-white font-bold text-sm tracking-wide disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] group"
+                style={{
+                  boxShadow: "0 10px 30px rgba(47, 169, 104, 0.35), 0 4px 12px rgba(47, 169, 104, 0.25)"
+                }}
               >
+                <div
+                  className="absolute top-0 -left-[100%] w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-25deg] group-hover:left-[150%] transition-all duration-1000 ease-in-out"
+                  style={{ opacity: reducedMotion ? 0 : 1 }}
+                />
+
                 {isLoading ? (
-                  <span className="flex items-center justify-center gap-2">
+                  <span className="flex items-center justify-center gap-2.5">
                     <Loader2 size={18} className="animate-spin" />
                     Đang xác thực...
                   </span>
                 ) : isSuccess ? (
-                  <span className="flex items-center justify-center gap-2">
+                  <span className="flex items-center justify-center gap-2.5">
                     <CheckCircle size={18} />
                     Đăng nhập thành công
                   </span>
                 ) : (
-                  <span className="flex items-center justify-center gap-2">
+                  <span className="relative z-10 flex items-center justify-center gap-2">
                     Xác nhận danh tính
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="group-hover:translate-x-1 transition-transform duration-300"
+                    >
                       <path d="M5 12h14M12 5l7 7-7 7" />
                     </svg>
                   </span>
@@ -365,29 +436,48 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
               </button>
             </form>
 
-            <div className="text-center pt-5 mt-5 border-t border-ink/5">
+            <div className="text-center pt-6 mt-6 border-t border-[#22302A]/[0.08]">
               <button
                 type="button"
                 onClick={onBackToHome}
-                className="text-xs text-brand-green font-medium hover:underline cursor-pointer inline-flex items-center gap-1"
+                className="text-xs text-[#2FA968] font-semibold hover:underline cursor-pointer inline-flex items-center gap-1.5 transition-colors"
               >
                 <ArrowLeft size={14} />
                 Quay lại Cổng thông tin cho Bệnh nhân
               </button>
             </div>
           </motion.div>
+          </motion.div>
         </main>
 
-        <footer className="flex items-center justify-between p-6 text-[10px] text-white/50">
+        <footer className="flex items-center justify-between px-8 py-5 text-[11px] text-white/40">
           <div>© 2026 Bệnh viện Đa khoa Quảng Nam • Phiên bản 2.11</div>
-          <div className="flex items-center gap-2">
-            <Activity size={12} className="text-brand-green animate-pulse" />
-            <span className="px-2 py-0.5 rounded bg-emerald-950/80 border border-brand-green/40 text-brand-green/80">
-              ATTT Cấp độ 3 Active
-            </span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div
+                className="w-2 h-2 rounded-full bg-[#00FF9D]"
+                style={{
+                  boxShadow: "0 0 6px #00FF9D",
+                  animation: reducedMotion ? "none" : "pulse 2.5s ease-in-out infinite"
+                }}
+              />
+              <span className="text-white/50 font-medium">SYSTEM ONLINE</span>
+            </div>
+          </div>
+          <div
+            className="px-3 py-1 rounded-full bg-[#0A241A]/90 border border-[#2FA968]/40 text-[#2FA968] font-semibold"
+          >
+            ● ATTT Cấp độ 3 Active
           </div>
         </footer>
       </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
     </div>
   );
 }
