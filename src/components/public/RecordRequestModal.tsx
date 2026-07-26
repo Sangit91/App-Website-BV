@@ -1,6 +1,6 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { FileText, X, Calendar, User, Phone, Mail, FileBadge, Check } from "lucide-react";
+import { FileText, X, Calendar, User, Phone, Mail, FileBadge, Check, Upload, Trash2 } from "lucide-react";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 
@@ -34,9 +34,33 @@ export default function RecordRequestModal({
   const [contactEmail, setContactEmail] = useState('');
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
   const [reason, setReason] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedCode, setSubmittedCode] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setSelectedFiles(prev => [...prev, ...newFiles]);
+    }
+  }, []);
+
+  const removeFile = useCallback((index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer.files) {
+      const newFiles = Array.from(e.dataTransfer.files).filter(f =>
+        f.type.startsWith("image/") || f.type === "application/pdf" || f.type.includes("word")
+      );
+      setSelectedFiles(prev => [...prev, ...newFiles]);
+    }
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -73,6 +97,25 @@ export default function RecordRequestModal({
 
       setSubmittedCode(data.data?.requestCode || data.data?.request_code || `YC-${Date.now().toString().slice(-6)}`);
       setIsSubmitted(true);
+
+      if (selectedFiles.length > 0) {
+        setIsUploading(true);
+        const requestId = data.data?.id;
+        try {
+          for (const file of selectedFiles) {
+            const formData = new FormData();
+            formData.append("file", file);
+            await fetch(`/api/v1/record-requests/${requestId}/files`, {
+              method: "POST",
+              body: formData,
+            });
+          }
+        } catch (uploadError) {
+          console.warn("Một số file không được tải lên thành công");
+        } finally {
+          setIsUploading(false);
+        }
+      }
     } catch (error: any) {
       alert(error.message || "Không thể gửi yêu cầu");
     } finally {
@@ -89,6 +132,8 @@ export default function RecordRequestModal({
     setContactEmail('');
     setDateRange({ from: '', to: '' });
     setReason('');
+    setSelectedFiles([]);
+    setIsUploading(false);
     onClose();
   };
 
@@ -302,15 +347,60 @@ export default function RecordRequestModal({
             />
           </div>
 
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-green-dark uppercase tracking-wide">
+              Giấy tờ kèm theo (tùy chọn)
+            </label>
+            <div
+              onDrop={handleDrop}
+              onDragOver={(e) => e.preventDefault()}
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-green-800/15 rounded-xl p-6 text-center cursor-pointer hover:border-brand-green/40 transition-colors"
+            >
+              <Upload size={24} className="mx-auto mb-2 text-brand-green/50" />
+              <p className="text-sm text-ink/60">Kéo thả file hoặc click để chọn</p>
+              <p className="text-xs text-ink/40 mt-1">Chấp nhận: Ảnh, PDF, Word (tối đa 10MB mỗi file)</p>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*,.pdf,.doc,.docx"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+
+            {selectedFiles.length > 0 && (
+              <div className="space-y-2 mt-2">
+                {selectedFiles.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileBadge size={14} className="text-brand-green shrink-0" />
+                      <span className="text-sm text-ink truncate">{file.name}</span>
+                      <span className="text-xs text-ink/40 shrink-0">({(file.size / 1024).toFixed(0)}KB)</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="p-1 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer shrink-0"
+                    >
+                      <Trash2 size={14} className="text-red-500" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="flex justify-end gap-3 pt-4 border-t border-green-800/5">
             <Button type="button" variant="ghost" size="md" onClick={handleClose}>
               Hủy bỏ
             </Button>
-            <Button type="submit" variant="primary" size="md" disabled={isSubmitting}>
-              {isSubmitting ? (
+            <Button type="submit" variant="primary" size="md" disabled={isSubmitting || isUploading}>
+              {isSubmitting || isUploading ? (
                 <span className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Đang gửi...
+                  {isUploading ? "Đang tải file..." : "Đang gửi..."}
                 </span>
               ) : (
                 'Gửi yêu cầu'

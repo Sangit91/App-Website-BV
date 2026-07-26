@@ -1,5 +1,7 @@
 import { getPrisma } from "../db/prisma";
 import { RecordRequest, Prisma } from "../generated/prisma/client";
+import path from "path";
+import fs from "fs/promises";
 
 export type RecordRequestStatus = "moi" | "dang_xu_ly" | "da_xu_ly" | "da_huy";
 export type RecordRequestType = "ho-so-y-te" | "phieu-xet-nghiem" | "anh-pha" | "don-thuoc" | "giay-chung-nhan" | "other";
@@ -14,12 +16,31 @@ export interface CreateRecordRequestInput {
   date_to: string;
   delivery_method: DeliveryMethod;
   reason?: string | null;
+  contact_phone?: string | null;
+  contact_email?: string | null;
 }
 
 export interface UpdateRecordRequestInput {
   status?: RecordRequestStatus;
   admin_notes?: string | null;
   processed_by?: string | null;
+}
+
+const PENDING_UPLOADS_DIR = path.join(process.cwd(), "uploads", "pending");
+const APPROVED_UPLOADS_DIR = path.join(process.cwd(), "uploads", "approved");
+
+function ensureDir(dir: string): Promise<void> {
+  return fs.mkdir(dir, { recursive: true }).then(() => {});
+}
+
+async function cleanDirectory(dir: string): Promise<void> {
+  try {
+    const files = await fs.readdir(dir);
+    for (const file of files) {
+      await fs.unlink(path.join(dir, file));
+    }
+  } catch {
+  }
 }
 
 export const recordRequestService = {
@@ -58,6 +79,8 @@ export const recordRequestService = {
         dateTo: input.date_to ? new Date(input.date_to) : null,
         deliveryMethod: input.delivery_method,
         reason: input.reason || null,
+        contactPhone: input.contact_phone || null,
+        contactEmail: input.contact_email || null,
         status: "moi",
         requestCode,
       },
@@ -74,6 +97,81 @@ export const recordRequestService = {
     } catch (err) {
       console.error("[recordRequestService.update] error:", err);
       return null;
+    }
+  },
+
+  async handleFileUpload(requestId: string, file: Express.Multer.File): Promise<{ fileId: string; filePath: string }> {
+    await ensureDir(PENDING_UPLOADS_DIR);
+
+    const request = await getPrisma().recordRequest.findUnique({ where: { id: requestId } });
+    if (!request) throw new Error("Yêu cầu không tồn tại");
+
+    const ext = path.extname(file.originalname);
+    const timestamp = Date.now();
+    const safeFilename = `${request.requestCode}_${timestamp}${ext}`;
+    const filePath = path.join(PENDING_UPLOADS_DIR, safeFilename);
+
+    await fs.copyFile(file.path, filePath);
+
+    const dbFile = await getPrisma().recordRequestFile.create({
+      data: {
+        recordRequestId: requestId,
+        fileName: file.originalname,
+        filePath: `/uploads/pending/${safeFilename}`,
+        mimeType: file.mimetype,
+        size: file.size,
+      },
+    });
+
+    await fs.unlink(file.path).catch(() => {});
+
+    return { fileId: dbFile.id, filePath: dbFile.filePath };
+  },
+
+  async deleteFile(fileId: string): Promise<void> {
+    const file = await getPrisma().recordRequestFile.findUnique({ where: { id: fileId } });
+    if (!file) return;
+
+    const fullPath = path.join(process.cwd(), "public", file.filePath);
+    await fs.unlink(fullPath).catch(() => {});
+    await getPrisma().recordRequestFile.delete({ where: { id: fileId } });
+  },
+
+  async processStatusChange(id: string, newStatus: RecordRequestStatus): Promise<void> {
+    const request = await getPrisma().recordRequest.findUnique({
+      where: { id },
+      include: { files: true },
+    });
+    if (!request) return;
+
+    if (newStatus === "da_huy") {
+      for (const file of request.files) {
+        await recordRequestService.deleteFile(file.id);
+      }
+    } else if (newStatus === "da_xu_ly") {
+      await ensureDir(APPROVED_UPLOADS_DIR);
+
+      for (const file of request.files) {
+        const pendingPath = path.join(process.cwd(), "public", file.filePath);
+        const ext = path.extname(file.fileName);
+        const dateStr = new Date().toISOString().split("T")[0];
+        const patientCode = request.patientCode || "UNKNOWN";
+        const safeFilename = `${patientCode}_${dateStr}_${Date.now()}${ext}`;
+        const approvedPath = path.join(APPROVED_UPLOADS_DIR, safeFilename);
+
+        try {
+          await fs.copyFile(pendingPath, approvedPath);
+          await fs.unlink(pendingPath).catch(() => {});
+        } catch (err) {
+          console.error("Error moving file to approved:", err);
+        }
+
+        const newFilePath = `/uploads/approved/${safeFilename}`;
+        await getPrisma().recordRequestFile.update({
+          where: { id: file.id },
+          data: { filePath: newFilePath },
+        });
+      }
     }
   },
 
