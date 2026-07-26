@@ -1,6 +1,6 @@
 import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
-import { FileText, X, Calendar, User, Phone, MapPin, Check } from "lucide-react";
+import { FileText, X, Calendar, User, Phone, Mail, FileBadge, Check } from "lucide-react";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 
@@ -29,6 +29,9 @@ export default function RecordRequestModal({
 }: RecordRequestModalProps) {
   const [requestType, setRequestType] = useState<RequestType>('ho-so-y-te');
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('tai-kham');
+  const [patientCodeInput, setPatientCodeInput] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,6 +40,12 @@ export default function RecordRequestModal({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    if (!contactPhone.trim() && !contactEmail.trim()) {
+      alert("Vui lòng nhập số điện thoại hoặc email để chúng tôi có thể liên hệ khi cần.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -45,12 +54,14 @@ export default function RecordRequestModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           patient_name: patientName || "Khách vãng lai",
-          patient_code: patientCode || null,
+          patient_code: patientCode || patientCodeInput || null,
           request_type: requestType,
           date_from: dateRange.from,
           date_to: dateRange.to,
           delivery_method: deliveryMethod,
-          reason: reason || null
+          reason: reason || null,
+          contact_phone: contactPhone || null,
+          contact_email: contactEmail || null
         })
       });
 
@@ -60,11 +71,7 @@ export default function RecordRequestModal({
         throw new Error(data.error || "Không thể gửi yêu cầu");
       }
 
-      if (!response.ok) {
-        throw new Error(data.error || "Không thể gửi yêu cầu");
-      }
-
-      setSubmittedCode(data.data?.request_code || `YC-${Date.now().toString().slice(-6)}`);
+      setSubmittedCode(data.data?.requestCode || data.data?.request_code || `YC-${Date.now().toString().slice(-6)}`);
       setIsSubmitted(true);
     } catch (error: any) {
       alert(error.message || "Không thể gửi yêu cầu");
@@ -77,6 +84,9 @@ export default function RecordRequestModal({
     setIsSubmitted(false);
     setSubmittedCode(null);
     setRequestType('ho-so-y-te');
+    setPatientCodeInput('');
+    setContactPhone('');
+    setContactEmail('');
     setDateRange({ from: '', to: '' });
     setReason('');
     onClose();
@@ -129,22 +139,72 @@ export default function RecordRequestModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {patientName && (
+          {patientName ? (
             <div className="flex flex-wrap gap-4 p-3 bg-gray-50 rounded-xl">
               <div className="flex items-center gap-2 text-sm">
                 <User size={14} className="text-brand-green" />
                 <span className="text-ink/60">Bệnh nhân:</span>
                 <span className="font-semibold text-green-dark">{patientName}</span>
               </div>
-              {patientCode && (
+              {(patientCode || patientCodeInput) && (
                 <div className="flex items-center gap-2 text-sm">
-                  <FileText size={14} className="text-brand-green" />
+                  <FileBadge size={14} className="text-brand-green" />
                   <span className="text-ink/60">Mã KCB:</span>
-                  <span className="font-semibold text-green-dark">{patientCode}</span>
+                  <span className="font-semibold text-green-dark">{patientCode || patientCodeInput}</span>
                 </div>
               )}
             </div>
+          ) : (
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-green-dark uppercase tracking-wide">
+                Mã bệnh nhân (nếu có)
+              </label>
+              <div className="relative">
+                <FileBadge size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/40" />
+                <input
+                  type="text"
+                  value={patientCodeInput}
+                  onChange={(e) => setPatientCodeInput(e.target.value)}
+                  placeholder="VD: BN-2024-00001"
+                  className="w-full pl-9 pr-4 py-2.5 text-sm border border-green-800/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green"
+                />
+              </div>
+            </div>
           )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-green-dark uppercase tracking-wide">
+                Số điện thoại <span className="text-peach">*</span>
+              </label>
+              <div className="relative">
+                <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/40" />
+                <input
+                  type="tel"
+                  value={contactPhone}
+                  onChange={(e) => setContactPhone(e.target.value)}
+                  placeholder="0xxxxxxxxx"
+                  className="w-full pl-9 pr-4 py-2.5 text-sm border border-green-800/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-green-dark uppercase tracking-wide">
+                Email (tùy chọn)
+              </label>
+              <div className="relative">
+                <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/40" />
+                <input
+                  type="email"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  placeholder="email@example.com"
+                  className="w-full pl-9 pr-4 py-2.5 text-sm border border-green-800/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green"
+                />
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-ink/50 -mt-2">Ít nhất 1 trong 2 trường phải được điền để nhân viên có thể liên hệ khi cần</p>
 
           <div className="space-y-2">
             <label className="block text-xs font-bold text-green-dark uppercase tracking-wide">
