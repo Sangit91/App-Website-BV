@@ -231,7 +231,7 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
 
       <div
         ref={spotlightRef}
-        className="absolute w-[300px] h-[300px] rounded-full pointer-events-none transition-all duration-1000 ease-out"
+        className="absolute w-[300px] h-[300px] rounded-full pointer-events-none transition-all duration-150 ease-out"
         style={{
           border: "2px solid rgba(0, 255, 157, 0.2)",
           boxShadow: "0 0 60px rgba(0, 255, 157, 0.12), inset 0 0 60px rgba(0, 255, 157, 0.04)",
