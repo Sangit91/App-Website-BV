@@ -129,26 +129,36 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
     <div
       ref={containerRef}
       className="fixed inset-0 z-50 overflow-hidden"
-      style={{ background: "linear-gradient(145deg, #030F0A 0%, #0A241A 50%, #030F0A 100%)" }}
+      style={{ background: "linear-gradient(145deg, #030A07 0%, #0A1F14 50%, #030A07 100%)" }}
     >
       <div
-        className="absolute inset-0 opacity-20"
+        className="absolute inset-0 opacity-20 mix-blend-luminosity"
+        style={{
+          backgroundImage: `url('/images/doctors/1.jpg')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          filter: "grayscale(60%) contrast(1.1)"
+        }}
+      />
+
+      <div
+        className="absolute inset-0 opacity-10"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(0, 255, 157, 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 255, 157, 1px, transparent 1px)
+            linear-gradient(rgba(0, 255, 157, 0.8) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 255, 157, 0.8) 1px, transparent 1px)
           `,
-          backgroundSize: "60px 60px"
+          backgroundSize: "80px 80px"
         }}
       />
 
       <div
         className="absolute pointer-events-none"
         style={{
-          width: 600,
-          height: 600,
+          width: 700,
+          height: 700,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(0, 255, 157, 0.4) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(0, 255, 157, 0.35) 0%, transparent 70%)",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
@@ -158,25 +168,13 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
       <div
         className="absolute pointer-events-none"
         style={{
-          width: 400,
-          height: 400,
+          width: 450,
+          height: 450,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255, 162, 101, 0.3) 0%, transparent 70%)",
-          top: "10%",
-          left: "5%",
-          filter: "blur(110px)"
-        }}
-      />
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          width: 500,
-          height: 500,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(47, 169, 104, 0.5) 0%, transparent 70%)",
-          bottom: "-10%",
-          right: "-5%",
-          filter: "blur(140px)"
+          background: "radial-gradient(circle, rgba(255, 162, 101, 0.25) 0%, transparent 70%)",
+          top: "15%",
+          right: "10%",
+          filter: "blur(130px)"
         }}
       />
 
@@ -189,17 +187,55 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
         </div>
       )}
 
-      {!reducedMotion && (
-        <div
-          ref={spotlightRef}
-          className="absolute w-[300px] h-[300px] rounded-full pointer-events-none transition-all duration-1000 ease-out"
-          style={{
-            border: "2px solid rgba(0, 255, 157, 0.25)",
-            boxShadow: "0 0 60px rgba(0, 255, 157, 0.15), inset 0 0 60px rgba(0, 255, 157, 0.05)",
-            opacity: 0.6
-          }}
-        />
-      )}
+      <div
+        ref={spotlightRef}
+        className="absolute w-[300px] h-[300px] rounded-full pointer-events-none transition-all duration-1000 ease-out"
+        style={{
+          border: "2px solid rgba(0, 255, 157, 0.2)",
+          boxShadow: "0 0 60px rgba(0, 255, 157, 0.12), inset 0 0 60px rgba(0, 255, 157, 0.04)",
+          opacity: 0.5
+        }}
+      />
+
+      <div
+        className="absolute top-20 left-8 z-20"
+        style={{ animation: reducedMotion ? "none" : "floatBadge 6s ease-in-out infinite" }}
+      >
+        <div className="px-5 py-3 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-2.5 h-2.5 rounded-full bg-[#00FF9D]"
+              style={{
+                boxShadow: "0 0 8px #00FF9D, 0 0 16px #00FF9D",
+                animation: reducedMotion ? "none" : "neonPulse 2s ease-in-out infinite"
+              }}
+            />
+            <span className="text-white/90 text-xs font-semibold tracking-wide whitespace-nowrap">
+              50+ Bác sĩ Chuyên khoa
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="absolute bottom-24 right-8 z-20"
+        style={{ animation: reducedMotion ? "none" : "floatBadge 6s ease-in-out infinite 3s" }}
+      >
+        <div className="px-5 py-3 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-2.5 h-2.5 rounded-full bg-[#FFA265]"
+              style={{
+                boxShadow: "0 0 8px #FFA265, 0 0 16px #FFA265",
+                animation: reducedMotion ? "none" : "neonPulse 2s ease-in-out infinite 0.5s"
+              }}
+            />
+            <span className="text-white/90 text-xs font-semibold tracking-wide whitespace-nowrap">
+              Bệnh viện Thông minh Cấp độ 3
+            </span>
+          </div>
+        </div>
+      </div>
 
       <div className="relative z-10 min-h-screen flex flex-col">
         <header className="flex items-center justify-between px-8 py-6">
@@ -487,6 +523,14 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.5; }
+        }
+        @keyframes floatBadge {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+        }
+        @keyframes neonPulse {
+          0%, 100% { opacity: 1; box-shadow: 0 0 8px currentColor, 0 0 16px currentColor; }
+          50% { opacity: 0.6; box-shadow: 0 0 4px currentColor, 0 0 8px currentColor; }
         }
       `}</style>
     </div>
