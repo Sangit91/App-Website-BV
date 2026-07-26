@@ -491,6 +491,7 @@ export default function ChoBenhNhanPage() {
                       };
                       return (
                         <InfoCard
+                          key={item.id || idx}
                           item={itemWithAction}
                           dept={currentSection}
                           index={idx}
