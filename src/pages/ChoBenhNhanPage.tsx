@@ -435,7 +435,7 @@ export default function ChoBenhNhanPage() {
                       { name: "Yêu cầu trích sao hồ sơ", desc: "Lấy bản sao hồ sơ y tế, giấy chứng nhận", action: "Gửi yêu cầu", icon: FileSearch, img: "/images/pages/hoso-1.jpeg", onAction: handleRecordRequest },
                       { name: "Góp ý chất lượng phục vụ", desc: "Đóng góp ý kiến để cải thiện dịch vụ", action: "Gửi góp ý", icon: Phone, img: "/images/pages/bacsi-1.jpeg", onAction: handleFeedback }
                     ].map((item, idx) => (
-                      <InfoCard item={item} dept={currentSection} index={idx} />
+                      <InfoCard key={item.name} item={item} dept={currentSection} index={idx} />
                     ))}
                   </div>
                 </motion.div>
