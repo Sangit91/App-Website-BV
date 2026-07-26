@@ -11,6 +11,7 @@ services:
       - NODE_ENV=development
       - VITE_API_URL=https://localhost:8443/api
       - PORT=3000
+      - DISABLE_HMR=true
     volumes:
       - .:/app
       - /app/node_modules
