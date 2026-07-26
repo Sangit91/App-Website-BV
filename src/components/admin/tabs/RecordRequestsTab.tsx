@@ -15,14 +15,18 @@ interface RecordRequest {
   id: string;
   request_code: string;
   patient_name: string;
-  request_type: 'ho-so-y-te' | 'phieu-xet-nghiem' | 'anh-pha' | 'other';
+  patient_code: string | null;
+  request_type: 'ho-so-y-te' | 'phieu-xet-nghiem' | 'anh-pha' | 'don-thuoc' | 'giay-chung-nhan' | 'other';
   date_range_from: string;
   date_range_to: string;
+  delivery_method: string | null;
   reason: string;
   status: RecordRequestStatus;
   admin_notes: string | null;
   contact_phone: string | null;
   contact_email: string | null;
+  assigned_to: string | null;
+  processed_by: string | null;
   files: RecordRequestFile[];
   created_at: string;
   updated_at: string;
@@ -39,7 +43,15 @@ const REQUEST_TYPE_LABELS: Record<string, string> = {
   'ho-so-y-te': 'Hồ sơ y tế',
   'phieu-xet-nghiem': 'Phiếu xét nghiệm',
   'anh-pha': 'Ảnh phóng xạ',
+  'don-thuoc': 'Đơn thuốc',
+  'giay-chung-nhan': 'Giấy chứng nhận',
   'other': 'Khác'
+};
+
+const DELIVERY_METHOD_LABELS: Record<string, string> = {
+  'tai-kham': 'Nhận khi tái khám',
+  'nhan-tai-quay': 'Nhận tại quầy',
+  'chuyen-bo-post': 'Chuyển bưu điện'
 };
 
 export default function RecordRequestsTab() {
@@ -65,14 +77,18 @@ export default function RecordRequestsTab() {
           id: item.id,
           request_code: item.requestCode || item.request_code || "",
           patient_name: item.patientName || item.patient_name || "",
+          patient_code: item.patientCode || item.patient_code || null,
           request_type: item.requestType || item.request_type || "other",
-          date_range_from: item.dateRangeFrom || item.date_range_from || "",
-          date_range_to: item.dateRangeTo || item.date_range_to || "",
+          date_range_from: item.dateFrom || item.dateRangeFrom || item.date_range_from || "",
+          date_range_to: item.dateTo || item.dateRangeTo || item.date_range_to || "",
+          delivery_method: item.deliveryMethod || item.delivery_method || null,
           reason: item.reason || "",
           status: (item.status || "moi") as RecordRequestStatus,
           admin_notes: item.adminNotes || item.admin_notes || null,
           contact_phone: item.contactPhone || item.contact_phone || null,
           contact_email: item.contactEmail || item.contact_email || null,
+          assigned_to: item.assignedTo || item.assigned_to || null,
+          processed_by: item.processedBy || item.processed_by || null,
           files: (item.files || []).map((f: any) => ({
             id: f.id,
             file_name: f.fileName || f.file_name || "",
@@ -315,11 +331,17 @@ export default function RecordRequestsTab() {
             </div>
 
             <div className="p-6 space-y-5">
-              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl flex-wrap">
                 <div>
                   <p className="text-xs text-ink/50">Người yêu cầu</p>
                   <p className="font-semibold text-green-dark">{selectedRequest.patient_name}</p>
                 </div>
+                {selectedRequest.patient_code && (
+                  <div>
+                    <p className="text-xs text-ink/50">Mã KCB</p>
+                    <p className="font-semibold text-ink">{selectedRequest.patient_code}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-xs text-ink/50">Loại hồ sơ</p>
                   <p className="font-semibold text-ink">{REQUEST_TYPE_LABELS[selectedRequest.request_type]}</p>
@@ -330,6 +352,12 @@ export default function RecordRequestsTab() {
                     {formatDate(selectedRequest.date_range_from)} → {formatDate(selectedRequest.date_range_to)}
                   </p>
                 </div>
+                {selectedRequest.delivery_method && (
+                  <div>
+                    <p className="text-xs text-ink/50">Nhận bản sao</p>
+                    <p className="font-semibold text-ink text-xs">{DELIVERY_METHOD_LABELS[selectedRequest.delivery_method] || selectedRequest.delivery_method}</p>
+                  </div>
+                )}
                 <Badge className={STATUS_CONFIG[selectedRequest.status].className}>
                   {STATUS_CONFIG[selectedRequest.status].label}
                 </Badge>
@@ -374,6 +402,13 @@ export default function RecordRequestsTab() {
                   <p className="text-sm text-ink/80 bg-mint p-4 rounded-xl border border-brand-green/20">
                     {selectedRequest.admin_notes}
                   </p>
+                </div>
+              )}
+
+              {selectedRequest.processed_by && (
+                <div className="space-y-2">
+                  <p className="text-xs font-bold text-green-dark uppercase tracking-wide">Người xử lý</p>
+                  <p className="text-sm text-ink/70">{selectedRequest.processed_by}</p>
                 </div>
               )}
 
