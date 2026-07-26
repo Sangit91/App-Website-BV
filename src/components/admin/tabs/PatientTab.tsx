@@ -152,7 +152,7 @@ function ProcessSection() {
           { name: "desc", label: "Mô tả", type: "textarea", rows: 2, description: "Mô tả chi tiết bước", hint: "Mô tả ngắn gọn action cần thực hiện" },
           { name: "icon", label: "Icon", type: "select", options: ICON_OPTIONS, description: "Icon minh họa" }
         ]}
-        initialData={editingStep || {}}
+        initialData={(editingStep || {}) as Record<string, string | number | boolean | File | null>}
       />
 
       <ConfirmDialog
@@ -240,7 +240,7 @@ function WhatToBringSection() {
           { name: "text", label: "Nội dung", type: "textarea", rows: 2, required: true },
           { name: "icon", label: "Icon", type: "select", options: ICON_OPTIONS }
         ]}
-        initialData={editingItem || {}}
+        initialData={(editingItem || {}) as Record<string, string | number | boolean | File | null>}
       />
 
       <ConfirmDialog
@@ -278,7 +278,7 @@ function FaqSection() {
     if (editingFaq && faqs.find(f => f.id === editingFaq.id)) {
       setFaqs(prev => prev.map(f => f.id === editingFaq.id ? { ...f, ...formData } : f));
     } else {
-      setFaqs(prev => [...prev, { id: crypto.randomUUID(), ...formData }]);
+      setFaqs(prev => [...prev, { id: crypto.randomUUID(), ...formData } as { id: string; question: string; answer: string }]);
     }
     setIsEditOpen(false);
     setEditingFaq(null);

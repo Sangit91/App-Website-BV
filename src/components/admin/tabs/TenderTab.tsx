@@ -154,7 +154,7 @@ function TenderNoticesSection() {
           { name: "endDate", label: "Hạn nộp hồ sơ", description: "Ngày kết thúc nộp", hint: "VD: 30/08/2026" },
           { name: "status", label: "Trạng thái", type: "select", options: STATUS_OPTIONS, description: "Tình trạng thầu" }
         ]}
-        initialData={editingTender || {}}
+        initialData={(editingTender || {}) as Record<string, string | number | boolean | File | null>}
       />
 
       <ConfirmDialog

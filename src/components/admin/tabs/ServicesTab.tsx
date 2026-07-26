@@ -253,7 +253,7 @@ function ServiceItemsSection() {
           { name: "price", label: "Giá tham khảo", description: "Giá dịch vụ", hint: "VD: Từ 500.000đ, Miễn phí, Theo gói" },
           { name: "img", label: "Hình ảnh", type: "image", description: "Ảnh minh họa dịch vụ" }
         ]}
-        initialData={editingService || {}}
+        initialData={(editingService || {}) as Record<string, string | number | boolean | File | null>}
       />
 
       <ConfirmDialog

@@ -137,7 +137,7 @@ function AboutSection() {
             ]
           }
         ]}
-        initialData={editingItem || {}}
+        initialData={(editingItem || {}) as Record<string, string | number | boolean | File | null>}
       />
 
       <ConfirmDialog
@@ -244,7 +244,7 @@ function LeadershipSection() {
           { name: "image", label: "Ảnh lãnh đạo", type: "image", description: "Ảnh chân dung" },
           { name: "bio", label: "Tiểu sử", type: "textarea", rows: 2, description: "Kinh nghiệm, trình độ", hint: "VD: Bác sĩ chuyên khoa II với hơn 20 năm kinh nghiệm" }
         ]}
-        initialData={editingDirector || {}}
+        initialData={(editingDirector || {}) as Record<string, string | number | boolean | File | null>}
       />
 
       <ConfirmDialog
@@ -338,7 +338,7 @@ function PartnersSection() {
           { name: "name", label: "Tên đối tác", required: true, description: "Tên công ty/bảo hiểm", hint: "VD: BHYT Quảng Nam, Bảo Việt, Prudential" },
           { name: "website", label: "Website", description: "Địa chỉ website", hint: "VD: https://bhytquangnam.vn" }
         ]}
-        initialData={editingPartner || {}}
+        initialData={(editingPartner || {}) as Record<string, string | number | boolean | File | null>}
       />
 
       <ConfirmDialog
@@ -465,7 +465,7 @@ function FacilitiesSection() {
           { name: "description", label: "Mô tả", type: "textarea", rows: 2, description: "Mô tả ngắn gọn", hint: "Mô tả 1-2 câu về cơ sở vật chất" },
           { name: "image", label: "Hình ảnh", type: "image", description: "Ảnh minh họa cơ sở" }
         ]}
-        initialData={editingFacility || {}}
+        initialData={(editingFacility || {}) as Record<string, string | number | boolean | File | null>}
       />
 
       <ConfirmDialog

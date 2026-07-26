@@ -204,7 +204,7 @@ export default function EditModal({
                 <div className="relative">
                   {field.type === "textarea" ? (
                     <textarea
-                      value={form[field.name] || ""}
+                      value={(form[field.name] as string) || ""}
                       onChange={e => handleChange(field.name, e.target.value)}
                       placeholder={getPlaceholder(field)}
                       rows={field.rows || 4}
@@ -217,7 +217,7 @@ export default function EditModal({
                   ) : field.type === "select" ? (
                     <div className="relative">
                       <select
-                        value={form[field.name] || ""}
+                        value={(form[field.name] as string) || ""}
                         onChange={e => handleChange(field.name, e.target.value)}
                         className={`w-full px-4 py-3 text-sm border rounded-xl transition-all appearance-none cursor-pointer ${
                           errors[field.name]
@@ -237,7 +237,7 @@ export default function EditModal({
                       {form[field.name] && (
                         <div className="relative w-32 h-32 rounded-xl overflow-hidden border-2 border-brand-green/20 group">
                           <img
-                            src={form[field.name]}
+                            src={form[field.name] as string}
                             alt="Preview"
                             className="w-full h-full object-cover"
                             referrerPolicy="no-referrer"
@@ -248,9 +248,9 @@ export default function EditModal({
                         </div>
                       )}
                       <div className="relative">
-                        <input
+<input
                           type="text"
-                          value={form[field.name] || ""}
+                          value={(form[field.name] as string) || ""}
                           onChange={e => handleChange(field.name, e.target.value)}
                           placeholder={getPlaceholder(field)}
                           className={`w-full pl-10 pr-4 py-3 text-sm border rounded-xl transition-all ${
@@ -277,7 +277,7 @@ export default function EditModal({
                       )}
                       <input
                         type={field.type || "text"}
-                        value={form[field.name] || ""}
+                        value={(form[field.name] as string) || ""}
                         onChange={e => handleChange(field.name, e.target.value)}
                         onFocus={() => setFocusedField(field.name)}
                         onBlur={() => setTimeout(() => setFocusedField(null), 200)}
@@ -319,7 +319,7 @@ export default function EditModal({
                         {currentSuggestions.map((suggestion, idx) => (
                           <button
                             key={suggestion}
-                            ref={el => suggestionRefs.current[idx] = el}
+                            ref={el => { suggestionRefs.current[idx] = el; }}
                             type="button"
                             onClick={() => handleSuggestionClick(field.name, suggestion)}
                             className={`w-full px-4 py-2.5 text-left text-sm transition-colors flex items-center gap-2 ${

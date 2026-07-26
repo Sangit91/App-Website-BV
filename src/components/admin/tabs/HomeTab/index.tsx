@@ -152,7 +152,7 @@ function HeroSection() {
           { name: "ctaLink", label: "Link nút bấm", description: "Đường dẫn khi click", hint: "Bắt đầu bằng / VD: /dat-lich, /chuyen-khoa, /lien-he" },
           { name: "backgroundImage", label: "Ảnh nền", type: "image", description: "Ảnh hero section" }
         ]}
-        initialData={editingData || data}
+        initialData={(editingData || data) as unknown as Record<string, string | number | boolean | File | null>}
       />
     </>
   );
@@ -263,7 +263,7 @@ function QuickActionsSection() {
           { name: "link", label: "Đường dẫn", required: true, description: "Link khi click vào nút", hint: "Bắt đầu bằng / VD: /dat-lich, /tin-tuc" },
           { name: "color", label: "Màu sắc", type: "select", options: colorOptions, description: "Màu gradient của nút" }
         ]}
-        initialData={editingAction || {}}
+        initialData={(editingAction || {}) as Record<string, string | number | boolean | File | null>}
       />
 
       <ConfirmDialog
@@ -373,7 +373,7 @@ function WhyChooseUsSection() {
           { name: "description", label: "Mô tả", type: "textarea", rows: 2, description: "Mô tả chi tiết", hint: "Mô tả ngắn 1-2 câu, dễ hiểu" },
           { name: "icon", label: "Icon", type: "select", options: iconOptions, description: "Icon đại diện cho lý do" }
         ]}
-        initialData={editingReason || {}}
+        initialData={(editingReason || {}) as Record<string, string | number | boolean | File | null>}
       />
 
       <ConfirmDialog
@@ -454,7 +454,7 @@ function StatisticsSection() {
           { name: "value", label: "Giá trị", required: true, description: "Số liệu thống kê", hint: "VD: 100+, 50+, 1M+", prefix: "" },
           { name: "label", label: "Nhãn", required: true, description: "Mô tả số liệu", hint: "VD: Năm kinh nghiệm, Bác sĩ chuyên khoa" }
         ]}
-        initialData={editingStat || {}}
+        initialData={(editingStat || {}) as Record<string, string | number | boolean | File | null>}
       />
     </>
   );
@@ -582,7 +582,7 @@ function TestimonialsSection() {
           { name: "role", label: "Vai trò", required: true, description: "Vai trò/đối tượng", hint: "VD: Bệnh nhân, Người nhà bệnh nhân, Khách hàng" },
           { name: "content", label: "Nội dung", type: "textarea", rows: 3, required: true, description: "Nội dung cảm nhận", hint: "Viết cảm nhận thực tế, ngắn gọn 2-3 câu" }
         ]}
-        initialData={editingTestimonial || {}}
+        initialData={(editingTestimonial || {}) as Record<string, string | number | boolean | File | null>}
       />
 
       <ConfirmDialog

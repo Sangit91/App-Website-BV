@@ -308,8 +308,8 @@ export default function ThongTinThauPage() {
                       <h2 className="font-display font-bold text-xl text-white mt-1 leading-tight">{selectedTender.title}</h2>
                       <div className="flex items-center gap-2 mt-2 flex-wrap">
                         <span className="text-xs bg-white/20 px-2.5 py-1 rounded-full">{selectedTender.tenderDept}</span>
-                        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${getStatusBadge(selectedTender.status).bg} ${getStatusBadge(selectedTender.status).text}`}>
-                          {getStatusBadge(selectedTender.status).label}
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${getStatusBadge(getTenderStatus(selectedTender)).bg} ${getStatusBadge(getTenderStatus(selectedTender)).text}`}>
+                          {getStatusBadge(getTenderStatus(selectedTender)).label}
                         </span>
                       </div>
                     </div>

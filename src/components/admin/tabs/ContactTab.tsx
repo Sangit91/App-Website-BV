@@ -155,7 +155,7 @@ function ContactInfoSection() {
           { name: "website", label: "Website" },
           { name: "workingHours", label: "Giờ làm việc" }
         ]}
-        initialData={info}
+        initialData={info as unknown as Record<string, string | number | boolean | File | null>}
       />
     </>
   );
@@ -227,7 +227,7 @@ function QuickLinksSection() {
           { name: "label", label: "Tên hiển thị", required: true, description: "Tên liên kết hiển thị", hint: "VD: Trang chủ, Giới thiệu, Liên hệ" },
           { name: "link", label: "Đường dẫn", required: true, description: "Link của liên kết", hint: "Bắt đầu bằng / VD: /gioi-thieu, /chuyen-khoa" }
         ]}
-        initialData={editingLink || {}}
+        initialData={(editingLink || {}) as Record<string, string | number | boolean | File | null>}
       />
 
       <ConfirmDialog
@@ -310,7 +310,7 @@ function SupportLinksSection() {
           { name: "label", label: "Tên hiển thị", required: true, description: "Tên liên kết hỗ trợ", hint: "VD: Đặt lịch khám, Bảng giá dịch vụ" },
           { name: "link", label: "Đường dẫn", required: true, description: "Link của liên kết", hint: "Bắt đầu bằng / VD: /dat-lich, /dich-vu" }
         ]}
-        initialData={editingLink || {}}
+        initialData={(editingLink || {}) as Record<string, string | number | boolean | File | null>}
       />
 
       <ConfirmDialog

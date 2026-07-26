@@ -6,7 +6,7 @@ import { ConfirmDialog } from "../ui";
 import { Plus, Edit, Trash2, ShieldAlert, Upload, Paperclip, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DEPARTMENTS } from "../../../data";
-import { NewsItem, TenderFile } from "../../../types/models/news";
+import { NewsItem, TenderFile, NewsTag } from "../../../types/models/news";
 
 interface NewsForm {
   title: string;
@@ -129,12 +129,14 @@ export default function NewsTab() {
         ...form,
         image: finalImage,
         date: todayStr,
+        tag: form.tag as NewsTag,
       });
     } else {
       addNews({
         ...form,
         image: finalImage,
         date: todayStr,
+        tag: form.tag as NewsTag,
       });
     }
     setIsModalOpen(false);
