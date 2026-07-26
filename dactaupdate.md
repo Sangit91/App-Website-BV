@@ -334,4 +334,5 @@ type Role = 'Super Admin' | 'Receptionist' | 'Doctor' | 'Department Admin';
 | 2026-07-22 | Review toàn bộ spec v2.9 — ghi nhận 6 bảng Nhóm B còn thiếu field-level, 5 bảng roadmap, các enum gaps, và 5 điểm cần bổ sung trước khi code |
 | 2026-07-23 | Phase 49 hoàn thành: feedback_requests + record_requests API (in-memory), FeedbackModal + RecordRequestModal connected to API, FeedbackTab + RecordRequestsTab admin |
 | 2026-07-23 | Phase 50 hoàn thành: PostgreSQL + Prisma migration — database bvdh_db đã tạo, schema 19 tables đã migrate, booking/feedback/record-request services đã chuyển sang Prisma |
+| 2026-07-26 | Admin Login redesign: Single-Canvas Ultra-Luxury Pearl-Glass Glassmorphism 2.0, Volumetric Ambient Light Orbs (#00FF9D, #FFA265, #2FA968), Shimmer CTA button, Cinematic Doctor Background, Floating Glass Badges (50+ Bác sĩ, ATTT Cấp độ 3), prefers-reducedMotion support |
 | 2026-07-23 | Bổ sung Deployment Architecture Options: 3 phương án triển khai trên DMZ server (Docker containers, Same app subdirectory, 2 VMs), security requirements, RBAC permissions matrix |

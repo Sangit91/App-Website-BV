@@ -116,6 +116,8 @@ npm run lint && npm run build
 | Expert System Review Report (report-review.md) | ✅ Hoàn thành |
 | AGENTS.md updated with v2.10 spec (Public Form API, DB Layer rules, Data Retention, ENUM-Badge sync) | ✅ Hoàn thành |
 | Admin Login Single-Canvas Redesign (2026-07-26): Single-Canvas dark theme, Glassmorphism card, DB-backed auth với JWT, spotlight mouse tracking, shake animation, scope selector với layoutId | ✅ Hoàn thành |
+| Admin Login Ultra-Luxury (2026-07-26): Pearl-Glass Glassmorphism 2.0, Volumetric Ambient Light Orbs, Shimmer CTA, prefers-reducedMotion support | ✅ Hoàn thành |
+| Admin Login Cinematic Background (2026-07-26): Doctor image bg, Floating Glass Badges (50+ Bác sĩ, ATTT Cấp độ 3), neon pulse animations | ✅ Hoàn thành |
 
 **Admin Tabs hiện tại (15 tabs):**
 - 15 hoàn thành: Overview, Bookings, Patients, Shifts, Specialties, Doctors, News, Organization, Logs, Services, PatientTab, Tender, Contact, Feedback, RecordRequests
