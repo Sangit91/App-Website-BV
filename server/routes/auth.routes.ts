@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { adminLogin, refreshTokens, hashNewPassword } from "../services/auth.service.js";
 
 const router = Router();
 
@@ -207,6 +208,65 @@ router.post("/token/access", (req, res) => {
     refreshToken,
     tokenType: "Bearer",
     expiresIn: 1800
+  });
+});
+
+router.post("/admin/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({
+      success: false,
+      error: "Thiếu tên đăng nhập hoặc mật khẩu",
+      code: "MISSING_CREDENTIALS"
+    });
+  }
+
+  const result = await adminLogin(username, password);
+
+  if ("error" in result) {
+    return res.status(401).json({
+      success: false,
+      error: result.error,
+      code: result.code,
+      remainingAttempts: result.remainingAttempts
+    });
+  }
+
+  return res.json({
+    success: true,
+    accessToken: result.accessToken,
+    refreshToken: result.refreshToken,
+    tokenType: "Bearer",
+    expiresIn: result.expiresIn
+  });
+});
+
+router.post("/admin/refresh", async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(400).json({
+      success: false,
+      error: "Thiếu refresh token",
+      code: "MISSING_TOKEN"
+    });
+  }
+
+  const result = await refreshTokens(refreshToken);
+
+  if ("error" in result) {
+    return res.status(401).json({
+      success: false,
+      error: result.error,
+      code: result.code
+    });
+  }
+
+  return res.json({
+    success: true,
+    accessToken: result.accessToken,
+    expiresIn: result.expiresIn
   });
 });
 

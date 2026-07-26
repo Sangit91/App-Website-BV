@@ -5,7 +5,7 @@ import { errorHandler, notFoundHandler } from "./server/middleware/error.middlew
 
 dotenv.config();
 
-const PORT = 5001;
+const PORT = Number(process.env.PORT) || 5001;
 
 const startServer = async () => {
   if (process.env.NODE_ENV !== "production") {

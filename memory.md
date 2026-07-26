@@ -164,6 +164,7 @@ npm run lint && npm run build
 7. **Spec v2.9** đã chính thức hoá feedback_requests + record_requests (mục 21.2–21.4)
 9. **AGENTS.md** da update 5 section: Public Form API Standards, Database Layer rules, Data Retention Governance, ENUM-Badge sync, Memory Safety Rules
 10. **Memory Safety Rules** bo sung (Outdated Memory Pollution, PHI Zero-Tolerance, Single Source Alignment) - ngan 3 rui ro tu Multi-Agent Architecture doc
+11. **Fix admin login** (2026-07-26): server.ts use `process.env.PORT` (was hardcoded 5001), Docker admin user seeded, nginx regex path fixed, HTTPS setup on port 8443 with self-signed cert
 
 ---
 

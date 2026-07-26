@@ -673,6 +673,7 @@ export default function GioiThieuPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {facilities.map((facility, idx) => (
               <FeatureCard
+                key={facility.title || idx}
                 item={facility}
                 index={idx}
                 color={["green", "blue", "purple"][idx]}
