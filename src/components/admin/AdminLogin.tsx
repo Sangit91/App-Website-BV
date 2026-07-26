@@ -129,14 +129,14 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
     <div
       ref={containerRef}
       className="fixed inset-0 z-50 overflow-hidden"
-      style={{ background: "linear-gradient(145deg, #030F0A 0%, #0A241A 40%, #030F0A 100%)" }}
+      style={{ background: "linear-gradient(145deg, #030F0A 0%, #0A241A 50%, #030F0A 100%)" }}
     >
       <div
-        className="absolute inset-0 opacity-[0.06]"
+        className="absolute inset-0 opacity-20"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(47, 169, 104, 0.4) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(47, 169, 104, 0.4) 1px, transparent 1px)
+            linear-gradient(rgba(0, 255, 157, 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 255, 157, 1px, transparent 1px)
           `,
           backgroundSize: "60px 60px"
         }}
@@ -145,27 +145,38 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
       <div
         className="absolute pointer-events-none"
         style={{
-          width: 500,
-          height: 500,
+          width: 600,
+          height: 600,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(47, 169, 104, 0.18) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(0, 255, 157, 0.4) 0%, transparent 70%)",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          filter: "blur(80px)"
+          filter: "blur(130px)"
         }}
       />
       <div
         className="absolute pointer-events-none"
         style={{
-          width: 350,
-          height: 350,
+          width: 400,
+          height: 400,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255, 162, 101, 0.1) 0%, transparent 70%)",
-          top: "55%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          filter: "blur(70px)"
+          background: "radial-gradient(circle, rgba(255, 162, 101, 0.3) 0%, transparent 70%)",
+          top: "10%",
+          left: "5%",
+          filter: "blur(110px)"
+        }}
+      />
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          width: 500,
+          height: 500,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(47, 169, 104, 0.5) 0%, transparent 70%)",
+          bottom: "-10%",
+          right: "-5%",
+          filter: "blur(140px)"
         }}
       />
 
@@ -183,8 +194,8 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
           ref={spotlightRef}
           className="absolute w-[300px] h-[300px] rounded-full pointer-events-none transition-all duration-1000 ease-out"
           style={{
-            border: "2px solid rgba(47, 169, 104, 0.25)",
-            boxShadow: "0 0 60px rgba(47, 169, 104, 0.15), inset 0 0 60px rgba(47, 169, 104, 0.05)",
+            border: "2px solid rgba(0, 255, 157, 0.25)",
+            boxShadow: "0 0 60px rgba(0, 255, 157, 0.15), inset 0 0 60px rgba(0, 255, 157, 0.05)",
             opacity: 0.6
           }}
         />
@@ -234,9 +245,9 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
           <motion.div
             variants={cardVariants}
             animate={isShake ? "shake" : "idle"}
-            className="w-full max-w-[460px] bg-white/[0.94] backdrop-blur-2xl rounded-[32px] p-8 sm:p-10 border border-white/80 ring-1 ring-[#2FA968]/15"
+            className="w-full max-w-[460px] bg-white/90 backdrop-blur-2xl rounded-[32px] p-8 sm:p-10 border border-white/80 ring-2 ring-[#00FF9D]/30"
             style={{
-              boxShadow: "0 24px 80px rgba(2, 30, 22, 0.5), 0 8px 32px rgba(2, 30, 22, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
+              boxShadow: "0 20px 80px rgba(0, 255, 157, 0.15), 0 8px 32px rgba(0, 255, 157, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)"
             }}
           >
             <div className="text-center mb-7">
