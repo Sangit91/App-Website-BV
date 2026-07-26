@@ -36,7 +36,8 @@ function decodeJWT(token: string): TokenPayload | null {
       userId: payload.userId,
       username: payload.username,
       role: payload.role,
-      departmentId: payload.departmentId
+      departmentId: payload.departmentId,
+      exp: payload.exp
     };
   } catch {
     return null;
