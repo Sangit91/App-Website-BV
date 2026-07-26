@@ -36,6 +36,8 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
 
   const spotlightRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const mousePos = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
+  const animationFrameRef = useRef<number>(0);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -46,13 +48,29 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
     if (reducedMotion) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (spotlightRef.current) {
-        spotlightRef.current.style.left = `${e.clientX - 150}px`;
-        spotlightRef.current.style.top = `${e.clientY - 150}px`;
-      }
+      mousePos.current.targetX = e.clientX - 150;
+      mousePos.current.targetY = e.clientY - 150;
     };
+
     window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+
+    const render = () => {
+      mousePos.current.x += (mousePos.current.targetX - mousePos.current.x) * 0.15;
+      mousePos.current.y += (mousePos.current.targetY - mousePos.current.y) * 0.15;
+
+      if (spotlightRef.current) {
+        spotlightRef.current.style.transform = `translate3d(${mousePos.current.x}px, ${mousePos.current.y}px, 0px)`;
+      }
+
+      animationFrameRef.current = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      cancelAnimationFrame(animationFrameRef.current);
+    };
   }, [reducedMotion]);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -187,55 +205,51 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
         </div>
       )}
 
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none opacity-20"
-        viewBox="0 0 1440 900"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient id="waveGradient1" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#00FF9D" stopOpacity="0.8" />
-            <stop offset="50%" stopColor="#2FA968" stopOpacity="1" />
-            <stop offset="100%" stopColor="#00FF9D" stopOpacity="0.6" />
-          </linearGradient>
-          <filter id="glow1" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#00FF9D" floodOpacity="0.8" />
-          </filter>
-        </defs>
+      <div className="absolute inset-0 pointer-events-none overflow-hidden contain-strict z-0">
+        <svg
+          className="absolute w-full h-full opacity-20 will-change-transform"
+          viewBox="0 0 1440 900"
+          preserveAspectRatio="none"
+        >
+          <defs>
+            <linearGradient id="waveGradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#00FF9D" stopOpacity="0.8" />
+              <stop offset="50%" stopColor="#2FA968" stopOpacity="1" />
+              <stop offset="100%" stopColor="#00FF9D" stopOpacity="0.6" />
+            </linearGradient>
+          </defs>
 
-        <path
-          d="M-50,450 C100,380 200,520 350,480 C500,440 550,380 700,420 C850,460 900,520 1050,480 C1200,440 1300,380 1500,420"
-          fill="none"
-          stroke="url(#waveGradient1)"
-          strokeWidth="1.5"
-          filter="url(#glow1)"
-          style={{ animation: "waveFloat1 8s ease-in-out infinite" }}
-        />
-        <path
-          d="M-50,500 C80,440 180,580 320,530 C460,480 520,420 680,460 C840,500 920,560 1080,510 C1240,460 1340,400 1500,450"
-          fill="none"
-          stroke="url(#waveGradient1)"
-          strokeWidth="1.5"
-          filter="url(#glow1)"
-          style={{ animation: "waveFloat2 10s ease-in-out infinite 1s" }}
-        />
-        <path
-          d="M-50,400 C120,320 250,480 400,420 C550,360 620,300 780,350 C940,400 1000,460 1160,410 C1320,360 1380,300 1500,360"
-          fill="none"
-          stroke="url(#waveGradient1)"
-          strokeWidth="1.5"
-          filter="url(#glow1)"
-          style={{ animation: "waveFloat3 12s ease-in-out infinite 2s" }}
-        />
-      </svg>
+          <path
+            d="M-50,450 C100,380 200,520 350,480 C500,440 550,380 700,420 C850,460 900,520 1050,480 C1200,440 1300,380 1500,420"
+            fill="none"
+            stroke="url(#waveGradient1)"
+            strokeWidth="1.5"
+            style={{ animation: "waveFloat1 8s ease-in-out infinite" }}
+          />
+          <path
+            d="M-50,500 C80,440 180,580 320,530 C460,480 520,420 680,460 C840,500 920,560 1080,510 C1240,460 1340,400 1500,450"
+            fill="none"
+            stroke="url(#waveGradient1)"
+            strokeWidth="1.5"
+            style={{ animation: "waveFloat2 10s ease-in-out infinite 1s" }}
+          />
+          <path
+            d="M-50,400 C120,320 250,480 400,420 C550,360 620,300 780,350 C940,400 1000,460 1160,410 C1320,360 1380,300 1500,360"
+            fill="none"
+            stroke="url(#waveGradient1)"
+            strokeWidth="1.5"
+            style={{ animation: "waveFloat3 12s ease-in-out infinite 2s" }}
+          />
+        </svg>
+      </div>
 
       <div
         ref={spotlightRef}
-        className="absolute w-[300px] h-[300px] rounded-full pointer-events-none transition-all duration-150 ease-out"
+        className="absolute w-[300px] h-[300px] rounded-full pointer-events-none will-change-transform"
         style={{
-          border: "2px solid rgba(0, 255, 157, 0.2)",
-          boxShadow: "0 0 60px rgba(0, 255, 157, 0.12), inset 0 0 60px rgba(0, 255, 157, 0.04)",
-          opacity: 0.5
+          background: "radial-gradient(circle, rgba(0, 255, 157, 0.08) 0%, transparent 70%)",
+          border: "1px solid rgba(0, 255, 157, 0.15)",
+          boxShadow: "0 0 60px rgba(0, 255, 157, 0.1)"
         }}
       />
 
