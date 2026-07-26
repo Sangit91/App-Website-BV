@@ -115,6 +115,7 @@ npm run lint && npm run build
 | dactaupdate.md updated with DB gaps | ✅ Hoàn thành |
 | Expert System Review Report (report-review.md) | ✅ Hoàn thành |
 | AGENTS.md updated with v2.10 spec (Public Form API, DB Layer rules, Data Retention, ENUM-Badge sync) | ✅ Hoàn thành |
+| Admin Login Single-Canvas Redesign (2026-07-26): Single-Canvas dark theme, Glassmorphism card, DB-backed auth với JWT, spotlight mouse tracking, shake animation, scope selector với layoutId | ✅ Hoàn thành |
 
 **Admin Tabs hiện tại (15 tabs):**
 - 15 hoàn thành: Overview, Bookings, Patients, Shifts, Specialties, Doctors, News, Organization, Logs, Services, PatientTab, Tender, Contact, Feedback, RecordRequests
@@ -165,6 +166,15 @@ npm run lint && npm run build
 9. **AGENTS.md** da update 5 section: Public Form API Standards, Database Layer rules, Data Retention Governance, ENUM-Badge sync, Memory Safety Rules
 10. **Memory Safety Rules** bo sung (Outdated Memory Pollution, PHI Zero-Tolerance, Single Source Alignment) - ngan 3 rui ro tu Multi-Agent Architecture doc
 11. **Fix admin login** (2026-07-26): server.ts use `process.env.PORT` (was hardcoded 5001), Docker admin user seeded, nginx regex path fixed, HTTPS setup on port 8443 with self-signed cert
+12. **AdminLogin Single-Canvas Redesign**: 
+    - Single-Canvas full-bleed dark theme (#08140E) với ambient glow effects
+    - Centered Glass Login Card (bg-white/95 backdrop-blur-xl, rounded-28px)
+    - Scope Selector với sliding motion pill (Framer Motion layoutId)
+    - Spotlight halo di chuyển theo chuột
+    - Shake animation khi đăng nhập lỗi
+    - DB-backed auth: POST `/api/v1/auth/admin/login`, JWT decode để lấy user info
+    - AdminContext updated: `login(user, token)` thay vì `login(role, name, department)`
+    - Token stored in localStorage (rememberMe) hoặc sessionStorage
 
 ---
 

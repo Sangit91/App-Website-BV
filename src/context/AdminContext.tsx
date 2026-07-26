@@ -3,32 +3,80 @@ import { createContext, useContext, useState, ReactNode } from "react";
 export type Role = "Super Admin" | "Receptionist" | "Doctor" | "Department Admin";
 
 export interface AdminUser {
+  userId: string;
   name: string;
+  username: string;
   role: Role;
   department?: string;
+  departmentId?: string;
+}
+
+export interface TokenPayload {
+  userId: string;
+  username: string;
+  role: string;
+  departmentId?: string;
 }
 
 interface AdminContextType {
   activeUser: AdminUser | null;
-  login: (role: Role, name: string, department?: string) => void;
+  accessToken: string | null;
+  login: (user: AdminUser, token: string) => void;
   logout: () => void;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
+function decodeJWT(token: string): TokenPayload | null {
+  try {
+    const [, body] = token.split(".");
+    const payload = JSON.parse(atob(body));
+    return {
+      userId: payload.userId,
+      username: payload.username,
+      role: payload.role,
+      departmentId: payload.departmentId
+    };
+  } catch {
+    return null;
+  }
+}
+
+function mapRoleToAdminUser(payload: TokenPayload, token: string): AdminUser {
+  const roleMap: Record<string, Role> = {
+    "Super Admin": "Super Admin",
+    "Receptionist": "Receptionist",
+    "Doctor": "Doctor",
+    "Department Admin": "Department Admin"
+  };
+
+  return {
+    userId: payload.userId,
+    username: payload.username,
+    name: payload.username,
+    role: roleMap[payload.role] || "Receptionist",
+    departmentId: payload.departmentId
+  };
+}
+
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [activeUser, setActiveUser] = useState<AdminUser | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
 
-  const login = (role: Role, name: string, department?: string) => {
-    setActiveUser({ name, role, department });
+  const login = (user: AdminUser, token: string) => {
+    setActiveUser(user);
+    setAccessToken(token);
+    localStorage.setItem("admin_token", token);
   };
 
   const logout = () => {
     setActiveUser(null);
+    setAccessToken(null);
+    localStorage.removeItem("admin_token");
   };
 
   return (
-    <AdminContext.Provider value={{ activeUser, login, logout }}>
+    <AdminContext.Provider value={{ activeUser, accessToken, login, logout }}>
       {children}
     </AdminContext.Provider>
   );
@@ -40,4 +88,10 @@ export function useAdmin() {
     throw new Error("useAdmin must be used within AdminProvider");
   }
   return context;
+}
+
+export function decodeAdminToken(token: string): AdminUser | null {
+  const payload = decodeJWT(token);
+  if (!payload) return null;
+  return mapRoleToAdminUser(payload, token);
 }
