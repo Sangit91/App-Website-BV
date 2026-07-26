@@ -60,7 +60,32 @@ export default function RecordRequestsTab() {
     try {
       const res = await fetch("/api/v1/record-requests");
       const data = await res.json();
-      setRequests(Array.isArray(data) ? data : []);
+      if (Array.isArray(data)) {
+        const normalized = data.map(item => ({
+          id: item.id,
+          request_code: item.requestCode || item.request_code || "",
+          patient_name: item.patientName || item.patient_name || "",
+          request_type: item.requestType || item.request_type || "other",
+          date_range_from: item.dateRangeFrom || item.date_range_from || "",
+          date_range_to: item.dateRangeTo || item.date_range_to || "",
+          reason: item.reason || "",
+          status: (item.status || "moi") as RecordRequestStatus,
+          admin_notes: item.adminNotes || item.admin_notes || null,
+          contact_phone: item.contactPhone || item.contact_phone || null,
+          contact_email: item.contactEmail || item.contact_email || null,
+          files: (item.files || []).map((f: any) => ({
+            id: f.id,
+            file_name: f.fileName || f.file_name || "",
+            file_type: f.fileType || f.file_type || "",
+            file_path: f.filePath || f.file_path || ""
+          })),
+          created_at: item.createdAt || item.created_at || new Date().toISOString(),
+          updated_at: item.updatedAt || item.updated_at || new Date().toISOString()
+        }));
+        setRequests(normalized);
+      } else {
+        setRequests([]);
+      }
     } catch {
       setRequests([]);
     } finally {

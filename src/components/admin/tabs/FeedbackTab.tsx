@@ -51,7 +51,24 @@ export default function FeedbackTab() {
     try {
       const res = await fetch("/api/v1/feedback-requests");
       const data = await res.json();
-      setFeedbacks(Array.isArray(data) ? data : []);
+      if (Array.isArray(data)) {
+        const normalized = data.map(item => ({
+          id: item.id,
+          patient_name: item.patientName || item.patient_name || "",
+          service_type: (item.serviceType || item.service_type || "other") as ServiceType,
+          rating: item.rating || 0,
+          content: item.content || "",
+          status: (item.status || "moi") as FeedbackStatus,
+          admin_response: item.adminResponse || item.admin_response || null,
+          contact_phone: item.contactPhone || item.contact_phone || null,
+          contact_email: item.contactEmail || item.contact_email || null,
+          created_at: item.createdAt || item.created_at || new Date().toISOString(),
+          updated_at: item.updatedAt || item.updated_at || new Date().toISOString()
+        }));
+        setFeedbacks(normalized);
+      } else {
+        setFeedbacks([]);
+      }
     } catch {
       setFeedbacks([]);
     } finally {
