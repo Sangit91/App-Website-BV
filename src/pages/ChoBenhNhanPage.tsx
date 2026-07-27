@@ -378,7 +378,7 @@ export default function ChoBenhNhanPage() {
           <AnimatePresence mode="wait">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
               {activeTab === "cong-thong-tin" ? (
-                <motion.div ref={portalRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }} className="mb-6">
+                <motion.div ref={portalRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }} className="mb-6 max-w-5xl mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" style={{
                       background: `linear-gradient(135deg, rgba(147,51,234,0.05) 0%, transparent 50%)`,
                       borderRadius: "24px"
@@ -430,7 +430,7 @@ export default function ChoBenhNhanPage() {
                       onOpenFeedback={handleFeedback}
                     />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6 max-w-5xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
                     {[
                       { name: "Yêu cầu trích sao hồ sơ", desc: "Lấy bản sao hồ sơ y tế, giấy chứng nhận", action: "Gửi yêu cầu", icon: FileSearch, img: "/images/pages/hoso-1.jpeg", onAction: handleRecordRequest },
                       { name: "Góp ý chất lượng phục vụ", desc: "Đóng góp ý kiến để cải thiện dịch vụ", action: "Gửi góp ý", icon: Phone, img: "/images/pages/bacsi-1.jpeg", onAction: handleFeedback }
