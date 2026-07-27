@@ -79,6 +79,7 @@ server/
 
 ## 🚧 Backup gần nhất
 
+- `D:\Coding\code backup\App Website BV_20260727_133642` (trước Phase 72 — đồng bộ layout "Cổng thông tin")
 - `D:\Coding\code backup\App Website BV_20260727_072435` (trước Phase 69 — fix lỗi 500 upload Record Request)
 - `D:\Coding\code backup\App Website BV_20260719_160404` (sau Local Images Migration)
 
@@ -115,6 +116,7 @@ npm run lint && npm run build
 | Fix lỗi 500 upload Record Request (Phase 69): Docker permission (uploads/temp chown node), backend_uploads volume, path inconsistency service (resolvePhysicalPath helper) | ✅ Hoàn thành (2026-07-27) |
 | Port Policy (Phase 70): chỉ 8443 public ra host, frontend 8000 + backend 8001 + db 5432 chỉ expose nội bộ — tránh xung đột port 3000/5001 | ✅ Hoàn thành (2026-07-27) |
 | Refactor UX RecordRequestModal (Phase 71): Header xanh tích hợp tiêu đề, X button góc phải, bỏ banner thừa, max-h-[90vh], file preview, validation real-time (SĐT/Email/ít nhất 1 kênh/ngày), accessibility đầy đủ | ✅ Hoàn thành (2026-07-27) |
+| Đồng bộ layout "Cổng thông tin" với "Hướng dẫn tiện ích" (Phase 72): InfoCard ảnh aspect-[16/9] thay h-48, grid md:grid-cols-3 gap-6, xóa featured block trùng lặp với PatientLookupForm, xóa handleTraCuuBenhSu (52 dòng) | ✅ Hoàn thành (2026-07-27) |
 | Spec v2.9 review + Database gap analysis | ✅ Hoàn thành (2026-07-22) |
 | dactaupdate.md updated with DB gaps | ✅ Hoàn thành |
 | Expert System Review Report (report-review.md) | ✅ Hoàn thành |

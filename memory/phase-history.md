@@ -1743,3 +1743,65 @@ pm run build — passed.
 - Logic upload file riêng (POST /:id/files) giữ nguyên từ Phase 69 — không động tới.
 - Stale useMemo cho validation → không re-render thừa.
 - Không động tới spec v2.9 mục 21.3 (record_requests) vì không thay đổi field/ENUM.
+
+---
+
+## PHASE 72 — Fix layout 2 thẻ record-request/feedback + đồng bộ 'Cổng thông tin' (2026-07-27)
+
+### Mô tả
+
+Sau Phase 71 (Redesign RecordRequestModal), 2 thẻ "Yêu cầu trích sao hồ sơ" + "Góp ý chất lượng phục vụ" ở cuối section "Cổng thông tin" bị phình full-width, ảnh bè dẹt, không cân đối với khối tìm kiếm phía trên. Đồng thời section "Cổng thông tin" dùng layout khác hẳn "Hướng dẫn tiện ích" gây inconsistent UX.
+
+Sửa thành nhiều commit:
+
+1. **Commit 85d3705** — giới hạn chiều rộng + aspect-ratio ảnh
+   - 2 thẻ: grid md:grid-cols-2 gap-6 mt-6 ➜ grid md:grid-cols-2 gap-8 mt-6 max-w-5xl mx-auto
+   - InfoCard ảnh: h-48 cố định (bị bè dẹt khi grid phình) ➜ spect-[16/9] + object-cover
+
+2. **Commit 375db2** — bọc max-w-5xl mx-auto lên motion.div cha
+   - max-w-5xl chỉ bọc 2 thẻ mà không bọc featured block "Thông tin hữu ích" phía trên ➜ lệch
+   - Chuyển max-w-5xl mx-auto vào motion.div cha (dòng 381), bọc cả featured + PatientPortalSection + 2 thẻ cùng width
+   - Bỏ redundant max-w-5xl ở 2-thẻ grid
+
+3. **Commit 88d6ac3** — đồng bộ design với "Hướng dẫn tiện ích"
+   - Featured block wrapper: mb-6 max-w-5xl mx-auto ➜ mb-12 (full-width, giống else branch)
+   - 2 thẻ grid: md:grid-cols-2 gap-8 mt-6 ➜ md:grid-cols-3 gap-6 (giống Hướng dẫn grid density)
+   - PatientPortalSection giữ nguyên (complex form + result layout)
+
+4. **Commit 7fc0791** — xóa featured block trùng lặp trong "Cổng thông tin"
+   - Vấn đề: featured block "Tra cứu bệnh sử online" (ảnh + "Thông tin hữu ích" bullet list) trùng lặp thông tin với PatientLookupForm của PatientPortalSection ngay phía dưới ➜ dư thừa vertical space + awkward spacing
+   - Bỏ hoàn toàn featured block (52 dòng code) khỏi nhánh cong-thong-tin
+   - Xóa handleTraCuuBenhSu (handler cho banner đã bị loại)
+   - Sửa accidental duplicate handleRecordRequest
+   - Cấu trúc final của section "Cổng thông tin":
+     1. PatientPortalSection (form lookup + kết quả tabs)
+     2. Grid 2 thẻ: record-request + feedback
+
+### Files Changed
+
+`
+src/pages/ChoBenhNhanPage.tsx          (refactor nhánh cong-thong-tin, xóa featured block, sửa InfoCard ảnh aspect-ratio)
+src/components/public/RecordRequestModal.tsx  (commit d6054ba — showCloseButton={false} để sửa header rỗng Modal)
+`
+
+### Verification
+
+`ash
+npm run lint   # Lỗi pre-existing ChoBenhNhanPage:443 (item.id không có trong type ItemData) — không phải do Phase 72
+npm run build  # Passed (lỗi auth.routes.ts pre-existing không liên quan)
+docker restart bvdh-frontend  # HMR đang tắt (DISABLE_HMR=true) — phải restart để nhận code mới
+`
+
+### Commands
+
+`ash
+docker restart bvdh-frontend   # Sau mỗi sửa code frontend
+npm run lint && npm run build   # Quality Gate
+`
+
+### Ghi chú
+
+- **DISABLE_HMR=true** trong container frontend (theo docker-compose.yml) → mỗi lần sửa phải docker restart bvdh-frontend để Vite bundle lại, không có hot reload
+- **Modal default header bug** (commit d6054ba): Modal component render mặc định header với X button khi showCloseButton=true (mặc định) dù không có title ➜ RecordRequestModal phải truyền showCloseButton={false} để tránh 2 header chồng nhau
+- **Layout asymmetry root cause**: section "Cổng thông tin" (if branch) và "Hướng dẫn tiện ích" (else branch) dùng các grid/gap khác nhau → sau Phase 72 đã đồng nhất pattern (featured mb-12 + grid md:grid-cols-3 gap-6)
+- **Không động tới spec v2.9**: thay đổi chỉ ở tầng UI/layout, không ảnh hưởng field DB hay ENUM
