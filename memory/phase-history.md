@@ -1704,3 +1704,42 @@ docker compose up -d --build
 - **Vite proxy fallback**: `vite.config.ts` vẫn có fallback `localhost:3001` cho dev ngoài Docker; trong container dùng env `API_HOST=admin-api` + `API_PORT=8001`.
 - **Port Policy Mauri (persistent)**: thêm vào `AGENTS.md` section "KIẾN TRÚC DỰ ÁN" → không được thay đổi trừ khi có tài liệu kiến trúc mới.
 - **Bug liên quan**: trước fix này, frontend chạy port 3000 + Vite proxy tới `localhost:5001` (không có service) → mọi `/api/v1/*` request từ `RecordRequestModal.tsx` + `HospitalContext.tsx` trả 500 (connection refused). Đây là root cause lỗi bạn báo hôm 27/Jul.
+---
+
+## PHASE 71 — Refactor UX RecordRequestModal (2026-07-27)
+
+### Mô tả
+
+Refactor giao diện + logic RecordRequestModal.tsx theo chuẩn UX/UI:
+
+1. **Header xanh tích hợp tiêu đề** — chuyển tiêu đề "Yêu cầu trích sao hồ sơ" + phụ đề "Điền thông tin bên dưới để gửi yêu cầu" trực tiếp lên thanh gradient xanh (from-brand-green to-green-dark).
+2. **Nút X góc phải header** — chuẩn F-shape UX, có aria-label "Đóng form", hover bg-white/15.
+3. **Bỏ khối banner trắng thừa** ở body (icon tờ giấy gradient) → tiết kiệm vertical space.
+4. **Layout max-h-[90vh]** — body overflow-y-auto, modal hiển thị trọn trên mọi màn hình (Laptop/Mobile).
+5. **File upload preview** — khi chọn/kéo thả file, hiển thị ngay: tên (truncate) + dung lượng (B/KB/MB) + nút Trash màu đỏ để xóa từng file. Có aria-label cho từng nút xóa.
+6. **Validation real-time**:
+   - SĐT: phải đúng 10 chữ số, bắt đầu bằng 0 → báo lỗi đỏ ngay khi gõ.
+   - Email: regex ^[^\s@]+@[^\s@]+\.[^\s@]+$.
+   - Ít nhất 1 kênh liên hệ (SĐT HOẶC Email) — báo lỗi xuống field.
+   - Logic ngày: "Từ ngày" <= "Đến ngày", dùng min/max để vô hiệu hóa ngày sai trên date picker hai chiều.
+7. **Accessibility**: mọi input có id + 
+ame + label htmlFor; lỗi có ria-invalid + ria-describedby; alert có ole="alert".
+8. **No hardcode**: dùng design tokens (brand-green, green-dark, mint, peach, ink, red-400/red-500 cho error per Tailwind convention).
+
+### Files Changed
+
+- src/components/public/RecordRequestModal.tsx (rewrite — ~440 dòng)
+
+### Verification
+
+- 
+pm run lint — không có lỗi RecordRequestModal (pre-existing lỗi ở ChoBenhNhanPage/vite.config/auth.routes không liên quan).
+- 
+pm run build — passed.
+
+### Ghi chú
+
+- Component tuân thủ AGENTS.md: dùng Modal + Button shared, design tokens, không hardcode màu/spacing, accessibility đầy đủ.
+- Logic upload file riêng (POST /:id/files) giữ nguyên từ Phase 69 — không động tới.
+- Stale useMemo cho validation → không re-render thừa.
+- Không động tới spec v2.9 mục 21.3 (record_requests) vì không thay đổi field/ENUM.
