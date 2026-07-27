@@ -42,6 +42,7 @@ services:
     volumes:
       - ./server:/app/server
       - ./prisma:/app/prisma
+      - backend_uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -106,3 +107,5 @@ networks:
 volumes:
   postgres_data:
     name: bvdh-postgres-data
+  backend_uploads:
+    name: bvdh-backend-uploads

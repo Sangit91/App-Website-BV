@@ -1587,3 +1587,64 @@ npm run lint && npm run build  # Verify
 - PatientPortalSection.tsx đã có từ phase trước — chỉ integrate consent check chứ không tạo mới
 - PHI protection: mọi endpoint đọc bệnh sử/CLS/điều trị yêu cầu readToken từ luồng OTP 5 phút
 - rate limit: 5 request/IP/15 phút cho public consent endpoints
+
+---
+
+## PHASE 69 — Fix lỗi 500 khi upload file Record Request (Docker + Path Inconsistency) (2026-07-27)
+
+### Mô tả
+
+Sửa 2 nhóm lỗi khiến endpoint `POST /api/v1/record-requests/:id/files` trả 500 (Internal Server Error) khi người dùng đính kèm ảnh/pdf/word trong form "Yêu cầu trích sao hồ sơ":
+
+1. **Docker permission bug (lỗi chính)**
+   - `Dockerfile.backend` không `mkdir` + `chown` cho `uploads/temp|pending|approved`
+   - Thư mục `uploads/temp` thuộc `root:root` từ layer image
+   - Container chạy dưới user `root` nhưng viết code `process.cwd()`/`uploads/temp` của node dẫn tới multer throw `EACCES` khi ghi file tạm → Express bọc thành HTTP 500
+   - Từ DevTools nhìn giống lỗi server nhưng thực tế là permission denied ở filesystem
+
+2. **Path inconsistency trong `record-request.service.ts`**
+   - `handleFileUpload` lưu file vật lý tại `<cwd>/uploads/pending/<file>` và ghi DB `filePath=/uploads/pending/<file>`
+   - Nhưng `deleteFile` (dòng 135) và `processStatusChange` (dòng 155) dùng `path.join(process.cwd(), "public", file.filePath)` → dẫn tới `<cwd>/public/uploads/pending/<file>` (sai — không có `public/`)
+   - Hậu quả: khi admin đổi status sang `da_huy`/`da_xu_ly`, file cũ luôn ENOENT (không xóa được, không move sang `approved/` được)
+
+### Files Changed
+
+```
+Dockerfile.backend                                    (+6 dòng: mkdir uploads/* + chown -R node:node)
+docker-compose.yml                                    (+5 dòng: backend_uploads named volume mount vào /app/uploads)
+server/services/record-request.service.ts             (+11/-2: thêm resolvePhysicalPath helper, sửa 2 chỗ path)
+```
+
+### Verification
+
+```bash
+# Sau rebuild + up, verify endpoint:
+POST /api/v1/record-requests                          -> 201 Created (id=cms2he00100000tnzo9ieulat)
+POST /api/v1/record-requests/:id/files (ảnh PNG 67B)  -> 201 Created (filePath=/uploads/pending/YC-820608_*.png)
+GET  /api/v1/record-requests                          -> 200 []
+GET  /api/v1/doctors|news|specialties                 -> 200 [] (DB rỗng, không còn 500)
+
+# Verify quyền thư mục trong container:
+docker exec bvdh-backend ls -la /app/uploads/
+#   drwxr-xr-x 5 node node ... .
+#   drwxr-xr-x 2 node node ... temp
+#   drwxr-xr-x 2 node node ... pending
+#   drwxr-xr-x 2 node node ... approved
+```
+
+### Commands
+
+```bash
+docker compose up -d --build admin-api   # Rebuild backend với Dockerfile fix + volume mới
+docker exec bvdh-backend ls -la /app/uploads/  # Verify quyền
+npm run lint && npm run build            # Quality Gate (build passed, lint có lỗi pre-existing không liên quan)
+```
+
+### Ghi chú
+
+- **Backup**: `D:\Coding\code backup\App Website BV_20260727_072435` (trước commit)
+- **Lint pre-existing**: `ChoBenhNhanPage.tsx:494` (TS2339 ItemData.id) + `vite.config.ts:6` (allowedHosts boolean) + `auth.routes.ts:2,256` (refreshTokens conflict) — đều đã tồn tại trước diff của Phase 69, không trong phạm vi fix
+- **Volume `backend_uploads`**: named volume docker, persist qua restart container (trước đây file upload bị mất khi recreate container)
+- **Workaround tạm trước fix**: đã dùng `docker exec ... chown -R node:node /app/uploads` để xác nhận root cause — fix permanent nằm trong Dockerfile
+- **Patient Portal / doctors / news / specialties 500** trong DevTools có thể là do backend đang restart giữa chừng (container recreate lúc rebuild), hiện đã ổn — get API trả 200 + `[]`
+- **Bug này chưa từng gặp trong OpenBrain** — record như Bug type để tham chiếu session sau

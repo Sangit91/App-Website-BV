@@ -79,6 +79,7 @@ server/
 
 ## 🚧 Backup gần nhất
 
+- `D:\Coding\code backup\App Website BV_20260727_072435` (trước Phase 69 — fix lỗi 500 upload Record Request)
 - `D:\Coding\code backup\App Website BV_20260719_160404` (sau Local Images Migration)
 
 ---
@@ -111,6 +112,7 @@ npm run lint && npm run build
 | PostgreSQL + Prisma migration Phase 1 (22 tables, Prisma Client, services updated) | ✅ Hoàn thành (2026-07-23) |
 | Docker Dev Environment (Option 1 architecture) | ✅ Hoàn thành (2026-07-23) |
 | Consent Management (Phase 68 - NĐ 13/2023): ConsentPolicy + PatientConsent models, consent service/routes/middleware, PatientConsentModal, PHI protection | ✅ Hoàn thành (2026-07-26) |
+| Fix lỗi 500 upload Record Request (Phase 69): Docker permission (uploads/temp chown node), backend_uploads volume, path inconsistency service (resolvePhysicalPath helper) | ✅ Hoàn thành (2026-07-27) |
 | Spec v2.9 review + Database gap analysis | ✅ Hoàn thành (2026-07-22) |
 | dactaupdate.md updated with DB gaps | ✅ Hoàn thành |
 | Expert System Review Report (report-review.md) | ✅ Hoàn thành |

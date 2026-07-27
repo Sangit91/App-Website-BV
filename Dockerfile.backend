@@ -13,6 +13,12 @@ COPY prisma/ ./prisma/
 # Generate Prisma Client
 RUN npx prisma generate --schema=./prisma/schema.prisma
 
+# Ensure uploads directories exist and are writable by the node runtime user.
+# Multer writes incoming multipart files to uploads/temp before handler runs;
+# without write permission the POST /:id/files endpoint returns EACCES (500).
+RUN mkdir -p uploads/temp uploads/pending uploads/approved \
+    && chown -R node:node uploads
+
 # Expose API port
 EXPOSE 3001
 

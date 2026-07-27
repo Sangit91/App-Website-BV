@@ -29,6 +29,15 @@ export interface UpdateRecordRequestInput {
 const PENDING_UPLOADS_DIR = path.join(process.cwd(), "uploads", "pending");
 const APPROVED_UPLOADS_DIR = path.join(process.cwd(), "uploads", "approved");
 
+// Chuyển đường dẫn URL (lưu trong DB) về đường dẫn vật lý trên disk.
+// file.filePath có dạng "/uploads/pending/<file>" nhưng file thực nằm ở
+// <cwd>/uploads/pending/<file> (không có "public"). Dùng helper này để tránh
+// inconsistency giữa handleFileUpload và deleteFile/processStatusChange.
+function resolvePhysicalPath(filePath: string): string {
+  const normalized = filePath.replace(/^\//, "");
+  return path.join(process.cwd(), normalized);
+}
+
 function ensureDir(dir: string): Promise<void> {
   return fs.mkdir(dir, { recursive: true }).then(() => {});
 }
@@ -132,7 +141,7 @@ export const recordRequestService = {
     const file = await getPrisma().recordRequestFile.findUnique({ where: { id: fileId } });
     if (!file) return;
 
-    const fullPath = path.join(process.cwd(), "public", file.filePath);
+    const fullPath = resolvePhysicalPath(file.filePath);
     await fs.unlink(fullPath).catch(() => {});
     await getPrisma().recordRequestFile.delete({ where: { id: fileId } });
   },
@@ -152,7 +161,7 @@ export const recordRequestService = {
       await ensureDir(APPROVED_UPLOADS_DIR);
 
       for (const file of request.files) {
-        const pendingPath = path.join(process.cwd(), "public", file.filePath);
+        const pendingPath = resolvePhysicalPath(file.filePath);
         const ext = path.extname(file.fileName);
         const dateStr = new Date().toISOString().split("T")[0];
         const patientCode = request.patientCode || "UNKNOWN";
