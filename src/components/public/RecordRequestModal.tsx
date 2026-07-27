@@ -222,7 +222,7 @@ export default function RecordRequestModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="lg">
+    <Modal isOpen={isOpen} onClose={handleClose} size="lg" showCloseButton={false}>
       <div className="flex flex-col max-h-[90vh]">
         <div className="bg-gradient-to-r from-brand-green to-green-dark px-6 py-5 text-white shrink-0 flex items-start justify-between gap-4">
           <div className="flex items-start gap-3 min-w-0">
