@@ -131,7 +131,7 @@ function InfoCard({ item, dept, index }: InfoCardProps) {
           }}
         />
 
-        <div className="relative h-48 overflow-hidden">
+        <div className="relative aspect-[16/9] overflow-hidden">
           <motion.img
             src={item.img}
             alt={item.name}
@@ -430,7 +430,7 @@ export default function ChoBenhNhanPage() {
                       onOpenFeedback={handleFeedback}
                     />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6 max-w-5xl mx-auto">
                     {[
                       { name: "Yêu cầu trích sao hồ sơ", desc: "Lấy bản sao hồ sơ y tế, giấy chứng nhận", action: "Gửi yêu cầu", icon: FileSearch, img: "/images/pages/hoso-1.jpeg", onAction: handleRecordRequest },
                       { name: "Góp ý chất lượng phục vụ", desc: "Đóng góp ý kiến để cải thiện dịch vụ", action: "Gửi góp ý", icon: Phone, img: "/images/pages/bacsi-1.jpeg", onAction: handleFeedback }
