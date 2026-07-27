@@ -43,6 +43,7 @@ router.post("/", async (req, res) => {
       }
     });
   } catch (error: any) {
+    console.error("[record-requests POST] create failed:", error);
     res.status(500).json({ error: error.message || "Lỗi máy chủ" });
   }
 });

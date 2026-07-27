@@ -19,8 +19,9 @@ export default defineConfig(() => {
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
       proxy: process.env.NODE_ENV === 'production' ? {} : {
         '/api': {
-          target: `http://${process.env.API_HOST || 'localhost'}:${process.env.API_PORT || '5001'}`,
+          target: `http://${process.env.API_HOST || 'localhost'}:${process.env.API_PORT || '3001'}`,
           changeOrigin: true,
+          secure: false,
         },
       },
     },

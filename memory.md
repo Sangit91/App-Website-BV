@@ -113,6 +113,7 @@ npm run lint && npm run build
 | Docker Dev Environment (Option 1 architecture) | ✅ Hoàn thành (2026-07-23) |
 | Consent Management (Phase 68 - NĐ 13/2023): ConsentPolicy + PatientConsent models, consent service/routes/middleware, PatientConsentModal, PHI protection | ✅ Hoàn thành (2026-07-26) |
 | Fix lỗi 500 upload Record Request (Phase 69): Docker permission (uploads/temp chown node), backend_uploads volume, path inconsistency service (resolvePhysicalPath helper) | ✅ Hoàn thành (2026-07-27) |
+| Port Policy (Phase 70): chỉ 8443 public ra host, frontend 8000 + backend 8001 + db 5432 chỉ expose nội bộ — tránh xung đột port 3000/5001 | ✅ Hoàn thành (2026-07-27) |
 | Spec v2.9 review + Database gap analysis | ✅ Hoàn thành (2026-07-22) |
 | dactaupdate.md updated with DB gaps | ✅ Hoàn thành |
 | Expert System Review Report (report-review.md) | ✅ Hoàn thành |

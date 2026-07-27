@@ -1648,3 +1648,59 @@ npm run lint && npm run build            # Quality Gate (build passed, lint có 
 - **Workaround tạm trước fix**: đã dùng `docker exec ... chown -R node:node /app/uploads` để xác nhận root cause — fix permanent nằm trong Dockerfile
 - **Patient Portal / doctors / news / specialties 500** trong DevTools có thể là do backend đang restart giữa chừng (container recreate lúc rebuild), hiện đã ổn — get API trả 200 + `[]`
 - **Bug này chưa từng gặp trong OpenBrain** — record như Bug type để tham chiếu session sau
+
+---
+
+## PHASE 70 — Port Policy: chỉ 8443 public, map container nội bộ 8000+ (2026-07-27)
+
+### Mô tả
+
+Trước đây stack Docker publish 4 port ra host: `3000` (frontend), `3001` (backend), `5432` (db), `80/443/8443` (nginx). Điều này gây xung đột với các app mặc định ở port 3000/5432/80/443 trên máy dev. Đồng thời Vite proxy target mặc định `localhost:5001` (trong `vite.config.ts`) không khớp với backend port thật → mọi API request từ frontend khi chạy qua Vite trả 500.
+
+Đổi policy:
+- **Chỉ 8443 public ra host** (HTTPS, self-signed cert trong dev). Mọi request trình duyệt đi qua nginx.
+- Frontend đổi từ port 3000 → **8000** (chỉ `expose`, không `ports`).
+- Backend đổi từ port 3001 → **8001** (chỉ `expose`, không `ports`).
+- DB 5432 — không publish, chỉ `expose` (debug qua `docker exec ... wget`).
+- Nếu thêm service mới (Redis, MinIO…): port nội bộ từ 8002 trở lên, KHÔNG publish.
+
+### Files Changed
+
+```
+docker-compose.yml           (services đổi ports, expose thay ports, bỏ 80/443 publish)
+nginx/nginx.conf             (upstream public-web:8000, admin-api:8001)
+Dockerfile.frontend          (EXPOSE 8000)
+Dockerfile.backend           (EXPOSE 8001)
+vite.config.ts               (proxy target dùng API_HOST/API_PORT env, fallback 3001)
+AGENTS.md                    (+ section "Port Policy" bất biến trong kiến trúc dự án)
+```
+
+### Verification
+
+```bash
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+# Bây giờ chỉ thấy:
+#   bvdh-nginx     0.0.0.0:8443->443/tcp, [::]:8443->443/tcp
+#   bvdh-frontend  8000/tcp        (expose, không publish)
+#   bvdh-backend   8001/tcp        (expose, không publish)
+#   bvdh-db        5432/tcp        (expose, không publish)
+
+curl -k https://localhost:8443/api/v1/doctors      # 200 []
+curl -k https://localhost:8443/api/v1/news          # 200 []
+curl -k https://localhost:8443/api/v1/specialties   # 200 []
+curl -k https://localhost:8443/                      # 200 (HTML)
+```
+
+### Commands
+
+```bash
+docker compose down
+docker compose up -d --build
+```
+
+### Ghi chú
+
+- **Lý do chọn 8443**: tránh xung đột với các app mặc định ở 80/443/3000/5432 trên máy dev (v Airbnb, React default, PostgreSQL local…).
+- **Vite proxy fallback**: `vite.config.ts` vẫn có fallback `localhost:3001` cho dev ngoài Docker; trong container dùng env `API_HOST=admin-api` + `API_PORT=8001`.
+- **Port Policy Mauri (persistent)**: thêm vào `AGENTS.md` section "KIẾN TRÚC DỰ ÁN" → không được thay đổi trừ khi có tài liệu kiến trúc mới.
+- **Bug liên quan**: trước fix này, frontend chạy port 3000 + Vite proxy tới `localhost:5001` (không có service) → mọi `/api/v1/*` request từ `RecordRequestModal.tsx` + `HospitalContext.tsx` trả 500 (connection refused). Đây là root cause lỗi bạn báo hôm 27/Jul.

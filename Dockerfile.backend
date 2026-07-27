@@ -20,7 +20,7 @@ RUN mkdir -p uploads/temp uploads/pending uploads/approved \
     && chown -R node:node uploads
 
 # Expose API port
-EXPOSE 3001
+EXPOSE 8001
 
 # Start server with tsx watch (auto-reload on changes)
 CMD ["npx", "tsx", "watch", "server.ts"]

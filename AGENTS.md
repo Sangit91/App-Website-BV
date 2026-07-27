@@ -140,6 +140,33 @@ Commit
 
 # 🏗️ KIẾN TRÚC DỰ ÁN
 
+## 📌 Port Policy (Bắt buộc — không thay đổi trừ khi có tài liệu kiến trúc)
+
+Quy ước port **bất biến** để tránh xung đột với các app khác trên cùng host dev:
+
+| Vai trò | Container | Port nội bộ | Port publish ra host |
+|---------|-----------|-------------|----------------------|
+| Public entrypoint (HTTPS) | `bvdh-nginx` | 443 | **8443** ← cổng duy nhất public |
+| Frontend (Vite dev) | `bvdh-frontend` | 8000 | KHÔNG publish (chỉ `expose`) |
+| Backend (Express API) | `bvdh-backend` | 8001 | KHÔNG publish (chỉ `expose`) |
+| Database (PostgreSQL) | `bvdh-db` | 5432 | KHÔNG publish (chỉ `expose`) |
+
+### Nguyên tắc bắt buộc
+
+- **Chỉ port 8443 public ra host** — mọi request từ trình duyệt đi qua nginx (HTTPS, self-signed cert trong dev).
+- KHÔNG `ports:` cho `public-web`, `admin-api`, `db` trong `docker-compose.yml` — chỉ dùng `expose:` cho network nội bộ.
+- Trình duyệt luôn truy cập `https://localhost:8443` — không trực tiếp `localhost:3000/3001/5001/8000/8001`.
+- Nginx upstream nội bộ: `public-web:8000`, `admin-api:8001`.
+- Khi cần debug backend trực tiếp (không qua nginx), dùng `docker exec bvdh-backend wget -qO- http://127.0.0.1:8001/api/health` thay vì expose thêm port.
+- Nếu thêm service mới (Redis, MinIO...), dùng port nội bộ từ 8002 trở lên, KHÔNG publish.
+- Lý do chọn 8443: tránh xung đột với các app mặc định ở 80/443/3000/5432 trên máy dev.
+
+### Lint/build
+
+Nếu lint báo lỗi `server.allowedHosts` ở `vite.config.ts`, đó là pre-existing issue không liên quan port policy — không fix trừ khi yêu cầu riêng.
+
+---
+
 ## Frontend
 
 ```text

@@ -1,16 +1,18 @@
 services:
-  # Frontend: Vite dev server with HMR
+  # Frontend: Vite dev server (internal only, proxied by nginx)
   public-web:
     build:
       context: .
       dockerfile: Dockerfile.frontend
     container_name: bvdh-frontend
-    ports:
-      - "3000:3000"  # Vite dev server (for testing HMR)
+    expose:
+      - "8000"  # internal only — accessed via nginx, not published
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=https://localhost:8443/api
-      - PORT=3000
+      - VITE_API_URL=/api  # same-origin via nginx
+      - PORT=8000
+      - API_HOST=admin-api
+      - API_PORT=8001
       - DISABLE_HMR=true
     volumes:
       - .:/app
@@ -20,25 +22,25 @@ services:
     networks:
       - bvdh-network
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8000"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # Backend: Express API server
+  # Backend: Express API server (internal only)
   admin-api:
     build:
       context: .
       dockerfile: Dockerfile.backend
     container_name: bvdh-backend
-    ports:
-      - "3001:3001"  # Direct access to API (for debugging)
+    expose:
+      - "8001"  # internal only — accessed via nginx, not published
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://postgres:devpass@db:5432/bvdh_db?schema=public
       - JWT_SECRET=dev-secret-change-in-production-min-32-chars
       - JWT_REFRESH_SECRET=dev-refresh-secret-change-in-production
-      - PORT=3001
+      - PORT=8001
     volumes:
       - ./server:/app/server
       - ./prisma:/app/prisma
@@ -49,18 +51,18 @@ services:
     networks:
       - bvdh-network
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3001/api/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8001/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
     command: ["npx", "tsx", "watch", "server.ts"]
 
-  # Database: PostgreSQL
+  # Database: PostgreSQL (internal only)
   db:
     image: postgres:16-alpine
     container_name: bvdh-db
-    ports:
-      - "5432:5432"  # Direct access for dev tools (DBeaver, psql)
+    expose:
+      - "5432"  # internal only — not published to host
     environment:
       - POSTGRES_DB=bvdh_db
       - POSTGRES_USER=postgres
@@ -76,14 +78,12 @@ services:
       timeout: 5s
       retries: 5
 
-  # Nginx: Reverse proxy
+  # Nginx: Reverse proxy (only public entrypoint)
   nginx:
     image: nginx:alpine
     container_name: bvdh-nginx
     ports:
-      - "80:80"
-      - "443:443"
-      - "8443:443"
+      - "8443:443"  # ONLY public port — HTTPS to avoid conflicts with other apps on 80/443
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl/cert.pem:/etc/nginx/ssl/cert.pem:ro
