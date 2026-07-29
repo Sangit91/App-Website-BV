@@ -1,6 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { Card, Badge, Button } from "../../ui";
-import { Search, FileText, Eye, Check, X, Clock, Ban } from "lucide-react";
+import {
+  Search, FileText, Eye, Check, X, Clock, Ban, Download, ImageIcon,
+  Phone, Mail, User, FileType2, Calendar, Truck, MessageSquare,
+  ClipboardList, CheckCircle2, Circle, XCircle, Sparkles, ZoomIn,
+  Hash, Building2, ArrowRight, Activity, FileText as FileTextIcon
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { useAdmin } from "../../../context/AdminContext";
 
 type RecordRequestStatus = 'moi' | 'dang_xu_ly' | 'da_xu_ly' | 'da_huy';
 
@@ -9,6 +16,7 @@ interface RecordRequestFile {
   file_name: string;
   file_type: string;
   file_path: string;
+  mime_type?: string | null;
 }
 
 interface RecordRequest {
@@ -55,6 +63,7 @@ const DELIVERY_METHOD_LABELS: Record<string, string> = {
 };
 
 export default function RecordRequestsTab() {
+  const { accessToken } = useAdmin();
   const [requests, setRequests] = useState<RecordRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -63,6 +72,8 @@ export default function RecordRequestsTab() {
   const [adminNotes, setAdminNotes] = useState("");
   const [isReplying, setIsReplying] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
+  const [previewModalFile, setPreviewModalFile] = useState<RecordRequestFile | null>(null);
 
   useEffect(() => {
     fetchRequests();
@@ -93,7 +104,8 @@ export default function RecordRequestsTab() {
             id: f.id,
             file_name: f.fileName || f.file_name || "",
             file_type: f.fileType || f.file_type || "",
-            file_path: f.filePath || f.file_path || ""
+            file_path: f.filePath || f.file_path || "",
+            mime_type: f.mimeType || f.mime_type || null
           })),
           created_at: item.createdAt || item.created_at || new Date().toISOString(),
           updated_at: item.updatedAt || item.updated_at || new Date().toISOString()
@@ -125,6 +137,44 @@ export default function RecordRequestsTab() {
     setAdminNotes(req.admin_notes || "");
     setDetailModalOpen(true);
   };
+
+  useEffect(() => {
+    if (!detailModalOpen || !selectedRequest) {
+      setPreviewUrls(prev => {
+        Object.values(prev).forEach(url => URL.revokeObjectURL(url));
+        return {};
+      });
+      return;
+    }
+
+    const images = selectedRequest.files.filter(f => isImage(f.mime_type));
+    if (images.length === 0) return;
+
+    let cancelled = false;
+    const fetched: Record<string, string> = {};
+
+    (async () => {
+      for (const f of images) {
+        const res = await authedFetch(fileUrl(selectedRequest.id, f.id));
+        if (!res.ok) {
+          console.warn(`[record-requests] fetch preview failed for file ${f.id}: HTTP ${res.status}`);
+          continue;
+        }
+        const blob = await res.blob();
+        if (cancelled) {
+          URL.revokeObjectURL(URL.createObjectURL(blob));
+          continue;
+        }
+        fetched[f.id] = URL.createObjectURL(blob);
+      }
+      if (!cancelled) setPreviewUrls(fetched);
+    })();
+
+    return () => {
+      cancelled = true;
+      Object.values(fetched).forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [detailModalOpen, selectedRequest, accessToken]);
 
   const handleSubmitResponse = async () => {
     if (!selectedRequest || !adminNotes.trim()) return;
@@ -179,6 +229,75 @@ export default function RecordRequestsTab() {
     if (!dateStr) return "-";
     return new Date(dateStr).toLocaleDateString("vi-VN");
   };
+
+  const fileUrl = (requestId: string, fileId: string) =>
+    `/api/v1/record-requests/${requestId}/files/${fileId}`;
+
+  const authedFetch = async (input: RequestInfo, init?: RequestInit): Promise<Response> => {
+    const headers: Record<string, string> = {
+      ...(init?.headers as Record<string, string> | undefined),
+    };
+    // Fallback: đọc từ storage nếu context chưa hydrate (vd. sau khi đăng nhập ở tab khác,
+    // hoặc khi state context tạm thời null do re-mount).
+    const token = accessToken
+      ?? localStorage.getItem("admin_token")
+      ?? sessionStorage.getItem("admin_token");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    } else {
+      console.warn("[record-requests] No admin token available. accessToken from context:", accessToken,
+        "localStorage:", localStorage.getItem("admin_token") ? "has" : "missing",
+        "sessionStorage:", sessionStorage.getItem("admin_token") ? "has" : "missing");
+    }
+    return fetch(input, { ...init, headers });
+  };
+
+  const handleViewFile = async (requestId: string, file: RecordRequestFile) => {
+    if (!accessToken) {
+      alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+      return;
+    }
+    const url = fileUrl(requestId, file.id);
+    const res = await authedFetch(url);
+    if (!res.ok) {
+      alert(`Không thể mở file (HTTP ${res.status}). Vui lòng thử lại.`);
+      return;
+    }
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    window.open(blobUrl, "_blank", "noopener,noreferrer");
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+  };
+
+  const handleOpenPreviewModal = (file: RecordRequestFile) => {
+    if (!isImage(file.mime_type) && !isPdf(file.mime_type)) return;
+    setPreviewModalFile(file);
+  };
+
+  const handleDownloadFile = async (requestId: string, file: RecordRequestFile) => {
+    if (!accessToken) {
+      alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+      return;
+    }
+    const url = fileUrl(requestId, file.id);
+    const res = await authedFetch(url);
+    if (!res.ok) {
+      alert(`Không thể tải file (HTTP ${res.status}). Vui lòng thử lại.`);
+      return;
+    }
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = file.file_name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+  };
+
+  const isImage = (mime?: string | null) => !!mime && mime.startsWith("image/");
+  const isPdf = (mime?: string | null) => mime === "application/pdf";
 
   return (
     <div className="space-y-6">
@@ -310,137 +429,430 @@ export default function RecordRequestsTab() {
         )}
       </Card>
 
-      {detailModalOpen && selectedRequest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto">
-            <div className="p-6 border-b border-ink/5 sticky top-0 bg-white rounded-t-2xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-display font-bold text-lg text-green-dark">Chi tiết yêu cầu trích sao</h3>
-                  <p className="text-xs text-ink/50 mt-0.5">
-                    {selectedRequest.request_code} · {new Date(selectedRequest.created_at).toLocaleDateString("vi-VN")}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setDetailModalOpen(false)}
-                  className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 cursor-pointer"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-5">
-              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl flex-wrap">
-                <div>
-                  <p className="text-xs text-ink/50">Người yêu cầu</p>
-                  <p className="font-semibold text-green-dark">{selectedRequest.patient_name}</p>
-                </div>
-                {selectedRequest.patient_code && (
-                  <div>
-                    <p className="text-xs text-ink/50">Mã KCB</p>
-                    <p className="font-semibold text-ink">{selectedRequest.patient_code}</p>
+      <AnimatePresence>
+        {detailModalOpen && selectedRequest && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-green-800/10 my-auto"
+            >
+              {/* Header Gradient Xanh Luxury */}
+              <div className="bg-gradient-to-r from-green-dark via-green-900 to-brand-green text-white p-5 sm:p-6 relative overflow-hidden shrink-0">
+                <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+                <div className="relative z-10 flex items-start justify-between gap-4">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="text-xs font-mono font-bold bg-white/20 text-white px-2.5 py-1 rounded-md backdrop-blur-md flex items-center gap-1">
+                        <Hash size={12} /> {selectedRequest.request_code}
+                      </span>
+                      <Badge className={STATUS_CONFIG[selectedRequest.status].className}>
+                        {STATUS_CONFIG[selectedRequest.status].label}
+                      </Badge>
+                    </div>
+                    <h3 className="font-display font-bold text-xl sm:text-2xl text-white">
+                      Chi tiết yêu cầu trích sao hồ sơ
+                    </h3>
+                    <p className="text-xs text-white/70 flex items-center gap-1.5">
+                      <Calendar size={13} /> Khởi tạo ngày {new Date(selectedRequest.created_at).toLocaleDateString("vi-VN", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </p>
                   </div>
-                )}
-                <div>
-                  <p className="text-xs text-ink/50">Loại hồ sơ</p>
-                  <p className="font-semibold text-ink">{REQUEST_TYPE_LABELS[selectedRequest.request_type]}</p>
+                  <button
+                    onClick={() => setDetailModalOpen(false)}
+                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-sm cursor-pointer transition-all hover:scale-105 shrink-0"
+                    aria-label="Đóng modal"
+                  >
+                    <X size={18} />
+                  </button>
                 </div>
-                <div>
-                  <p className="text-xs text-ink/50">Khoảng thời gian</p>
-                  <p className="font-semibold text-ink text-xs whitespace-nowrap">
-                    {formatDate(selectedRequest.date_range_from)} → {formatDate(selectedRequest.date_range_to)}
-                  </p>
-                </div>
-                {selectedRequest.delivery_method && (
-                  <div>
-                    <p className="text-xs text-ink/50">Nhận bản sao</p>
-                    <p className="font-semibold text-ink text-xs">{DELIVERY_METHOD_LABELS[selectedRequest.delivery_method] || selectedRequest.delivery_method}</p>
-                  </div>
-                )}
-                <Badge className={STATUS_CONFIG[selectedRequest.status].className}>
-                  {STATUS_CONFIG[selectedRequest.status].label}
-                </Badge>
               </div>
 
-              <div className="space-y-2">
-                <p className="text-xs font-bold text-green-dark uppercase tracking-wide">Lý do</p>
-                <p className="text-sm text-ink/80 bg-gray-50 p-4 rounded-xl">{selectedRequest.reason}</p>
-              </div>
-
-              {selectedRequest.files && selectedRequest.files.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-bold text-green-dark uppercase tracking-wide">Files đính kèm ({selectedRequest.files.length})</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedRequest.files.map(f => (
-                      <div key={f.id} className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-lg">
-                        <FileText size={12} className="text-ink/50" />
-                        <span className="text-xs text-ink/70">{f.file_name}</span>
+              {/* Body 2 Cột */}
+              <div className="p-4 sm:p-6 overflow-y-auto space-y-6 bg-gray-50/50">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* Cột Trái: Glass Card Thông tin Bệnh nhân & Đề nghị (5 cols) */}
+                  <div className="lg:col-span-5 space-y-4">
+                    {/* Thẻ Bệnh nhân */}
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-green-800/10 shadow-xs space-y-3">
+                      <div className="flex items-center gap-2 text-green-dark font-bold text-xs uppercase tracking-wide border-b border-ink/5 pb-2">
+                        <User size={15} className="text-brand-green" />
+                        <span>Thông tin đối tượng</span>
                       </div>
-                    ))}
+                      <div className="space-y-2 text-xs">
+                        <div>
+                          <p className="text-ink/40">Họ và tên bệnh nhân</p>
+                          <p className="font-bold text-green-dark text-sm">{selectedRequest.patient_name}</p>
+                        </div>
+                        {selectedRequest.patient_code && (
+                          <div>
+                            <p className="text-ink/40">Mã bệnh nhân / KCB (HIS)</p>
+                            <p className="font-mono font-semibold text-ink bg-gray-100 px-2 py-0.5 rounded inline-block">
+                              {selectedRequest.patient_code}
+                            </p>
+                          </div>
+                        )}
+                        {(selectedRequest.contact_phone || selectedRequest.contact_email) && (
+                          <div className="pt-1 space-y-1">
+                            <p className="text-ink/40">Kênh liên hệ</p>
+                            {selectedRequest.contact_phone && (
+                              <div className="flex items-center gap-1.5 font-medium text-ink/80">
+                                <Phone size={13} className="text-brand-green" />
+                                <span>{selectedRequest.contact_phone}</span>
+                              </div>
+                            )}
+                            {selectedRequest.contact_email && (
+                              <div className="flex items-center gap-1.5 font-medium text-ink/80 truncate">
+                                <Mail size={13} className="text-brand-green" />
+                                <span className="truncate">{selectedRequest.contact_email}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Thẻ Chi tiết Yêu cầu */}
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-green-800/10 shadow-xs space-y-3">
+                      <div className="flex items-center gap-2 text-green-dark font-bold text-xs uppercase tracking-wide border-b border-ink/5 pb-2">
+                        <FileType2 size={15} className="text-brand-green" />
+                        <span>Đặc tả hồ sơ đề nghị</span>
+                      </div>
+                      <div className="space-y-2 text-xs">
+                        <div>
+                          <p className="text-ink/40">Loại hồ sơ yêu cầu</p>
+                          <p className="font-semibold text-green-dark bg-mint/50 text-green-dark px-2.5 py-1 rounded-lg border border-brand-green/20 inline-block mt-0.5">
+                            {REQUEST_TYPE_LABELS[selectedRequest.request_type] || selectedRequest.request_type}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-ink/40">Khoảng thời gian điều trị/KCB</p>
+                          <p className="font-medium text-ink bg-gray-50 p-2 rounded-lg border border-ink/5 flex items-center justify-between text-[11px] mt-0.5">
+                            <span>{formatDate(selectedRequest.date_range_from)}</span>
+                            <ArrowRight size={12} className="text-ink/30" />
+                            <span>{formatDate(selectedRequest.date_range_to)}</span>
+                          </p>
+                        </div>
+                        {selectedRequest.delivery_method && (
+                          <div>
+                            <p className="text-ink/40">Phương thức nhận bản sao</p>
+                            <p className="font-medium text-ink flex items-center gap-1.5 mt-0.5">
+                              <Truck size={13} className="text-brand-green" />
+                              {DELIVERY_METHOD_LABELS[selectedRequest.delivery_method] || selectedRequest.delivery_method}
+                            </p>
+                          </div>
+                        )}
+                        <div className="pt-1">
+                          <p className="text-ink/40 mb-1">Lý do yêu cầu trích sao</p>
+                          <div className="bg-cream-white p-3 rounded-xl border border-green-800/10 text-ink/80 text-xs italic leading-relaxed">
+                            "{selectedRequest.reason}"
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cột Phải: Timeline, Files đính kèm, Admin Note (7 cols) */}
+                  <div className="lg:col-span-7 space-y-5">
+                    {/* Visual Progress Timeline */}
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-green-800/10 shadow-xs space-y-3">
+                      <div className="flex items-center gap-2 text-green-dark font-bold text-xs uppercase tracking-wide border-b border-ink/5 pb-2">
+                        <Activity size={15} className="text-brand-green" />
+                        <span>Tiến trình xử lý</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 relative pt-2">
+                        {/* Step 1: Mới */}
+                        <div className="flex flex-col items-center text-center space-y-1 z-10">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                            selectedRequest.status !== 'da_huy'
+                              ? 'bg-brand-green text-white shadow-xs'
+                              : 'bg-gray-200 text-gray-500'
+                          }`}>
+                            <CheckCircle2 size={16} />
+                          </div>
+                          <p className="text-[11px] font-bold text-green-dark">Tiếp nhận</p>
+                          <p className="text-[10px] text-ink/40">Đã khởi tạo</p>
+                        </div>
+
+                        {/* Step 2: Đang xử lý */}
+                        <div className="flex flex-col items-center text-center space-y-1 z-10">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                            selectedRequest.status === 'dang_xu_ly'
+                              ? 'bg-blue-600 text-white ring-4 ring-blue-100 animate-pulse'
+                              : selectedRequest.status === 'da_xu_ly'
+                              ? 'bg-brand-green text-white'
+                              : 'bg-gray-100 text-gray-400 border border-gray-200'
+                          }`}>
+                            {selectedRequest.status === 'dang_xu_ly' ? <Clock size={16} /> : selectedRequest.status === 'da_xu_ly' ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                          </div>
+                          <p className="text-[11px] font-bold text-green-dark">Xử lý hồ sơ</p>
+                          <p className="text-[10px] text-ink/40">Tra cứu & sao chép</p>
+                        </div>
+
+                        {/* Step 3: Đã xử lý / Đã hủy */}
+                        <div className="flex flex-col items-center text-center space-y-1 z-10">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                            selectedRequest.status === 'da_xu_ly'
+                              ? 'bg-brand-green text-white ring-4 ring-green-100'
+                              : selectedRequest.status === 'da_huy'
+                              ? 'bg-red-500 text-white'
+                              : 'bg-gray-100 text-gray-400 border border-gray-200'
+                          }`}>
+                            {selectedRequest.status === 'da_xu_ly' ? <CheckCircle2 size={16} /> : selectedRequest.status === 'da_huy' ? <XCircle size={16} /> : <Circle size={16} />}
+                          </div>
+                          <p className="text-[11px] font-bold text-green-dark">
+                            {selectedRequest.status === 'da_huy' ? 'Đã hủy' : 'Hoàn thành'}
+                          </p>
+                          <p className="text-[10px] text-ink/40">
+                            {selectedRequest.status === 'da_huy' ? 'Yêu cầu bị từ chối' : 'Sẵn sàng trả kết quả'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Files Đính Kèm Grid (Hover Lift) */}
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-green-800/10 shadow-xs space-y-3">
+                      <div className="flex items-center justify-between border-b border-ink/5 pb-2">
+                        <div className="flex items-center gap-2 text-green-dark font-bold text-xs uppercase tracking-wide">
+                          <ClipboardList size={15} className="text-brand-green" />
+                          <span>Tài liệu đính kèm ({selectedRequest.files?.length || 0})</span>
+                        </div>
+                      </div>
+
+                      {selectedRequest.files && selectedRequest.files.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          {selectedRequest.files.map(f => {
+                            const previewUrl = previewUrls[f.id];
+                            return (
+                              <div
+                                key={f.id}
+                                className="group relative border border-green-800/10 hover:border-brand-green/40 rounded-xl overflow-hidden bg-white shadow-xs hover:shadow-md transition-all duration-200 hover:-translate-y-1 flex flex-col"
+                              >
+                                {isImage(f.mime_type) ? (
+                                  <button
+                                    onClick={() => handleOpenPreviewModal(f)}
+                                    className="w-full aspect-4/3 bg-gray-50 flex items-center justify-center overflow-hidden cursor-pointer relative group/img"
+                                    title={`Mở xem ${f.file_name}`}
+                                    aria-label={`Xem ảnh ${f.file_name}`}
+                                  >
+                                    {previewUrl ? (
+                                      <img
+                                        src={previewUrl}
+                                        alt={f.file_name}
+                                        className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-300"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center text-[11px] text-ink/40">
+                                        Đang tải...
+                                      </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-xs">
+                                      <ZoomIn size={22} className="text-white drop-shadow-md" />
+                                    </div>
+                                  </button>
+                                ) : (
+                                  <div
+                                    onClick={() => handleOpenPreviewModal(f)}
+                                    className="w-full aspect-4/3 bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center gap-1 cursor-pointer group/pdf hover:bg-red-50/50 transition-colors"
+                                  >
+                                    <FileText size={32} className="text-red-500/70 group-hover/pdf:scale-110 transition-transform" />
+                                    <span className="text-[10px] font-bold text-red-600 uppercase bg-red-100 px-1.5 py-0.5 rounded">PDF</span>
+                                  </div>
+                                )}
+                                <div className="p-2 space-y-1.5 bg-white flex-1 flex flex-col justify-between">
+                                  <p className="text-[11px] font-medium text-ink/80 truncate" title={f.file_name}>
+                                    {f.file_name}
+                                  </p>
+                                  <div className="flex items-center gap-1 pt-1 border-t border-ink/5">
+                                    <button
+                                      onClick={() => handleOpenPreviewModal(f)}
+                                      className="flex-1 text-[10px] font-semibold bg-brand-green/10 hover:bg-brand-green/20 text-brand-green px-2 py-1 rounded-md cursor-pointer transition-colors text-center"
+                                      title="Xem xem trước"
+                                    >
+                                      {isImage(f.mime_type) ? <ImageIcon size={10} className="inline mr-1" /> : <Eye size={10} className="inline mr-1" />}
+                                      Xem
+                                    </button>
+                                    <button
+                                      onClick={() => handleDownloadFile(selectedRequest.id, f)}
+                                      className="text-[10px] font-semibold bg-gray-100 hover:bg-gray-200 text-ink/70 p-1.5 rounded-md cursor-pointer transition-colors"
+                                      title="Tải về"
+                                    >
+                                      <Download size={11} />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-ink/50 italic py-2">Không có tệp đính kèm nào được tải lên.</p>
+                      )}
+                    </div>
+
+                    {/* Ghi chú & Thao tác của Admin */}
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-green-800/10 shadow-xs space-y-3">
+                      <div className="flex items-center gap-2 text-green-dark font-bold text-xs uppercase tracking-wide border-b border-ink/5 pb-2">
+                        <MessageSquare size={15} className="text-brand-green" />
+                        <span>Phản hồi & Xử lý Yêu cầu</span>
+                      </div>
+
+                      {selectedRequest.admin_notes && (
+                        <div className="space-y-1 bg-mint/40 p-3.5 rounded-xl border border-brand-green/20">
+                          <p className="text-[11px] font-bold text-green-dark flex items-center justify-between">
+                            <span>Ghi chú đã lưu:</span>
+                            {selectedRequest.processed_by && (
+                              <span className="text-[10px] text-ink/50 font-normal">Xử lý bởi: {selectedRequest.processed_by}</span>
+                            )}
+                          </p>
+                          <p className="text-xs text-ink/80">{selectedRequest.admin_notes}</p>
+                        </div>
+                      )}
+
+                      {selectedRequest.status !== "da_xu_ly" && selectedRequest.status !== "da_huy" ? (
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-[11px] font-bold text-ink/60 mb-1">
+                              Cập nhật ghi chú xử lý / Hướng dẫn trả kết quả
+                            </label>
+                            <textarea
+                              value={adminNotes}
+                              onChange={(e) => setAdminNotes(e.target.value)}
+                              placeholder="Ví dụ: Đã chuẩn bị hồ sơ bản sao, hẹn bệnh nhân nhận tại Quầy số 3 vào 14h00 ngày 29/07..."
+                              rows={3}
+                              className="w-full px-3.5 py-2.5 text-xs border border-green-800/15 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green resize-none bg-cream-white/50 text-green-dark"
+                            />
+                          </div>
+
+                          <div className="flex items-center justify-between gap-2 pt-1">
+                            <div className="flex items-center gap-1.5">
+                              {selectedRequest.status === "moi" && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleStatusChange(selectedRequest.id, "dang_xu_ly")}
+                                  className="text-xs font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded-xl cursor-pointer transition-colors flex items-center gap-1"
+                                >
+                                  <Clock size={13} /> Chuyển "Đang xử lý"
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => handleStatusChange(selectedRequest.id, "da_huy")}
+                                className="text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-xl cursor-pointer transition-colors flex items-center gap-1"
+                              >
+                                <Ban size={13} /> Hủy yêu cầu
+                              </button>
+                            </div>
+
+                            <Button
+                              variant="primary"
+                              size="md"
+                              disabled={!adminNotes.trim() || isReplying}
+                              onClick={handleSubmitResponse}
+                              className="shadow-sm hover:shadow-md"
+                            >
+                              <CheckCircle2 size={15} className="mr-1.5" />
+                              {isReplying ? "Đang lưu..." : "Xác nhận đã hoàn tất"}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-end">
+                          <Button variant="ghost" size="md" onClick={() => setDetailModalOpen(false)}>
+                            Đóng
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              )}
-
-              {(selectedRequest.contact_phone || selectedRequest.contact_email) && (
-                <div className="space-y-2">
-                  <p className="text-xs font-bold text-green-dark uppercase tracking-wide">Thông tin liên hệ</p>
-                  <div className="flex gap-4">
-                    {selectedRequest.contact_phone && (
-                      <span className="text-xs text-ink/70">📞 {selectedRequest.contact_phone}</span>
-                    )}
-                    {selectedRequest.contact_email && (
-                      <span className="text-xs text-ink/70">✉️ {selectedRequest.contact_email}</span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {selectedRequest.admin_notes && (
-                <div className="space-y-2">
-                  <p className="text-xs font-bold text-green-dark uppercase tracking-wide">Ghi chú xử lý</p>
-                  <p className="text-sm text-ink/80 bg-mint p-4 rounded-xl border border-brand-green/20">
-                    {selectedRequest.admin_notes}
-                  </p>
-                </div>
-              )}
-
-              {selectedRequest.processed_by && (
-                <div className="space-y-2">
-                  <p className="text-xs font-bold text-green-dark uppercase tracking-wide">Người xử lý</p>
-                  <p className="text-sm text-ink/70">{selectedRequest.processed_by}</p>
-                </div>
-              )}
-
-              {selectedRequest.status !== "da_xu_ly" && selectedRequest.status !== "da_huy" && (
-                <div className="space-y-2">
-                  <p className="text-xs font-bold text-green-dark uppercase tracking-wide">Ghi chú của bạn</p>
-                  <textarea
-                    value={adminNotes}
-                    onChange={(e) => setAdminNotes(e.target.value)}
-                    placeholder="Nhập ghi chú xử lý..."
-                    rows={3}
-                    className="w-full px-4 py-3 text-sm border border-green-800/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green resize-none"
-                  />
-                  <div className="flex justify-end gap-3">
-                    <Button variant="ghost" size="md" onClick={() => setDetailModalOpen(false)}>
-                      Đóng
-                    </Button>
-                    <Button
-                      variant="primary"
-                      size="md"
-                      disabled={!adminNotes.trim() || isReplying}
-                      onClick={handleSubmitResponse}
-                    >
-                      {isReplying ? "Đang gửi..." : "Xác nhận đã xử lý"}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
+
+      {/* Modal Preview File Riêng (Image Zoom & PDF Preview) */}
+      <AnimatePresence>
+        {previewModalFile && selectedRequest && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.15 }}
+              className="bg-zinc-900 text-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-white/10"
+            >
+              {/* Header Preview */}
+              <div className="p-4 bg-zinc-900/90 border-b border-white/10 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-3 truncate">
+                  <div className="p-2 rounded-lg bg-white/10">
+                    {isImage(previewModalFile.mime_type) ? <ImageIcon size={18} className="text-brand-green" /> : <FileText size={18} className="text-red-400" />}
+                  </div>
+                  <div className="truncate">
+                    <h4 className="font-bold text-sm text-white truncate">{previewModalFile.file_name}</h4>
+                    <p className="text-[11px] text-zinc-400">
+                      {previewModalFile.mime_type || "File đính kèm"} · Yêu cầu #{selectedRequest.request_code}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleDownloadFile(selectedRequest.id, previewModalFile)}
+                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer transition-colors flex items-center gap-1.5 text-xs font-semibold"
+                    title="Tải về"
+                  >
+                    <Download size={14} /> Tải về
+                  </button>
+                  <button
+                    onClick={() => setPreviewModalFile(null)}
+                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer transition-colors"
+                    title="Đóng"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Body Preview */}
+              <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-zinc-950/80 min-h-[300px]">
+                {previewUrls[previewModalFile.id] ? (
+                  isImage(previewModalFile.mime_type) ? (
+                    <img
+                      src={previewUrls[previewModalFile.id]}
+                      alt={previewModalFile.file_name}
+                      className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl"
+                    />
+                  ) : isPdf(previewModalFile.mime_type) ? (
+                    <iframe
+                      src={previewUrls[previewModalFile.id]}
+                      title={previewModalFile.file_name}
+                      className="w-full h-[75vh] rounded-lg border-0 bg-white"
+                    />
+                  ) : (
+                    <div className="text-center p-8 text-zinc-400 space-y-3">
+                      <FileText size={48} className="mx-auto text-zinc-600" />
+                      <p>Định dạng file không hỗ trợ xem trực tiếp.</p>
+                      <button
+                        onClick={() => handleDownloadFile(selectedRequest.id, previewModalFile)}
+                        className="px-4 py-2 bg-brand-green text-white font-bold rounded-xl text-xs inline-flex items-center gap-2 cursor-pointer"
+                      >
+                        <Download size={14} /> Tải tệp tin về
+                      </button>
+                    </div>
+                  )
+                ) : (
+                  <div className="text-center p-8 text-zinc-400 space-y-2">
+                    <div className="w-8 h-8 border-2 border-brand-green border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-xs">Đang tải bản xem trước tệp...</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

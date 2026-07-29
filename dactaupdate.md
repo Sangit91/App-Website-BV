@@ -1,7 +1,8 @@
 ﻿# Design Document - BVĐK Website
 
-> **Nguồn tham chiếu chính:** `dac-ta-uiux-tong-hop-v2.9.md` (single source of truth)
-> File này chỉ ghi nhận các bổ sung/changes không có trong spec chính.
+> **Nguồn tham chiếu chính:** `Dac-ta-Master-v3.0-SRS-TRD.docx` (single source of truth — Master Production-Ready SRS/TRD, 27/07/2026)
+> File này ghi nhận các thay đổi lớn chưa có trong spec chính v3.0, dùng làm cơ sở nâng cấp version docx lần kế tiếp (v3.1).
+> **Lịch sử:** v2.x đã deprecated — toàn bộ nội dung v2.13 + patch v2.14 đã merge vào v3.0. Nhật ký Phase 1-74 đã dọn sạch khỏi file này (audit trail nằm trong `memory/phase-history.md`).
 
 ---
 
@@ -21,141 +22,43 @@
 
 ---
 
-## Database Gap Review — v2.9 (2026-07-22)
+## Database Status — Verified against Prisma schema (2026-07-27)
 
-> Sau khi review toàn bộ spec v2.9 (3935 dòng), ghi nhận trạng thái các bảng CSDL.
+> Cross-check `prisma/schema.prisma` (24 models) vs spec v2.13 mục 15. Kết quả:
 
-### Nhóm A: Đã có đầy đủ trong spec v2.9 ✅
+### Nhóm A — Đã có đầy đủ trong schema ✅
 
-| Bảng | Mục spec | Chi tiết |
-|------|----------|----------|
-| patients | 15.3, 14.5 | 9 fields + encryption + soft-delete ✅ |
-| appointments | 15.4 | Đầy đủ, có cancel workflow |
-| admin_users | 15.5 | 10 fields + MFA + department_id |
-| activity_logs | 15.5 | Read-only, 6 fields |
-| doctors | 15.10 | 7 fields + relationship |
-| doctor_schedules | 15.10 | weekday + shift ENUM |
-| specialties | 15.10 | 7 fields + slug |
-| news | 15.10, 15.9 | Full + 9 tender fields (v2.5) |
-| organization_units | 15.9 | Tree structure + type ENUM |
-| feedback_requests | 21.2 | 11 fields (chính thức hoá từ Phase 48) ✅ |
-| record_requests | 21.3 | 11 fields + request_code UNIQUE ✅ |
-| record_request_files | 21.3 | 7 fields ✅ |
-| notification_logs | 21.5 | Polymorphic ✅ |
+`patients`, `appointments` (có cancel fields: `cancelledAt` + `cancelReason` + `cancelledBy`), `admin_users` (10 fields + MFA + department_id), `doctors`, `doctor_schedules`, `specialties`, `news` (v2.5 tender fields inline), `organization_units` (tree structure), `feedback_requests` (v2.6 + `contactPhone`/`contactEmail` cho ẩn danh), `record_requests` (`requestCode` UNIQUE), `record_request_files`, `notification_logs` (polymorphic + `@@index([createdAt])` sẵn sàng cleanup), `service_groups`, `services`, `news_categories`, `price_list`, `testimonials`, `contact_messages`, `activity_logs` (có `userId`/`details`/`ipAddress`/`userAgent`), `medical_records`, `clinical_tests`, `consent_policies`, `patient_consents`, `treatment_history`.
 
-### Nhóm B: Có trong spec nhưng field-level còn sơ lược ⚠️
+### Nhóm C — Roadmap, chưa triển khai 📋
 
-| Bảng | Mục spec | Hiện tại | Cần bổ sung |
-|------|----------|----------|-------------|
-| **service_groups** | 15.10 | name, description | Thiếu: id (PK), slug, sort_order, is_active |
-| **services** | 15.10 | name, group_id, icon_key, description | Thiếu: id (PK), slug, sort_order, is_active, price |
-| **news_categories** | 15.10 | (chỉ liệt kê tên 6 chuyên mục) | Thiếu: id (PK), slug, description, sort_order |
-| **price_list** | 15.10 | item_name, price, unit, insurance_note | Thiếu: id (PK), service_id FK, group_id FK, is_active |
-| **tender_files** | 15.9 | file_name, file_size, storage_path, uploaded_by | Thiếu: id (PK) rõ ràng, mime_type |
-| **testimonials** | 7.10, 12, 15.2 | (chỉ ghi "cần duyệt nội dung") | Thiếu: id (PK), patient_name, service_id FK, content, rating, is_approved, created_at |
-| **contact_messages** | 8.6, 15.2 | (chỉ ghi FK patient_id) | Thiếu: id (PK), name, email, phone, subject, content, status, created_at |
-| **lab_test_requests** | 8.5, 15.2 | (chỉ ghi trong 15.2) | Thiếu: id (PK), patient_id, patient_name, service_type, address, scheduled_date, status |
-| **teleconsult_requests** | 8.5, 15.2 | (chỉ ghi trong 15.2) | Thiếu: id (PK), patient_id, patient_name, specialty_id, reason, requested_time, status |
+| Bảng | Mục spec | Khi nào triển khai |
+|------|----------|-------------------|
+| `prescription_refill_requests` | 21.5 | Cấp lại đơn thuốc online |
+| `insurance_verifications` | 21.5 | Kiểm tra quyền lợi BHYT |
+| `appointment_reminders` | 21.5 | Nhắc lịch khám |
+| `queue_tickets` | 21.5 | Hàng đợi số thứ tự khám |
+| `lab_test_requests` | 8.5 | Đặt lịch xét nghiệm online |
+| `teleconsult_requests` | 8.5 | Tư vấn từ xa |
 
-### Nhóm C: Bảng roadmap — chưa cần triển khai ngay (mục 21.5) 📋
+**Nguyên tắc (mục 21.1):** 6 bảng này chỉ tạo khi tính năng được phê duyệt — tránh bảng rỗng.
 
-| Bảng | Mục spec | Ghi chú |
-|------|----------|---------|
-| prescription_refill_requests | 21.5 | Cấp lại đơn thuốc online |
-| insurance_verifications | 21.5 | Kiểm tra quyền lợi BHYT |
-| appointment_reminders | 21.5 | Nhắc lịch khám |
-| queue_tickets | 21.5 | Hàng đợi số thứ tự khám |
+### Cần bổ sung trước khi bật cleanup job
 
-**Nguyên tắc (mục 21.1):** 4 bảng Nhóm C chỉ dùng khi tính năng tương ứng được phê duyệt triển khai — tránh bảng rỗng không dùng đến.
+- `activity_logs`: thêm `@@index([createdAt])` trước khi bật job cleanup tuân thủ pháp luật. Hiện schema chưa có index này.
+- `notification_logs`: đã có `@@index([createdAt])` → sẵn sàng bật job cleanup 180 ngày (theo AGENTS.md Data Retention Governance).
 
 ---
 
-## Enum Values — Cần xác nhận đầy đủ
+## File Storage Naming Convention — Đã thống nhất ✅
 
-| Field | Giá trị đã thấy trong spec | Trạng thái |
-|-------|---------------------------|------------|
-| `appointments.status` | confirmed, pending, cancelled | ⚠️ Chưa thấy ENUM đầy đủ trong extract |
-| `appointments.service_type` | kham-benh, noi-tru, cap-cuu, ban-si, other | ⚠️ Có trong feedback_requests nhưng cần xác nhận trong appointments |
-| `organization_units.type` | phong_ban_hanh_chinh, khoa_lam_sang | ⚠️ Có đề cập nhưng chưa rõ full list |
-| `doctor_schedules.shift` | sang, chieu, nghi | ✅ Rõ trong 15.10 |
-| `testimonials.is_approved` | true/false | ⚠️ Có ghi nhắc trong mục 15.11 nhưng thiếu spec đầy đủ |
+Mọi bảng file đính kèm dùng cột `file_path` (không dùng `storage_path`/`file_url`/`path`...). Hiện chỉ có `record_request_files` (file_path @db.Text) — bảng `tender_files` không tồn tại theo spec v2.13 (News dùng inline tender_* fields).
 
 ---
 
-## Còn thiếu — Cần bổ sung trước khi code
+## Admin Tabs — RBAC Matrix theo role
 
-### 1. TTL / Retention policy cho bảng log
-
-```
-notification_logs, activity_logs:
-- Không có thông tin retention period
-- Không có index trên created_at cho cleanup theo ngày
-→ Cần bổ sung: retention_days (VD 90 ngày), auto-cleanup job
-```
-
-### 2. appointments — thiếu cancel fields
-
-```
-appointments (bổ sung):
-├── cancelled_at          TIMESTAMP (nullable)   -- thời điểm hủy
-├── cancel_reason         TEXT (nullable)         -- lý do hủy (spec 14.2)
-└── cancelled_by          UUID FK → admin_users.id (nullable)
-```
-
-### 3. patients — thiếu contact fields cho feedback ẩn danh
-
-```
-feedback_requests (bổ sung):
-- Nếu patient_id = null (gửi ẩn danh) → admin phản hồi bằng cách nào?
-→ Đề xuất: thêm email hoặc phone (nullable) vào feedback_requests
-```
-
-### 4. activity_logs — thiếu details field
-
-```
-activity_logs (bổ sung):
-├── details               JSONB (nullable)   -- lưu payload thay đổi
-VD: { "old": { "status": "moi" }, "new": { "status": "dang_xu_ly" } }
-```
-
-### 5. File storage naming inconsistency
-
-```
-record_request_files: dùng file_path
-tender_files: dùng storage_path
-→ Nên thống nhất: dùng storage_path cho cả 2 bảng
-```
-
----
-
-## API Endpoints — Tổng hợp (đầy đủ theo v2.9 mục 21.4)
-
-```
-Public:
-POST   /api/v1/feedback-requests              -- Tạo góp ý mới (rate limit: 5/IP/15ph)
-POST   /api/v1/record-requests                -- Tạo yêu cầu trích sao
-
-Admin (cần auth):
-GET    /api/v1/feedback-requests              -- List + filter status/date
-GET    /api/v1/feedback-requests/:id          -- Chi tiết
-PATCH  /api/v1/feedback-requests/:id           -- Cập nhật status + admin_response
-GET    /api/v1/record-requests                -- List + filter status/date
-GET    /api/v1/record-requests/:id            -- Chi tiết + file đính kèm
-PATCH  /api/v1/record-requests/:id           -- Cập nhật status + admin_notes
-POST   /api/v1/record-requests/:id/files     -- Upload file (multipart → S3/MinIO)
-```
-
-**Lưu ý bảo mật (v2.9 mục 21.1, 21.4):**
-- Endpoint public không cần auth nhưng bắt buộc rate limit
-- Endpoint admin bắt buộc auth theo mục 9.1
-- Không log nội dung góp ý/hồ sơ ra console (PHI-adjacent data)
-- File: lưu vào object storage (S3/MinIO), không lưu trong DB
-
----
-
-## Admin Tabs — Tổng hợp theo v2.9
-
-> Spec mục 9.2 + 21.4 bổ sung 2 tabs mới:
+> Spec mục 9.2 + 21.4 + Phase 49 bổ sung 2 tabs.
 
 | Tab | File | Super Admin | Dept Admin | Doctor |
 |-----|------|-------------|------------|--------|
@@ -172,16 +75,16 @@ POST   /api/v1/record-requests/:id/files     -- Upload file (multipart → S3/Mi
 | Patient Guide | PatientTab.tsx | CRUD | — | — |
 | Tender | TenderTab.tsx | CRUD | CRUD khoa mình | — |
 | Contact | ContactTab.tsx | CRUD | — | — |
-| **Phản hồi** | FeedbackTab.tsx | CRUD đầy đủ | Xem + phản hồi khoa mình | Không |
-| **Yêu cầu trích sao** | RecordRequestsTab.tsx | CRUD đầy đủ | Xem + xử lý khoa mình | Không |
+| Phản hồi | FeedbackTab.tsx | CRUD đầy đủ | Xem + phản hồi khoa mình | Không |
+| Yêu cầu trích sao | RecordRequestsTab.tsx | CRUD đầy đủ | Xem + xử lý khoa mình | Không |
+
+**Trạng thái enforce:** UI có đủ 15 tab, backend có role check cơ bản, **chưa enforce matrix chi tiết + department ownership**. Cần Phase tiếp: RBAC middleware đầy đủ.
 
 ---
 
-## Deployment Architecture Options — DMZ Server (2026-07-23)
+## Deployment Architecture — DMZ Server (chốt 2026-07-23)
 
-> Phân tích 3 phương án triển khai trên DMZ server cho bệnh viện.
-
-### PHƯƠNG ÁN A: Docker Containers trên Single VM ✅ ĐÃ IMPLEMENT (2026-07-23)
+### PHƯƠNG ÁN A: Docker Containers trên Single VM ✅ ĐÃ IMPLEMENT
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -189,121 +92,89 @@ POST   /api/v1/record-requests/:id/files     -- Upload file (multipart → S3/Mi
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │                   Docker Engine                       │  │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐   │  │
-│  │  │ Container 1 │  │ Container 2 │  │ Container 3 │   │  │
-│  │  │ Public Web  │  │ Admin API   │  │ PostgreSQL  │   │  │
-│  │  │ :3000       │  │ :3001       │  │ :5432       │   │  │
+│  │  │ bvdh-       │  │ bvdh-       │  │ bvdh-db     │   │  │
+│  │  │ frontend    │  │ backend     │  │ (Postgres)  │   │  │
+│  │  │ :8000 int   │  │ :8001 int   │  │ :5432 int   │   │  │
 │  │  └──────┬──────┘  └──────┬──────┘  └─────────────┘   │  │
 │  │         │                │                            │  │
 │  │  ┌──────┴────────────────┴──────┐                    │  │
-│  │  │       Nginx Reverse Proxy     │                    │  │
-│  │  │  :80 → bvdh.vn (public)       │                    │  │
-│  │  │  :443 → admin.bvdh.vn        │                    │  │
+│  │  │     bvdh-nginx (Reverse)     │                    │  │
+│  │  │  :8443 → HTTPS (public)     │                    │  │
 │  │  └──────────────────────────────┘                    │  │
 │  └──────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Ưu điểm:**
-- ✅ Container isolation (no container escape)
-- ✅ Network segmentation (Docker network)
-- ✅ TLS termination at nginx
-- ✅ Resource limits per container
-- ✅ Easy backup/restore với Docker volumes
+- **Chỉ port 8443 public ra host** — mọi request đi qua nginx (HTTPS, self-signed trong dev).
+- Frontend 8000 + Backend 8001 + DB 5432 chỉ `expose` nội bộ, không publish.
+- Trình duyệt truy cập `https://localhost:8443` (dev) hoặc `https://bvdh.vn` (prod).
+- Tránh xung đột với các app mặc định ở 80/443/3000/5432 trên máy dev.
 
-**Nhược điểm:**
-- ❌ Cần Docker knowledge
-- ❌ More complex deployment
-
-**Thời gian implement:** 8-12 tuần
-**Chi phí:** 1 VM + Docker
+Chi tiết: AGENTS.md section "Port Policy (Bắt buộc — không thay đổi trừ khi có tài liệu kiến trúc)" + "Docker Dev Workflow — BẮT BUỘC NHỚ".
 
 ---
 
-### PHƯƠNG ÁN B: Same App, Subdirectory Routing ✅ CHỌN (TẠM THỜI)
+## Security & RBAC Standards
 
-**Ghi chú:** Chọn phương án này để triển khai trước, có thể chuyển sang phương án A (Docker) khi có resource đầy đủ.
+> Nguồn: cross-check `dactaupdate.md:269-326` (2026-07-23) với code thực tế (2026-07-27).
 
-**Trạng thái:** Đã quyết định (2026-07-23)
+### 1. JWT Tokens
 
----
+- **Access Token**: 15-30 phút expiry (chứa `sub`, `role`, `scope`, `exp`) — ✅ Phase 68+ Admin Login
+- **Refresh Token**: 7 ngày, lưu **httpOnly cookie** (chống XSS) — ✅ Phase 68+
+- Refresh rotation: cấp refresh mới mỗi lần refresh, revoke refresh cũ
 
-### PHƯƠNG ÁN C: 2 VMs (Nếu có resource)
+### 2. Password Security
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    VM 1: Public Site                         │
-│  - bvdh.vn                                                   │
-│  - Public API                                                │
-│  - React App (public pages only)                            │
-│  - Security: Standard firewall                              │
-└─────────────────────────────────────────────────────────────┘
-                          │
-                    Internal Network
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    VM 2: Admin Portal                        │
-│  - admin.bvdh.vn (hoặc internal IP)                         │
-│  - Admin API (JWT + 2FA)                                    │
-│  - PostgreSQL                                               │
-│  - React Admin App                                          │
-│  - Security: Strict firewall, IP whitelisting, 2FA         │
-└─────────────────────────────────────────────────────────────┘
-```
+- **Hiện tại dùng PBKDF2-SHA512, 100000 iterations** (`server/services/auth.service.ts:34`) — tương đương bcrypt cost 12, chấp nhận được OWASP.
+- Nếu chuyển sang bcrypt: salt rounds = 12 (OWASP 2024)
+- Policy: tối thiểu 8 ký tự, có chữ hoa + chữ thường + số, không chứa username — **chưa enforce frontend đầy đủ**
+- Forgot password: rate limit 3/giờ/user, token reset 30 phút, dùng 1 lần — **chưa implement**
 
-**Ưu điểm:**
-- ✅ Complete isolation
-- ✅ Independent scaling
-- ✅ Maximum security
+### 3. Rate Limiting
 
-**Nhược điểm:**
-- ❌ 2 VMs required
-- ❌ More expensive
-- ❌ More complex infrastructure
+| Endpoint | Limit | Code status |
+|----------|-------|-------------|
+| Public form (feedback/record-request/contact/lab-test/teleconsult) | **5 request/IP/15 phút** | ✅ Phase 49 |
+| Admin Auth (login/refresh/OTP) | **5 request/phút** | ❌ Chưa enforce |
+| Login attempts | **5 lần → lockout 30 phút** | ❌ Chưa enforce |
+| Default public API khác | 100 request/phút | ❌ Chưa enforce |
 
-**Thời gian implement:** 10-14 tuần
-**Chi phí:** 2 VMs
-
----
-
-### Security Requirements bắt buộc (cho mọi phương án)
+### 4. RBAC Roles
 
 ```typescript
-// 1. JWT Tokens
-// Access Token: 15-30 min expiry
-// Refresh Token: 7 days, httpOnly cookie
-
-// 2. Password Security
-// Bcrypt salt rounds = 12 (OWASP recommended)
-
-// 3. Rate Limiting
-// Public API: 100 requests/minute
-// Admin Auth: 5 requests/minute
-// Login attempts: max 5 → lockout 30 minutes
-
-// 4. RBAC Roles
 type Role = 'Super Admin' | 'Receptionist' | 'Doctor' | 'Department Admin';
-
-// 5. Audit Logging
-// Mọi action của admin đều log: userId, action, IP, timestamp, duration
-// PHI access: log riêng với dataAccessed: 'PHI'
-
-// 6. Security Headers
-- Strict-Transport-Security: max-age=31536000
-- X-Frame-Options: DENY (admin), SAMEORIGIN (public)
-- Content-Security-Policy: default-src 'self'
-- X-Content-Type-Options: nosniff
-- Referrer-Policy: strict-origin-when-cross-origin
-- Permissions-Policy: geolocation=(), microphone=(), camera=()
-
-// 7. Network Security (DMZ)
-// - PostgreSQL: internal-only (port 5432 không expose)
-// - Redis: internal-only
-// - UFW: whitelist only necessary ports
-// - Fail2ban: chống brute force
 ```
 
-### RBAC Permissions Matrix
+**Đặt tên DB:** snake_case (`super_admin`/`Receptionist`/`doctor`/`department_admin`), map sang PascalCase khi trả API response. Field `AdminUser.role` (schema:20) đang lưu PascalCase theo comment — cần verify seed/migration.
+
+### 5. Audit Logging
+
+- Mọi admin action log vào `activity_logs`: `userId` (nullable), `userName`, `action`, `details` (JSON-payload), `ipAddress`, `userAgent`, `createdAt` — schema đã có đủ fields (dòng 460-471).
+- **PHI access log riêng** với `dataAccessed: 'PHI'` + `patient_id` + `purpose` (Nghị định 13/2023) — **chưa enforce code**.
+- `activity_logs` **KHÔNG được cleanup** (compliance retention — AGENTS.md Data Retention).
+
+### 6. Security Headers (production — qua nginx)
+
+```
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Frame-Options: DENY (admin), SAMEORIGIN (public)
+Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: geolocation=(), microphone=(), camera=()
+```
+
+✅ Đã set trong `nginx/nginx.conf` (verify Phase 70).
+
+### 7. Network Security (DMZ)
+
+- PostgreSQL: internal-only (port 5432 không publish — ✅ đúng Port Policy Phase 70)
+- Redis/MinIO nếu thêm: internal-only từ port 8002+
+- UFW whitelist: 8443 (HTTPS) + 22 (SSH nội bộ)
+- Fail2ban: chống brute-force SSH + admin login
+
+### 8. RBAC Permissions Matrix
 
 | Permission | Super Admin | Receptionist | Doctor | Dept Admin |
 |------------|-------------|--------------|--------|------------|
@@ -313,30 +184,46 @@ type Role = 'Super Admin' | 'Receptionist' | 'Doctor' | 'Department Admin';
 | appointments:read | ✅ | ✅ | ✅ (own) | ✅ |
 | appointments:write | ✅ | ✅ | ❌ | ✅ |
 | appointments:cancel | ✅ | ✅ | ❌ | ✅ |
-| medical-records:read | ✅ | ❌ | ✅ (own) | ❌ |
+| medical-records:read | ✅ | ❌ | ✅ (own patients) | ❌ |
 | medical-records:write | ✅ | ❌ | ❌ | ❌ |
 | reports:read | ✅ | ❌ | ❌ | ✅ |
 | reports:export | ✅ | ❌ | ❌ | ❌ |
 | settings:read | ✅ | ❌ | ❌ | ✅ |
 | settings:write | ✅ | ❌ | ❌ | ❌ |
 
-### Khuyến nghị
+### Trạng thái enforce tổng hợp
 
-**Cho DMZ server:** Phương án A (Docker) nếu có đủ resource (4GB+ RAM). Phương án B nếu server yếu.
+| Mục | Code status | Ghi chú |
+|-----|-------------|---------|
+| Public form rate limit (5/IP/15ph) | ✅ Có | Phase 49 + AGENTS.md Public Form API |
+| JWT access/refresh + httpOnly cookie | ✅ Có | Phase 68+ Admin Login redesign |
+| Audit logging `activity_logs` | ✅ Schema đủ | Có `userId`/`details`/`ipAddress`/`userAgent`. Cần verify service thực tế ghi |
+| Security headers | ✅ Có | Qua `nginx/nginx.conf` |
+| RBAC enforcement backend | ⚠️ Partial | Role check cơ bản, chưa enforce matrix + department ownership |
+| PHI access log riêng (dataAccessed/purpose) | ❌ Chưa có | Cần Phase tiếp (Nghị định 13/2023) |
+| Bcrypt salt 12 | ⚠️ PBKDF2-SHA512 100k | Tương đương bcrypt cost 12, OWASP chấp nhận |
+| Rate limit admin auth + login lockout | ❌ Chưa có | Phase tương lai |
+| Forgot password rate limit + token reset | ❌ Chưa có | Phase tương lai |
+| Frontend password policy validation | ⚠️ Partial | Chưa enforce đầy đủ 8 ký tự + hoa + thường + số |
 
 ---
 
-## Nhật ký thay đổi
+## Cập nhật version spec docx kế tiếp (v3.1)
 
-| Ngày | Mô tả |
-|------|--------|
-| 2026-07-22 | Bổ sung feedback_requests, record_requests (spec gap từ mục 20.2.1) |
-| 2026-07-22 | Review toàn bộ spec v2.9 — ghi nhận 6 bảng Nhóm B còn thiếu field-level, 5 bảng roadmap, các enum gaps, và 5 điểm cần bổ sung trước khi code |
-| 2026-07-23 | Phase 49 hoàn thành: feedback_requests + record_requests API (in-memory), FeedbackModal + RecordRequestModal connected to API, FeedbackTab + RecordRequestsTab admin |
-| 2026-07-23 | Phase 50 hoàn thành: PostgreSQL + Prisma migration — database bvdh_db đã tạo, schema 19 tables đã migrate, booking/feedback/record-request services đã chuyển sang Prisma |
-| 2026-07-26 | Admin Login redesign: Single-Canvas Ultra-Luxury Pearl-Glass Glassmorphism 2.0, Volumetric Ambient Light Orbs (#00FF9D, #FFA265, #2FA968), Shimmer CTA button, Cinematic Doctor Background, Floating Glass Badges (50+ Bác sĩ, ATTT Cấp độ 3), prefers-reducedMotion support |
-| 2026-07-23 | Bổ sung Deployment Architecture Options: 3 phương án triển khai trên DMZ server (Docker containers, Same app subdirectory, 2 VMs), security requirements, RBAC permissions matrix |
-| 2026-07-27 | Phase 69 hoàn thành: Fix lỗi 500 upload Record Request — Docker permission (uploads/temp chown node + mkdir pending/approved), backend_uploads named volume persist, sửa path inconsistency service (resolvePhysicalPath helper, loại bỏ "public/" prefix sai) |
-| 2026-07-27 | Phase 70 hoàn thành: Port Policy — chỉ 8443 public ra host (HTTPS), frontend 8000 + backend 8001 + db 5432 chỉ expose nội bộ. Vite proxy target chuyển sang env API_HOST/API_PORT. Bổ sung section "Port Policy" vào AGENTS.md làm quy ước bất biến |
-| 2026-07-27 | Phase 71 hoàn thành: Refactor UX RecordRequestModal — header xanh tích hợp tiêu đề + phụ đề, X button góc phải, bỏ banner trắng thừa, max-h-[90vh] + overflow-y-auto, file upload preview (tên + dung lượng + nút Trash), validation real-time (SĐT 10 số + Email regex + ít nhất 1 kênh liên hệ + Từ ngày ≤ Đến ngày với min/max 2 chiều), accessibility đầy đủ (id/name/label htmlFor + aria-invalid + aria-describedby + role=alert). Dùng design tokens, không hardcode |
-| 2026-07-27 | Phase 72 hoàn thành: Đồng bộ layout "Cổng thông tin" với "Hướng dẫn tiện ích" — InfoCard ảnh đổi từ h-48 cố định sang aspect-[16/9] + object-cover (không bè dẹt khi grid phình), 2 thẻ record-request/feedback dùng grid md:grid-cols-3 gap-6 (giống Hướng dẫn grid density), xóa featured block "Tra cứu bệnh sử online" trùng lặp với PatientLookupForm của PatientPortalSection (52 dòng code dư thừa), xóa handleTraCuuBenhSu handler không còn dùng |
+> v3.0 đã cover toàn bộ Phase 68-74 (Port Policy, RecordRequestModal UX/scrollbar fix, Docker Dev Workflow, RBAC matrix, Consent Management, Patient Portal HIS, activity_logs schema).
+> V3.1 chỉ cần bổ sung các gap sau (chưa có trong v3.0, phát sinh sau ngày 27/07/2026):
+
+**Cần đề xuất bổ sung vào v3.1:**
+1. **KHỐI 5.4.x** — `activity_logs`: thêm `@@index([createdAt])` trước khi bật job cleanup tuân thủ pháp luật. Hiện schema chưa có index này (trong khi `notification_logs` đã có).
+2. **KHỐI 6.x** — PHI access log policy: thêm fields `dataAccessed`/`purpose` cho `activity_logs` theo Nghị định 13/2023 (v3.0 KHỐI 6 đã ghi Consent Management, chưa ghi riêng PHI access audit).
+3. **KHỐI 4.x** — Security: ghi rõ password hash hiện tại là PBKDF2-SHA512 100k iterations (không phải bcrypt cost 12 như dactaupdate đề xuất cũ), chấp nhận được OWASP.
+4. **KHỐI 4.x** — Rate limit matrix chi tiết: phân biệt public form (5/IP/15ph ✅) vs admin auth (5/phút ❌ chưa enforce) vs login lockout (5 lần → 30 phút ❌) vs default public (100/phút ❌).
+5. **KHỐI 4.x** — Forgot password flow: rate limit 3/giờ/user, token reset 30 phút, dùng 1 lần — chưa implement, docx nên ghi trước.
+6. **KHỐI 3.1 (Template C3) hoặc KHỐI 5.4** — Sửa mâu thuẫn `tender_files`: v3.0 dòng 1919 (template C3) ghi "lưu trong bảng tender_files" nhưng schema không có bảng này (file đấu thầu lưu inline trong `news` qua các field `tender_*`). Cần xoá bỏ tham chiếu `tender_files` hoặc quyết định tạo bảng riêng nếu cần quan hệ file 1-n.
+7. **KHỐI 1.2** — Số lượng bảng: "19+ bảng" nên làm rõ thành "24 bảng" (đếm theo Prisma schema thực tế, bao gồm cả consent_policies/patient_consents của KHỐI 6.2).
+
+**Quy ước:**
+- Đánh version v3.1
+- Áp dụng nguyên tắc In-place Update: cập nhật đè trực tiếp vào đúng KHỐI liên quan (KHỐI 4-6), không nối đuôi chương mới.
+- Ghi Changelog tóm tắt KHỐI 1.5: "v3.1 — bổ sung activity_logs index, PHI audit policy, password hash clarification, rate limit matrix, forgot password flow".
+- Audit trail chi tiết: `memory/phase-history.md` Phase tương ứng.

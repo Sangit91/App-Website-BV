@@ -125,39 +125,59 @@ html {
 }
 
 /* ===== Custom Scrollbar - BVĐK Website ===== */
-/* Dùng màu brand green #2FA968 trên nền cream #FCFBF7 — nhất quán với design system */
+/* Dùng màu brand green #2FA968 trên nền mint #EAF7EE — pill shape, có padding tách thumb khỏi mép */
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #2FA968 #FCFBF7;
+  scrollbar-color: #2FA968 transparent;
 }
 
 /* Chrome, Safari, Edge */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #FCFBF7;
-  border-radius: 4px;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   background: #2FA968;
-  border-radius: 4px;
-  transition: background 0.2s ease;
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #164B36;
+  background-clip: padding-box;
 }
 
 /* Horizontal scrollbar for overflow-x containers */
 ::-webkit-scrollbar-track:horizontal {
-  height: 6px;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb:horizontal {
-  border-radius: 3px;
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Trên nền sáng (cream-white/mint) thumb đậm vừa đủ; trên nền tối (admin login) cần thumb sáng hơn */
+.dark-scroll * {
+  scrollbar-color: #EAF7EE transparent;
+}
+
+.dark-scroll ::-webkit-scrollbar-thumb {
+  background: #EAF7EE;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+.dark-scroll ::-webkit-scrollbar-thumb:hover {
+  background: #FCFBF7;
+  background-clip: padding-box;
 }

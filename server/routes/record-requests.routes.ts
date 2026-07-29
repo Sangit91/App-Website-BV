@@ -1,7 +1,9 @@
 import { Router } from "express";
 import multer from "multer";
 import path from "path";
-import { recordRequestService } from "../services/record-request.service";
+import fs from "fs";
+import { recordRequestService, resolveSafePhysicalPath } from "../services/record-request.service";
+import { authenticate, requireAdmin } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -64,6 +66,33 @@ router.delete("/:id/files/:fileId", async (req, res) => {
   try {
     await recordRequestService.deleteFile(req.params.fileId);
     res.json({ success: true, message: "Đã xóa file" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  }
+});
+
+router.get("/:id/files/:fileId", authenticate, requireAdmin, async (req, res) => {
+  try {
+    const file = await recordRequestService.getFileById(req.params.fileId);
+    if (!file || file.recordRequestId !== req.params.id) {
+      return res.status(404).json({ error: "Không tìm thấy file" });
+    }
+
+    const physicalPath = resolveSafePhysicalPath(file.filePath);
+    if (!physicalPath) {
+      return res.status(403).json({ error: "Đường dẫn file không hợp lệ" });
+    }
+
+    if (!fs.existsSync(physicalPath)) {
+      return res.status(404).json({ error: "File không tồn tại trên máy chủ" });
+    }
+
+    res.setHeader("Content-Type", file.mimeType || "application/octet-stream");
+    res.setHeader("Content-Length", String(file.size ?? fs.statSync(physicalPath).size));
+    res.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(file.fileName)}"`);
+    res.setHeader("Cache-Control", "private, max-age=300");
+
+    fs.createReadStream(physicalPath).pipe(res);
   } catch (error: any) {
     res.status(500).json({ error: error.message || "Lỗi máy chủ" });
   }

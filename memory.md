@@ -79,9 +79,45 @@ server/
 
 ## 🚧 Backup gần nhất
 
-- `D:\Coding\code backup\App Website BV_20260727_133642` (trước Phase 72 — đồng bộ layout "Cổng thông tin")
+- `D:\Coding\code backup\App Website BV_20260727_133642` (trước Phase 72 — đồng bộ layout "Cổng thông tin"). Backup sau Phase 74 chưa tạo (Phase 74 chỉ xoá 2 class thừa, không phải refactor lớn — không đủ ngưỡng backup policy).
 - `D:\Coding\code backup\App Website BV_20260727_072435` (trước Phase 69 — fix lỗi 500 upload Record Request)
 - `D:\Coding\code backup\App Website BV_20260719_160404` (sau Local Images Migration)
+
+---
+
+## ⚠️ Docker Dev Workflow — BẮT BUỘC NHỚ
+
+**Vite HMR đang BẬT trong container** (`docker-compose.yml:16` set `DISABLE_HMR=false`, `vite.config.ts:18-19` theo đó set `hmr: { clientPort: 3000 }` + `watch: {}`).
+
+### Nguyên nhân
+
+Từ Phase 74: HMR từng bị tắt (`DISABLE_HMR=true`) → phải `docker restart bvdh-frontend` mỗi lần sửa code. **Phase 75 (2026-07-28)**: Bật lại HMR để dev auto-reload nhanh hơn.
+
+### Quy tắc hiện tại (HMR BẬT)
+
+Mỗi lần sửa file `.tsx` / `.ts` / `.css` / `vite.config.ts`:
+- **KHÔNG cần restart container** — Vite auto-transform và browser auto-reload qua WebSocket.
+- Chỉ cần save file → browser tự refresh (hoặc Ctrl+R nếu cần force).
+
+### Khi nào CẦN restart/rebuild
+
+- Sửa file cấu hình Docker (`docker-compose.yml`, `Dockerfile.*`, `nginx/nginx.conf`) — phải `docker compose up -d --build` để rebuild image.
+- Sửa file trong `prisma/` — phải chạy lại `prisma generate` + restart backend.
+- Sửa file trong `server/` — `tsx watch` tự reload (không cần restart).
+
+### Khi muốn tắt HMR (giống production)
+
+```yaml
+# docker-compose.yml:16
+- DISABLE_HMR=true
+```
+Rồi `docker compose up -d --build public-web`. Nginx config (`nginx/nginx.conf:133`) đã proxy WebSocket đúng cho HMR.
+
+### Triệu chứng nếu HMR bị tắt mà quên rule
+
+- User báo "code mới không có hiệu lực" / "sửa rồi mà vẫn vậy".
+- `docker exec bvdh-frontend grep <pattern> src/...` thấy fix **CÓ** trong container, nhưng `wget -qO- http://127.0.0.1:8000/src/...` trả về module transform cũ.
+- → Đề xuất `docker restart bvdh-frontend` trước khi debug sâu.
 
 ---
 
@@ -90,6 +126,95 @@ server/
 ```bash
 npm run lint && npm run build
 ```
+
+---
+
+## 🔐 Security & RBAC Standards — BẮT BUỘC
+
+> Nguồn gốc: `dactaupdate.md:269-326` (Security Requirements + RBAC Matrix). Apply vào memory vì AGENTS.md chưa có section riêng.
+
+### 1. JWT Tokens
+
+- **Access Token**: 15-30 phút expiry (chứa `sub`, `role`, `scope`, `exp`)
+- **Refresh Token**: 7 ngày, lưu **httpOnly cookie** (không truy cập được từ JS — chống XSS token theft)
+- Refresh rotation: cấp refresh mới mỗi lần refresh, revoke refresh cũ
+
+### 2. Password Security
+
+- **Hiện tại dùng PBKDF2-SHA512, 100000 iterations** (`server/services/auth.service.ts:34`) — không phải bcrypt. PBKDF2 với 100k iterations tương đương bcrypt cost 12 về độ mạnh, chấp nhận được.
+- **Nếu chuyển sang bcrypt** (theo `dactaupdate.md:277`): salt rounds = 12 (OWASP khuyến nghị 2024)
+- Policy: tối thiểu 8 ký tự, có chữ hoa + chữ thường + số, không chứa username — **chưa enforce frontend validation đầy đủ**
+- Forgot password: rate limit 3 request/giờ/user, token reset 30 phút, dùng 1 lần — **chưa implement**
+
+### 3. Rate Limiting
+
+| Endpoint | Limit | Áp dụng |
+|----------|-------|---------|
+| Public API (feedback/record-request/contact/lab-test/teleconsult) | **5 request/IP/15 phút** | Đã enforce ở AGENTS.md Public Form API Standards + Phase 49 |
+| Admin Auth (login/refresh/OTP) | **5 request/phút** | Chưa enforce code |
+| Login attempts | **5 lần → lockout 30 phút** | Chưa enforce code |
+| Default public API khác | 100 request/phút | Chưa enforce code |
+
+### 4. RBAC Roles
+
+```typescript
+type Role = 'Super Admin' | 'Receptionist' | 'Doctor' | 'Department Admin';
+```
+
+**Quy ước đặt tên DB:** lưu theo `snake_case` (`super_admin`/`receptionist`/`doctor`/`department_admin`), map sang `PascalCase` khi trả API response.
+
+### 5. Audit Logging
+
+- Mọi admin action đều log vào `activity_logs`: `userId`, `action`, `IP`, `timestamp`, `duration`
+- **PHI access log riêng** với `dataAccessed: 'PHI'` + `patient_id` + `purpose` (theo Nghị định 13/2023)
+- **KHÔNG được xoá/cleanup `activity_logs`** (compliance retention — AGENTS.md Data Retention Governance)
+
+### 6. Security Headers (production)
+
+```
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Frame-Options: DENY (admin), SAMEORIGIN (public)
+Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: geolocation=(), microphone=(), camera=()
+```
+
+### 7. Network Security (DMZ)
+
+- PostgreSQL: internal-only (port 5432 không publish — đã đúng theo Port Policy Phase 70)
+- Redis/MinIO (nếu thêm): internal-only từ port 8002+
+- UFW whitelist: chỉ mở 8443 (HTTPS) + 22 (SSH nội bộ)
+- Fail2ban chống brute-force SSH + admin login
+
+### 8. RBAC Permissions Matrix
+
+| Permission | Super Admin | Receptionist | Doctor | Dept Admin |
+|------------|-------------|--------------|--------|------------|
+| users:read | ✅ | ✅ | ❌ | ❌ |
+| users:write | ✅ | ❌ | ❌ | ❌ |
+| users:delete | ✅ | ❌ | ❌ | ❌ |
+| appointments:read | ✅ | ✅ | ✅ (own) | ✅ |
+| appointments:write | ✅ | ✅ | ❌ | ✅ |
+| appointments:cancel | ✅ | ✅ | ❌ | ✅ |
+| medical-records:read | ✅ | ❌ | ✅ (own patients) | ❌ |
+| medical-records:write | ✅ | ❌ | ❌ | ❌ |
+| reports:read | ✅ | ❌ | ❌ | ✅ |
+| reports:export | ✅ | ❌ | ❌ | ❌ |
+| settings:read | ✅ | ❌ | ❌ | ✅ |
+| settings:write | ✅ | ❌ | ❌ | ❌ |
+
+### Trạng thái enforce hiện tại
+
+| Mục | Code status | Ghi chú |
+|-----|-------------|---------|
+| Public form rate limit (5/IP/15ph) | ✅ Đã có | AGENTS.md Public Form API + Phase 49 |
+| JWT access/refresh + httpOnly cookie | ✅ Phase 68+ | Admin Login redesign |
+| Audit logging `activity_logs` | ⚠️ Partial | Bảng hiện chỉ có `(id, user_name, action, created_at)` — thiếu `userId`, `IP`, `duration`, `dataAccessed` cho PHI. Cần Phase mở rộng schema. |
+| RBAC enforcement backend | ⚠️ Partial | Có role check cơ bản, chưa enforce matrix chi tiết + department ownership |
+| Password hash | ⚠️ PBKDF2-SHA512 100k iterations | `server/services/auth.service.ts:34`. Tương đương bcrypt cost 12. Không theo dactaupdate.md đề xuất bcrypt nhưng chấp nhận được về mặt OWASP. |
+| Security headers | ✅ Qua nginx | nginx.conf đã set CSP/HSTS/X-Frame-Options |
+| Rate limit admin auth/login lockout | ❌ Chưa có | Phase tương lai |
 
 ---
 
@@ -117,6 +242,11 @@ npm run lint && npm run build
 | Port Policy (Phase 70): chỉ 8443 public ra host, frontend 8000 + backend 8001 + db 5432 chỉ expose nội bộ — tránh xung đột port 3000/5001 | ✅ Hoàn thành (2026-07-27) |
 | Refactor UX RecordRequestModal (Phase 71): Header xanh tích hợp tiêu đề, X button góc phải, bỏ banner thừa, max-h-[90vh], file preview, validation real-time (SĐT/Email/ít nhất 1 kênh/ngày), accessibility đầy đủ | ✅ Hoàn thành (2026-07-27) |
 | Đồng bộ layout "Cổng thông tin" với "Hướng dẫn tiện ích" (Phase 72): InfoCard ảnh aspect-[16/9] thay h-48, grid md:grid-cols-3 gap-6, xóa featured block trùng lặp với PatientLookupForm, xóa handleTraCuuBenhSu (52 dòng) | ✅ Hoàn thành (2026-07-27) |
+| Spec supplement v2.14 (Phase 73): patch bảng port mục 22.1 spec v2.13 lệch với code thực tế (Frontend 8000/Backend 8001/8443 public active, không phải 5001/8301 "chưa hoạt động") — tạo `dac-ta-v2.14-supplement.md`, chưa merge vào docx | ✅ Hoàn thành (2026-07-27) |
+| Fix RecordRequestModal duplicate scrollbar (Phase 74): Modal wrapper đã có `max-h-[92vh] flex flex-col overflow-hidden` + body `p-6 overflow-y-auto`, RecordRequestModal tự bọc thêm `flex flex-col max-h-[90vh]` + `overflow-y-auto` → 2 scrollbar chồng nhau. Bỏ wrapper thừa, dùng fragment `<>`, giữ pattern giống FeedbackModal. tsc pass (zero lỗi mới), spec UI/UX không đổi | ✅ Hoàn thành (2026-07-27) |
+| Migration spec v3.0 SRS-TRD (Phase 75): user cung cấp `Dac-ta-Master-v3.0-SRS-TRD.docx` (27/07/2026) thay thế v2.13 docx + patch v2.14 supplement. Refactor toàn diện 6 KHỐI độc lập + nguyên tắc In-place Update (đè đúng KHỐI, không append-only). AGENTS.md + dactaupdate.md cập nhật tham chiếu v3.0. Xoá `dac-ta-uiux-tong-hop-v2.14.docx`. Verify cross-check v3.0 vs Prisma schema + code: 95% khớp, 7 gap minor ghi vào dactaupdate v3.1 (KHỐI 4-6) | ✅ Hoàn thành (2026-07-27) |
+| Record Request File Preview trong Admin (Phase 77): backend `GET /api/v1/record-requests/:id/files/:fileId` (authenticate + requireAdmin, chống path traversal bằng `resolveSafePhysicalPath` whitelist uploads/pending + uploads/approved); frontend RecordRequestsTab grid thumbnail + button "Xem"/"Mở PDF"/"Tải", fetch qua `authedFetch` đính Bearer token, preview blob URL với cleanup khi đóng modal | ✅ Hoàn thành (2026-07-28) |
+| Redesign UX Modal chi tiết Yêu cầu trích sao (Phase 78): header gradient `from-green-dark via-green-900 to-brand-green` + status badge lớn; body grid `lg:grid-cols-12` (trái 5 cols: glass card "Thông tin đối tượng" + "Đặc tả hồ sơ đề nghị"; phải 7 cols: Visual Progress Timeline 3 bước + File grid + Phản hồi & Xử lý); thumbnail có `hover:-translate-y-1` + overlay `ZoomIn`; modal preview riêng (`bg-zinc-900`, `<img>` cho ảnh / `<iframe>` cho PDF) dùng lại `previewUrls` cache | ✅ Hoàn thành (2026-07-28) |
 | Spec v2.9 review + Database gap analysis | ✅ Hoàn thành (2026-07-22) |
 | dactaupdate.md updated with DB gaps | ✅ Hoàn thành |
 | Expert System Review Report (report-review.md) | ✅ Hoàn thành |
@@ -125,8 +255,27 @@ npm run lint && npm run build
 | Admin Login Ultra-Luxury (2026-07-26): Pearl-Glass Glassmorphism 2.0, Volumetric Ambient Light Orbs, Shimmer CTA, prefers-reducedMotion support | ✅ Hoàn thành |
 | Admin Login Cinematic Background (2026-07-26): Doctor image bg, Floating Glass Badges (50+ Bác sĩ, ATTT Cấp độ 3), neon pulse animations | ✅ Hoàn thành |
 
-**Admin Tabs hiện tại (15 tabs):**
-- 15 hoàn thành: Overview, Bookings, Patients, Shifts, Specialties, Doctors, News, Organization, Logs, Services, PatientTab, Tender, Contact, Feedback, RecordRequests
+**Admin Tabs hiện tại (15 tabs) + RBAC theo role:**
+
+| Tab | File | Super Admin | Dept Admin | Doctor |
+|-----|------|-------------|------------|--------|
+| Tổng quan | OverviewTab.tsx | Read | Read | Read |
+| Lịch hẹn | BookingsTab.tsx | CRUD | CRUD khoa mình | Read |
+| Bệnh nhân | PatientsTab.tsx | Read | Read | Read |
+| Lịch trực | ShiftsTab.tsx | CRUD | CRUD khoa mình | Read |
+| Chuyên khoa | SpecialtiesTab.tsx | CRUD | — | — |
+| Bác sĩ | DoctorsTab.tsx | CRUD | — | Read |
+| Tin tức | NewsTab.tsx | CRUD | CRUD khoa mình | CRUD (bài của mình) |
+| Tổ chức | OrganizationTab.tsx | CRUD | — | — |
+| Nhật ký | LogsTab.tsx | Read | Read | Read |
+| Services | ServicesTab.tsx | CRUD | — | — |
+| Patient Guide | PatientTab.tsx | CRUD | — | — |
+| Tender | TenderTab.tsx | CRUD | CRUD khoa mình | — |
+| Contact | ContactTab.tsx | CRUD | — | — |
+| Phản hồi | FeedbackTab.tsx | CRUD đầy đủ | Xem + phản hồi khoa mình | Không |
+| Yêu cầu trích sao | RecordRequestsTab.tsx | CRUD đầy đủ | Xem + xử lý khoa mình | Không |
+
+Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở backend — chỉ là target UI/UX. Cần Phase tiếp: implement RBAC middleware enforce theo role + department ownership.
 
 ---
 

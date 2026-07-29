@@ -1,6 +1,6 @@
 import { useState, FormEvent, useRef, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { FileText, X, Calendar, Phone, Mail, FileBadge, Check, Upload, Trash2 } from "lucide-react";
+import { FileText, X, Calendar, Phone, Mail, FileBadge, Check, Upload, Trash2, Paperclip, Download, Package, Truck, Building2, RefreshCw, FileImage, FileType, LucideIcon } from "lucide-react";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 
@@ -21,18 +21,27 @@ const REQUEST_TYPES: { value: RequestType; label: string; desc: string }[] = [
   { value: "don-thuoc", label: "Đơn thuốc", desc: "Bản sao đơn thuốc đã kê" },
 ];
 
-const DELIVERY_METHODS: { value: DeliveryMethod; label: string }[] = [
-  { value: "tai-kham", label: "Nhận khi tái khám" },
-  { value: "nhan-tai-quay", label: "Nhận tại quầy" },
-  { value: "chuyen-bo-post", label: "Chuyển bưu điện" },
+const DELIVERY_METHODS: { value: DeliveryMethod; label: string; icon: typeof Package }[] = [
+  { value: "tai-kham", label: "Nhận khi tái khám", icon: RefreshCw },
+  { value: "nhan-tai-quay", label: "Nhận tại quầy", icon: Building2 },
+  { value: "chuyen-bo-post", label: "Chuyển bưu điện", icon: Truck },
 ];
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const ACCEPTED_TYPES = ["image/*", ".pdf", ".doc", ".docx"];
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getFileIcon(name: string): LucideIcon {
+  const ext = name.split(".").pop()?.toLowerCase();
+  if (["jpg", "jpeg", "png", "webp"].includes(ext || "")) return FileImage;
+  if (ext === "pdf") return FileText;
+  if (["doc", "docx"].includes(ext || "")) return FileType;
+  return Paperclip;
 }
 
 export default function RecordRequestModal({
@@ -54,6 +63,7 @@ export default function RecordRequestModal({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedCode, setSubmittedCode] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isDragActive, setIsDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const resetForm = useCallback(() => {
@@ -67,6 +77,7 @@ export default function RecordRequestModal({
     setSelectedFiles([]);
     setIsUploading(false);
     setSubmitError(null);
+    setIsDragActive(false);
   }, []);
 
   const phoneError = useMemo(() => {
@@ -98,7 +109,6 @@ export default function RecordRequestModal({
   }, [dateRange]);
 
   const minToDate = dateRange.from || undefined;
-
   const maxFromDate = dateRange.to || undefined;
 
   const isFormValid = !phoneError && !emailError && !contactError && !dateError;
@@ -107,6 +117,7 @@ export default function RecordRequestModal({
     if (!e.target.files) return;
     const newFiles = Array.from(e.target.files).filter((f) => f.size <= MAX_FILE_SIZE);
     setSelectedFiles((prev) => [...prev, ...newFiles]);
+    e.target.value = "";
   }, []);
 
   const removeFile = useCallback((index: number) => {
@@ -115,6 +126,7 @@ export default function RecordRequestModal({
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
+    setIsDragActive(false);
     if (!e.dataTransfer.files) return;
     const newFiles = Array.from(e.dataTransfer.files)
       .filter(
@@ -127,6 +139,16 @@ export default function RecordRequestModal({
       )
       .filter((f) => f.size <= MAX_FILE_SIZE);
     setSelectedFiles((prev) => [...prev, ...newFiles]);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragActive(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragActive(false);
   }, []);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -223,29 +245,38 @@ export default function RecordRequestModal({
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} size="lg" showCloseButton={false}>
-      <div className="flex flex-col max-h-[90vh]">
-        <div className="bg-gradient-to-r from-brand-green to-green-dark px-6 py-5 text-white shrink-0 flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-              <FileText size={20} className="text-white" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="font-display font-bold text-lg md:text-xl text-white leading-tight">Yêu cầu trích sao hồ sơ</h2>
-              <p className="text-xs md:text-sm text-mint/90 mt-0.5">Điền thông tin bên dưới để gửi yêu cầu</p>
-            </div>
+      {/* Sticky Header */}
+      <div className="bg-gradient-to-r from-brand-green to-green-dark px-6 py-5 text-white shrink-0 flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+            <FileText size={20} className="text-white" />
           </div>
-          <button
-            type="button"
-            onClick={handleClose}
-            aria-label="Đóng form"
-            className="p-1.5 rounded-full hover:bg-white/15 text-white transition-colors cursor-pointer shrink-0"
-          >
-            <X size={20} />
-          </button>
+          <div className="min-w-0">
+            <h2 className="font-display font-bold text-lg md:text-xl text-white leading-tight">Yêu cầu trích sao hồ sơ</h2>
+            <p className="text-xs md:text-sm text-mint/90 mt-0.5">Điền thông tin bên dưới để gửi yêu cầu</p>
+          </div>
         </div>
+        <button
+          type="button"
+          onClick={handleClose}
+          aria-label="Đóng form"
+          className="p-1.5 rounded-full hover:bg-white/15 text-white transition-colors cursor-pointer shrink-0"
+        >
+          <X size={20} />
+        </button>
+      </div>
 
-        <div className="p-6 overflow-y-auto">
-          <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Scrollable Body */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          
+          {/* Group 1: Thông tin người yêu cầu */}
+          <fieldset className="space-y-4">
+            <legend className="text-xs font-bold text-green-dark uppercase tracking-wide flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-mint flex items-center justify-center text-brand-green text-xs font-bold">1</span>
+              Thông tin người yêu cầu
+            </legend>
+
             {patientName ? (
               <div className="flex flex-wrap gap-4 p-3 bg-mint/60 rounded-xl">
                 <div className="flex items-center gap-2 text-sm">
@@ -303,7 +334,7 @@ export default function RecordRequestModal({
                   />
                 </div>
                 {phoneError && (
-                  <p id="record-phone-error" className="text-xs text-red-500">
+                  <p id="record-phone-error" className="text-xs text-red-500" role="alert">
                     {phoneError}
                   </p>
                 )}
@@ -330,7 +361,7 @@ export default function RecordRequestModal({
                   />
                 </div>
                 {emailError && (
-                  <p id="record-email-error" className="text-xs text-red-500">
+                  <p id="record-email-error" className="text-xs text-red-500" role="alert">
                     {emailError}
                   </p>
                 )}
@@ -342,6 +373,14 @@ export default function RecordRequestModal({
                 {contactError}
               </p>
             )}
+          </fieldset>
+
+          {/* Group 2: Chi tiết hồ sơ */}
+          <fieldset className="space-y-4 pt-4 border-t border-green-800/10">
+            <legend className="text-xs font-bold text-green-dark uppercase tracking-wide flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-mint flex items-center justify-center text-brand-green text-xs font-bold">2</span>
+              Chi tiết hồ sơ
+            </legend>
 
             <div className="space-y-2">
               <label className="block text-xs font-bold text-green-dark uppercase tracking-wide">Loại hồ sơ cần trích sao</label>
@@ -415,26 +454,6 @@ export default function RecordRequestModal({
             )}
 
             <div className="space-y-2">
-              <label className="block text-xs font-bold text-green-dark uppercase tracking-wide">Phương thức nhận</label>
-              <div className="flex flex-wrap gap-2">
-                {DELIVERY_METHODS.map((method) => (
-                  <button
-                    key={method.value}
-                    type="button"
-                    onClick={() => setDeliveryMethod(method.value)}
-                    className={`px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                      deliveryMethod === method.value
-                        ? "bg-brand-green text-white"
-                        : "bg-gray-100 text-ink/70 hover:bg-gray-200"
-                    }`}
-                  >
-                    {method.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
               <label htmlFor="record-reason" className="block text-xs font-bold text-green-dark uppercase tracking-wide">
                 Lý do / Ghi chú
               </label>
@@ -448,80 +467,145 @@ export default function RecordRequestModal({
                 className="w-full px-4 py-3 text-sm border border-green-800/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green resize-none"
               />
             </div>
+          </fieldset>
+
+          {/* Group 3: Phương thức nhận & Tệp kèm */}
+          <fieldset className="space-y-4 pt-4 border-t border-green-800/10">
+            <legend className="text-xs font-bold text-green-dark uppercase tracking-wide flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-mint flex items-center justify-center text-brand-green text-xs font-bold">3</span>
+              Phương thức nhận & Tệp đính kèm
+            </legend>
 
             <div className="space-y-2">
+              <label className="block text-xs font-bold text-green-dark uppercase tracking-wide">Phương thức nhận</label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {DELIVERY_METHODS.map((method) => (
+                  <button
+                    key={method.value}
+                    type="button"
+                    onClick={() => setDeliveryMethod(method.value)}
+                    className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
+                      deliveryMethod === method.value
+                        ? "border-brand-green bg-brand-green/5 ring-2 ring-brand-green/20"
+                        : "border-green-800/10 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-mint flex items-center justify-center">
+                        <method.icon className="w-5 h-5 text-brand-green" />
+                      </div>
+                      <span className="text-sm font-semibold text-green-dark">{method.label}</span>
+                    </div>
+                    {deliveryMethod === method.value && (
+                      <div className="flex items-center gap-1 text-xs text-brand-green font-medium">
+                        <span>✓</span> Đã chọn
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-4 border-t border-green-800/10">
               <label className="block text-xs font-bold text-green-dark uppercase tracking-wide">Giấy tờ kèm theo (tùy chọn)</label>
+              
               <div
                 onDrop={handleDrop}
-                onDragOver={(e) => e.preventDefault()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-green-800/15 rounded-xl p-6 text-center cursor-pointer hover:border-brand-green/40 transition-colors"
+                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+                  isDragActive
+                    ? "border-brand-green bg-brand-green/5"
+                    : "border-green-800/15 hover:border-brand-green/40 hover:bg-mint/30"
+                }`}
               >
-                <Upload size={24} className="mx-auto mb-2 text-brand-green/50" />
-                <p className="text-sm text-ink/60">Kéo thả file hoặc click để chọn</p>
-                <p className="text-xs text-ink/40 mt-1">Chấp nhận: Ảnh, PDF, Word (tối đa 10MB mỗi file)</p>
+                <div className="mx-auto mb-3 relative">
+                  <Upload size={32} className={`mx-auto text-brand-green/60 ${isDragActive ? "text-brand-green scale-110" : ""}`} />
+                  {isDragActive && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-brand-green text-white flex items-center justify-center text-xs font-bold"
+                    >
+                      +
+                    </motion.div>
+                  )}
+                </div>
+                <p className="text-sm text-ink/60 mb-1">
+                  {isDragActive ? "Thả file vào đây" : "Kéo thả file hoặc click để chọn"}
+                </p>
+                <p className="text-xs text-ink/40">Chấp nhận: Ảnh, PDF, Word (tối đa 10MB mỗi file)</p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept={ACCEPTED_TYPES.join(",")}
+                  onChange={handleFileChange}
+                  className="hidden"
+                  aria-label="Chọn file đính kèm"
+                />
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept="image/*,.pdf,.doc,.docx"
-                onChange={handleFileChange}
-                className="hidden"
-                aria-label="Chọn file đính kèm"
-              />
 
               {selectedFiles.length > 0 && (
-                <ul className="space-y-2 mt-2" aria-label="Danh sách file đã chọn">
+                <div className="space-y-2" aria-label="Danh sách file đã chọn">
                   {selectedFiles.map((file, index) => (
-                    <li
+                    <div
                       key={`${file.name}-${index}`}
-                      className="flex items-center justify-between p-3 bg-mint/40 rounded-xl"
+                      className="flex items-center justify-between p-3 bg-mint/40 rounded-xl border border-green-800/10"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <FileBadge size={14} className="text-brand-green shrink-0" />
-                        <span className="text-sm text-ink truncate" title={file.name}>
-                          {file.name}
-                        </span>
-                        <span className="text-xs text-ink/40 shrink-0">({formatFileSize(file.size)})</span>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-mint flex items-center justify-center shrink-0">
+                          {(() => {
+                            const Icon = getFileIcon(file.name);
+                            return <Icon className="w-5 h-5 text-brand-green" />;
+                          })()}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-sm text-ink truncate block" title={file.name}>
+                            {file.name}
+                          </span>
+                          <span className="text-xs text-ink/40">({formatFileSize(file.size)})</span>
+                        </div>
                       </div>
                       <button
                         type="button"
                         onClick={() => removeFile(index)}
                         aria-label={`Xóa file ${file.name}`}
-                        className="p-1 hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0"
+                        className="p-1.5 hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0"
                       >
-                        <Trash2 size={14} className="text-red-500" />
+                        <Trash2 size={16} className="text-red-500" />
                       </button>
-                    </li>
+                    </div>
                   ))}
-                </ul>
+                </div>
               )}
             </div>
+          </fieldset>
 
-            {submitError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl" role="alert">
-                <p className="text-sm text-red-600">{submitError}</p>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-3 pt-4 border-t border-green-800/5">
-              <Button type="button" variant="ghost" size="md" onClick={handleClose}>
-                Hủy bỏ
-              </Button>
-              <Button type="submit" variant="primary" size="md" disabled={isSubmitting || isUploading}>
-                {isSubmitting || isUploading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    {isUploading ? "Đang tải file..." : "Đang gửi..."}
-                  </span>
-                ) : (
-                  "Gửi yêu cầu"
-                )}
-              </Button>
+          {submitError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl" role="alert">
+              <p className="text-sm text-red-600">{submitError}</p>
             </div>
-          </form>
-        </div>
+          )}
+
+          {/* Footer actions inside form for submit to work */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-green-800/5">
+            <Button type="button" variant="ghost" size="md" onClick={handleClose} disabled={isSubmitting || isUploading}>
+              Hủy bỏ
+            </Button>
+            <Button type="submit" variant="primary" size="md" disabled={isSubmitting || isUploading}>
+              {isSubmitting || isUploading ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  {isUploading ? "Đang tải file..." : "Đang gửi..."}
+                </span>
+              ) : (
+                "Gửi yêu cầu"
+              )}
+            </Button>
+          </div>
+        </form>
       </div>
     </Modal>
   );

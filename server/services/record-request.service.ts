@@ -33,9 +33,25 @@ const APPROVED_UPLOADS_DIR = path.join(process.cwd(), "uploads", "approved");
 // file.filePath có dạng "/uploads/pending/<file>" nhưng file thực nằm ở
 // <cwd>/uploads/pending/<file> (không có "public"). Dùng helper này để tránh
 // inconsistency giữa handleFileUpload và deleteFile/processStatusChange.
-function resolvePhysicalPath(filePath: string): string {
+export function resolvePhysicalPath(filePath: string): string {
   const normalized = filePath.replace(/^\//, "");
   return path.join(process.cwd(), normalized);
+}
+
+// Whitelist các thư mục uploads được phép truy cập (chống path traversal).
+const ALLOWED_UPLOAD_DIRS = [PENDING_UPLOADS_DIR, APPROVED_UPLOADS_DIR] as const;
+
+// Đảm bảo đường dẫn vật lý nằm trong 1 trong các thư mục được phép.
+// Trả về null nếu path vượt ra ngoài whitelist (path traversal attempt).
+export function resolveSafePhysicalPath(filePath: string): string | null {
+  const resolved = resolvePhysicalPath(filePath);
+  const resolvedAbs = path.resolve(resolved);
+  for (const allowed of ALLOWED_UPLOAD_DIRS) {
+    if (resolvedAbs.startsWith(path.resolve(allowed) + path.sep)) {
+      return resolvedAbs;
+    }
+  }
+  return null;
 }
 
 function ensureDir(dir: string): Promise<void> {
@@ -74,6 +90,10 @@ export const recordRequestService = {
       where: { id },
       include: { files: true },
     });
+  },
+
+  async getFileById(fileId: string) {
+    return getPrisma().recordRequestFile.findUnique({ where: { id: fileId } });
   },
 
   async create(input: CreateRecordRequestInput): Promise<RecordRequest> {

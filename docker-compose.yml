@@ -13,7 +13,7 @@ services:
       - PORT=8000
       - API_HOST=admin-api
       - API_PORT=8001
-      - DISABLE_HMR=true
+      - DISABLE_HMR=false
     volumes:
       - .:/app
       - /app/node_modules

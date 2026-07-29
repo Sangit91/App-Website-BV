@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAdmin } from "../context/AdminContext";
 import AdminLogin from "../components/admin/AdminLogin";
 import AdminSidebar from "../components/admin/AdminSidebar";
@@ -24,12 +25,13 @@ import {
 
 export default function AdminPage() {
   const { activeUser, logout } = useAdmin();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
 
   const pendingCount = 0;
 
   if (!activeUser) {
-    return <AdminLogin onBackToHome={() => window.location.href = "/"} />;
+    return <AdminLogin onBackToHome={() => navigate("/", { replace: true })} />;
   }
 
   const renderTab = () => {
@@ -61,7 +63,7 @@ export default function AdminPage() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onLogout={logout}
-        onBackToHome={() => window.location.href = "/"}
+        onBackToHome={() => navigate("/", { replace: true })}
         pendingCount={pendingCount}
       />
 

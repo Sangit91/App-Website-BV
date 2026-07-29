@@ -1,5 +1,6 @@
 import { useState, FormEvent, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { useAdmin, decodeAdminToken } from "../../context/AdminContext";
 import {
   ArrowLeft, ShieldCheck, Building2, Stethoscope, Eye, EyeOff,
@@ -22,6 +23,7 @@ const scopeTabs = [
 
 export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
   const { login } = useAdmin();
+  const navigate = useNavigate();
   const reducedMotion = useReducedMotion();
   const [selectedScope, setSelectedScope] = useState<ScopeId>("admin");
   const [username, setUsername] = useState("");
@@ -120,7 +122,7 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
       setIsSuccess(true);
 
       setTimeout(() => {
-        window.location.href = "/admin";
+        navigate("/admin", { replace: true });
       }, 800);
 
     } catch {

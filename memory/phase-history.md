@@ -1805,3 +1805,342 @@ npm run lint && npm run build   # Quality Gate
 - **Modal default header bug** (commit d6054ba): Modal component render mặc định header với X button khi showCloseButton=true (mặc định) dù không có title ➜ RecordRequestModal phải truyền showCloseButton={false} để tránh 2 header chồng nhau
 - **Layout asymmetry root cause**: section "Cổng thông tin" (if branch) và "Hướng dẫn tiện ích" (else branch) dùng các grid/gap khác nhau → sau Phase 72 đã đồng nhất pattern (featured mb-12 + grid md:grid-cols-3 gap-6)
 - **Không động tới spec v2.9**: thay đổi chỉ ở tầng UI/layout, không ảnh hưởng field DB hay ENUM
+
+---
+
+## PHASE 73 — Spec supplement v2.14: fix mâu thuẫn port table mục 22.1 (2026-07-27)
+
+### Mô tả
+
+Rà soát mâu thuẫn giữa dac-ta-uiux-tong-hop-v2_13.docx (single source of truth) và trạng thái code thực tế (Phase 70 commit 829cd64), phục vụ yêu cầu "lấy hệ thống hiện tại làm chuẩn".
+
+**Mâu thuẫn phát hiện** tại mục 22.1 (bảng ánh xạ cổng — môi trường Docker dev):
+
+| Service | Spec v2.13 (mục 22.1) | Code thực tế (Phase 70) |
+|---------|------------------------|--------------------------|
+| Frontend Vite internal | **5001** (typo lặp 2 lần cho cả frontend+backend) | **8000** (chỉ expose) |
+| Backend API internal | **8301** | **8001** (chỉ expose) |
+| PostgreSQL | **8432** | **5432** (chỉ expose) |
+| Nginx HTTP | 80 → **8080** public | KHÔNG publish (chuyển 80 → redirect 301 sang HTTPS) |
+| Nginx HTTPS | 443 → **8443** "CHƯA hoạt động — thiếu SSL cert" | 443 → **8443** ĐANG hoạt động (self-signed cert trong dev) |
+
+Các mâu thuẫn khác đã rà soát và **không thấy**:
+- Mục 20.2.1 (Modal system, RecordRequestModal UI): code hiện tại đúng đặc tả (form 4 loại hồ sơ + chọn ngày + phương thức nhận + success state mã yêu cầu).
+- Mục 19.1 (Modern Page Design Pattern): code tuân thủ — chỉ thay đổi list-style cong-thong-tin branch ở Phase 72 (bỏ featured block trùng lặp), không vi phạm đặc tả.
+- InfoCard aspect-ratio (h-48 → spect-[16/9]): spec không đặc tả tỷ lệ ảnh cụ thể, không mâu thuẫn.
+- AGENTS.md Port Policy section: đã đúng với code thực tế, không cần đổi.
+
+### Cách xử lý
+
+Theo pattern đã thống nhất với user: tạo file markdown supplement riêng dac-ta-v2.14-supplement.md patch trực tiếp mục 22.1, **không sửa docx binary trực tiếp** ( risk làm hỏng format + cross-reference trong docx). File supplement sẽ được merge vào docx chính ở lần cập nhật kế tiếp.
+
+### Files Changed
+
+`
+dac-ta-v2.14-supplement.md  (new) — patch mục 22.1 + nhật ký phiên bản v2.14
+dactaupdate.md              (+1 row Nhật ký thay đổi)
+memory.md                   (+1 row Phase 73 + cập nhật backup gần nhất)
+memory/phase-history.md     (+Phase 73 entry)
+`
+
+### Ghi chú
+
+- **AGENTS.md không cần đổi** — đã có section "Port Policy (Bắt buộc — không thay đổi trừ khi có tài liệu kiến trúc)" khớp 100% với code thực tế Phase 70.
+- Spec v2.13 các mục khác (1-21, 22.2-22.6, 23, 24) vẫn nguyên giá trị, không bị thay thế.
+- Quy ước đánh số Phase: kiểm tra số lớn nhất trước khi ghi — Phase 71 vs 72 là 2 phase cùng ngày, không trùng số. Phase 73 = Phase 72 + 1 theo đúng quy tắc.
+
+---
+
+## PHASE 74 — Fix RecordRequestModal duplicate scrollbar (2026-07-27)
+
+### Mô tả
+
+User báo modal "Yêu cầu trích sao hồ sơ" (RecordRequestModal) hiển thị 2 thanh scrollbar chồng nhau — 1 do Modal wrapper, 1 do div body bên trong RecordRequestModal.
+
+### Chẩn đoán
+
+- `src/components/ui/Modal.tsx:66-93` đã có sẵn khung chuẩn: `motion.div` với `max-h-[92vh] flex flex-col overflow-hidden` + header `shrink-0` + body `p-6 overflow-y-auto`.
+- `src/components/public/RecordRequestModal.tsx:225-247` (bản cũ) tự bọc thêm `<div className="flex flex-col max-h-[90vh]">` + `<div className="p-6 overflow-y-auto">` bên trong children → 2 lớp scrollbar lồng nhau (vì `Modal.showCloseButton={false}` + không truyền `title` → children render thẳng vào vùng body đã có overflow-y-auto).
+
+### Cách xử lý
+
+Bỏ wrapper thừa trong RecordRequestModal, dùng đúng pattern của FeedbackModal (cùng folder):
+- Thay `<div className="flex flex-col max-h-[90vh]">` bằng fragment `<>`.
+- Bỏ class `overflow-y-auto` ở div `p-6` body — Modal đã lo rồi.
+- Header gradient custom vẫn giữ `shrink-0` để không bị cuộn mất khi body cuộn dài.
+
+Cấu trúc sau fix:
+```tsx
+<Modal size="lg" showCloseButton={false}>
+  <>
+    <div className="bg-gradient-to-r from-brand-green to-green-dark px-6 py-5 text-white shrink-0 ...">
+      {/* header custom */}
+    </div>
+    <div className="p-6">
+      <form>...</form>
+    </div>
+  </>
+</Modal>
+```
+
+### Files Changed
+
+- `src/components/public/RecordRequestModal.tsx` (dòng 225-247: bỏ wrapper `flex flex-col max-h-[90vh]` + bỏ `overflow-y-auto` ở body `p-6`)
+- `memory/bugs-fixed.md` (+1 entry Phase 74)
+- `memory/phase-history.md` (+Phase 74 entry)
+
+### Ghi chú
+
+- Đúng nguyên tắc AGENTS.md "Không tạo component mới nếu chỉ khác màu/spacing/icon — hãy mở rộng component hiện có": sửa Modal/RecordRequestModal cũ thay vì tạo component mới.
+- `tsc --noEmit` pass (zero lỗi mới). 3 lỗi pre-existing không liên quan: `vite.config.ts:6` (đã ghi rõ trong AGENTS.md Port Policy), `ChoBenhNhanPage.tsx:443` (`ItemData` thiếu `id` — fix khác), `server/routes/auth.routes.ts:2,256` (`refreshTokens` conflict).
+- Spec UI/UX không đổi — fix chỉ là xoá class thừa, không thêm tính năng/đổi bố cục. Không cần update docx v2.14.
+- Backup trước khi commit: D:\Coding\code backup\App Website BV_20260727_133642 (đã có từ Phase 72).
+
+### Re-encounter: Vite HMR tắt — phải docker restart (2026-07-27)
+
+Sau khi fix, user báo "vẫn chưa load được frontend mới sửa". Lý do: Vite HMR đang tắt (`DISABLE_HMR=true` trong `docker-compose.yml:16` + `vite.config.ts:18-19` set `hmr: false`/`watch: null`), mount `. → /app` sync file ngay nhưng Vite không transform lại. Workaround: `docker restart bvdh-frontend` (healthy sau ~39s) + browser Ctrl+Shift+R.
+
+Rule đã được promote vào `memory.md` mục "⚠️ Docker Dev Workflow — BẮT BUỘC NHỚ" để session sau tra cứu ngay từ đầu. Khuyến nghị user cân nhắc apply rule vào `AGENTS.md` section "Quy trình làm việc" để thành quy ước chính thức.
+
+**Apply chính thức:** Section "📌 Docker Dev Workflow — BẮT BUỘC NHỚ" đã được thêm vào `AGENTS.md:170` ngay sau "Port Policy" (cùng nhóm quy ước Docker). Quy tắc giờ là bắt buộc cho mọi agent làm việc với stack này.
+
+---
+
+## PHASE 75 — Migration spec v3.0 SRS-TRD: in-place update, cleanup legacy, verify schema (2026-07-27)
+
+### Mô tả
+
+User cung cấp file đặc tả mới `Dac-ta-Master-v3.0-SRS-TRD.docx` (27/07/2026) — Master Production-Ready SRS/TRD thay thế hoàn toàn `dac-ta-uiux-tonghop-v2_13.docx` + patch `dac-ta-v2_14-supplement.md`. Refactor toàn diện theo 6 KHỐI độc lập, áp dụng nguyên tắc **In-place Update** (cập nhật đè vào đúng Khối liên quan, không append-only dev log).
+
+### So sánh v2.14 vs v3.0
+
+| Tiêu chí | v2.14 (cũ) | v3.0 (mới) |
+|----------|-----------|------------|
+| Chuẩn tài liệu | Đặc tả UI/UX tổng hợp | SRS + TRD |
+| Version | Header ghi v2.13, file v2.14 = supplement | 3.0 Master |
+| Cấu trúc | 24 mục tuần tự (append-only) | 6 KHỐI độc lập |
+| Phạm vi | Trang chủ + Trang con + Admin | + Patient Portal + Kiến trúc kỹ thuật + CSDL + Bảo mật pháp lý |
+| Văn phong | Có ngày tháng + số Phase + commit (dev log) | Target Architecture only, không dev log |
+| Cập nhật | Append-only | In-place Update với KHỐI X.Y.Z emblem |
+
+### 6 Khối nội dung v3.0
+
+```
+KHỐI 1 — TỔNG QUAN & PHẠM VI HỆ THỐNG           (inspect-text.txt:53)
+KHỐI 2 — HỆ THỐNG THIẾT KẾ UI/UX & COMPONENTS  (dòng 195)
+KHỐI 3 — ĐẶC TẢ CHỨC NĂNG CHI TIẾT              (dòng 973)
+KHỐI 4 — KIẾN TRÚC KỸ THUẬT & STATE MANAGEMENT  (dòng 1929)
+KHỐI 5 — THIẾT KẾ CƠ SỞ DỮ LIỆU                 (dòng 2361)
+KHỐI 6 — BẢO MẬT, BẢO VỆ DỮ LIỆU & OPERATIONS   (dòng 3447)
+```
+
+### Verify cross-check v3.0 vs Prisma schema + code thực tế
+
+**95% khớp.** Các điểm chính đã verify:
+- KHỐI 5: 24 models UUID PK ✅; `activity_logs` không có `@updatedAt` ✅; `file_path` thống nhất ✅; `notification_logs` polymorphic ✅; `consent_policies`/`patient_consents` ✅; idx_patient_consents_lookup ✅.
+- KHỐI 4: Port 8443 duy nhất public ✅ khớp `docker-compose.yml:86`.
+- KHỐI 6.2: Consent hash + Re-consent flow ✅ khớp `server/services/consent.service.ts`.
+- Changelog v2.14 (port patch) ✅ đã có ở dòng 183-185.
+
+**Gap minor phát hiện (đã ghi vào `dactaupdate.md` v3.1):**
+1. KHỐI 5.4.x — `activity_logs` thiếu `@@index([createdAt])` (notification_logs đã có).
+2. KHỐI 6.x — PHI access log policy: thiếu `dataAccessed`/`purpose` fields theo NĐ 13/2023.
+3. KHỐI 4.x — Password hash clarification: PBKDF2-SHA512 100k iterations (không phải bcrypt).
+4. KHỐI 4.x — Rate limit matrix chi tiết (public form ✅ / admin auth ❌ / login lockout ❌ / default ❌).
+5. KHỐI 4.x — Forgot password flow chưa implement.
+6. KHỐI 3.1 (Template C3) hoặc KHỐI 5.4 — `tender_files` mâu thuẫn: v3.0 dòng 1919 ghi "lưu trong bảng tender_files" nhưng schema không có (News dùng inline).
+7. KHỐI 1.2 — Số lượng bảng: "19+ bảng" nên làm rõ thành "24 bảng" (theo Prisma thực tế).
+
+### Files Changed
+
+- `AGENTS.md` dòng 18-30 — cập nhật section "Tài liệu đặc tả UI/UX": tham chiếu v3.0, lịch sử version, nguyên tắc In-place Update + KHỐI X.Y.Z emblem, quy ước ghi Changelog tóm tắt KHỐI 1.5.
+- `dactaupdate.md` — cập nhật header tham chiếu v3.0; xoá Nhật ký Phase 68-74 (đã dọn dẹp theo rule); đổi "Cập nhật version kế tiếp (v2.15)" → "(v3.1)" với 7 gap cần bổ sung.
+- `dac-ta-uiux-tong-hop-v2.14.docx` — **xoá** (đã thay thế bởi v3.0, user chốt "Xoá luôn").
+- `scripts/inspect-docx.mjs` — đổi source file sang `Dac-ta-Master-v3.0-SRS-TRD.docx` để extract nội dung.
+- `inspect-text.txt` — regenerate từ v3.0 docx (4064 dòng, lớn hơn v2.14 ~1541 dòng).
+- `memory/phase-history.md` (+Phase 75 entry).
+- `memory.md` (+row Phase 75 "Hoàn thành gần đây").
+
+### Out-of-scope mới trong v3.0 (chưa triển khai)
+
+v3.0 ghi rõ 3 mục ngoài phạm vi — chưa đủ căn cứ đầu tư:
+- Module Chữ ký số PKI/HSM cho PDF.
+- Module Thông báo Hybrid/Telegram Bot.
+- Phương án kiến trúc Subdirectory Routing (giải pháp tình thế, không thuộc Target Architecture).
+
+### Ghi chú
+
+- **AGENTS.md rule dactaupdate.md** không cần đổi nội dung — chỉ đổi tham chiếu version ở header section, section rule giữ nguyên (cũ vẫn đúng cho v3.0).
+- **Không cần update docx** trong Phase 75: v3.0 vừa mới phát hành (chính là phase này ghi nhận việc user migrate lên v3.0). Mọi gap phát hiện sẽ đưa vào `dactaupdate.md` v3.1 (KHỐI 4-6).
+- **Single source of truth đã chuyển:** mọi tham chiếu `dac-ta-uiux-tonghop-vX.X.docx` trong code/docs → đổi sang `Dac-ta-Master-v3.0-SRS-TRD.docx`.
+- **Backup:** không tạo vì Phase 75 chỉ thay đổi tài liệu + reference, không sửa code logic.
+- **Spec v2.x deprecated chính thức:** v2.13 docx + v2.14 supplement đã merge vào v3.0, audit trail lịch sử giữ trong `memory/phase-history.md` (Phase 73 spec supplement) và `memory/bugs-fixed.md`.
+
+---
+
+## PHASE 76 — Enable Vite HMR cho Docker dev (2026-07-28)
+
+### Mô tả
+
+Bật lại Vite HMR trong Docker dev environment để frontend auto-reload khi sửa code, thay vì phải `docker restart bvdh-frontend` mỗi lần.
+
+### Thay đổi config
+
+**docker-compose.yml:16**
+```diff
+- DISABLE_HMR=true
++ DISABLE_HMR=false
+```
+
+**vite.config.ts:18-19** tự động bật HMR khi `DISABLE_HMR !== 'true'`:
+```ts
+hmr: process.env.DISABLE_HMR !== 'true' ? { clientPort: 3000 } : false,
+watch: process.env.DISABLE_HMR === 'true' ? null : {},
+```
+
+Nginx config (`nginx/nginx.conf:133`) đã sẵn proxy WebSocket cho HMR (`proxy_http_version 1.1; proxy_set_header Upgrade $http_upgrade; proxy_set_header Connection "upgrade";`).
+
+### Workflow mới
+
+| Action | Trước (HMR OFF) | Sau (HMR ON) |
+|--------|-----------------|--------------|
+| Sửa file frontend | `docker restart bvdh-frontend` + Ctrl+Shift+R | Chỉ save file → browser auto-reload |
+| Sửa file backend | `tsx watch` tự reload | Giữ nguyên |
+| Sửa config Docker | `docker compose up -d --build` | Giữ nguyên |
+
+### Verify
+
+- Container `bvdh-frontend` healthy sau rebuild
+- `wget -qO- http://127.0.0.1:8000/@vite/client` trả về HMR client code
+- Sửa file `RecordRequestModal.tsx` → Vite inject `__vite__createHotContext` vào module transform
+
+### Files Changed
+
+- `docker-compose.yml:16` (DISABLE_HMR=false)
+- `AGENTS.md` section "Docker Dev Workflow" — cập nhật rule HMR ON
+- `memory.md` section "Docker Dev Workflow" — cập nhật quy tắc mới
+- `memory/phase-history.md` +Phase 76 entry
+
+### Ghi chú
+
+- Rule "restart container khi sửa frontend" vẫn giữ trong AGENTS.md/memory.md nhưng ghi chú rõ: **chỉ áp dụng khi HMR OFF**. Khi HMR ON → không cần restart.
+- Khi cần tắt HMR để giống production: đổi `false → true` + `docker compose up -d --build public-web`.
+
+## PHASE 77 — Record Request File Preview trong Admin (2026-07-28)
+
+### Mô tả
+
+Trang admin → Yêu cầu trích sao hồ sơ → bấm icon xem chi tiết hiển thị thông tin nhưng **không xem được ảnh preview** của file đính kèm. Chỉ hiển thị tên file dạng text thuần, không có cách mở/tải file.
+
+### Nguyên nhân (gap tích hợp)
+
+| Tầng | Vấn đề |
+|------|--------|
+| Backend route | `record-requests.routes.ts` không có endpoint `GET /:id/files/:fileId` để serve file binary |
+| Backend service | `recordRequestService` không export `getFileById` và `resolvePhysicalPath` chưa có path-traversal guard |
+| Frontend UI | `RecordRequestsTab.tsx:371-383` chỉ render `<FileText>` icon + tên file, không có `<img>`/`<a>`/`<button>` mở file |
+
+### Thay đổi
+
+**Backend** (`server/services/record-request.service.ts`):
+- Export `resolvePhysicalPath` (từ private → public) để route dùng.
+- Thêm `resolveSafePhysicalPath(filePath)` — whitelist thư mục `uploads/pending` và `uploads/approved`, trả về `null` nếu path vượt ra ngoài (chống path traversal).
+- Thêm `getFileById(fileId)` — lookup file theo id.
+
+**Backend** (`server/routes/record-requests.routes.ts`):
+- Thêm route `GET /:id/files/:fileId` với middleware `authenticate` + `requireAdmin`.
+- Validate `file.recordRequestId === req.params.id` (chống file của request khác).
+- Set header `Content-Type` từ `file.mimeType`, `Content-Disposition: inline` để preview trong tab mới, `Cache-Control: private, max-age=300`.
+- Dùng `fs.createReadStream().pipe(res)` để stream file binary (không buffer toàn bộ vào memory).
+
+**Frontend** (`src/components/admin/tabs/RecordRequestsTab.tsx`):
+- Import `authService` từ `lib/auth` và thêm helper `authedFetch()` đính `Authorization: Bearer <accessToken>` cho mọi request file.
+- Thêm state `previewUrls: Record<string, string>` lưu blob URL cho ảnh.
+- Effect fetch ảnh thành blob URL khi `detailModalOpen === true` và `selectedRequest` đổi; cleanup `URL.revokeObjectURL` khi đóng modal hoặc đổi request.
+- Block render file (line 371-383 cũ) thay bằng grid `grid-cols-2 md:grid-cols-3`:
+  - File ảnh (`image/*`): thumbnail `<img>` trỏ tới blob URL + hover overlay hiển thị icon Eye + button "Xem" (mở tab mới) và "Tải" (download).
+  - File PDF: icon placeholder + button "Mở PDF" + "Tải".
+  - File khác (Word…): icon placeholder + button "Tải".
+- Dùng `window.open(blobUrl, "_blank", "noopener,noreferrer")` cho view (PDF/ảnh) — không navigate trang hiện tại.
+
+### Files affected
+
+- `server/services/record-request.service.ts`
+- `server/routes/record-requests.routes.ts`
+- `src/components/admin/tabs/RecordRequestsTab.tsx`
+- `memory/phase-history.md` (entry mới)
+
+### Verify
+
+- `npm run lint` — không thêm lỗi mới (2 pre-existing ở vite.config.ts và ChoBenhNhanPage.tsx vẫn tồn tại, không liên quan).
+- `npm run build` — pass.
+- `docker restart bvdh-backend` + `docker restart bvdh-frontend` để pick up code mới.
+- Test qua container bằng `fetch`:
+  - Login admin → token hợp lệ.
+  - GET file với token: HTTP 200, `Content-Type: image/jpeg`, 132629 bytes ✓
+  - GET file không có token: HTTP 401 ✓
+  - GET file_id không tồn tại: HTTP 404 ✓
+  - GET với request_id lệch file_id: HTTP 404 ✓
+
+### Ghi chú
+
+- Endpoint `GET /:id/files/:fileId` chỉ dành cho admin đã auth. Public form (POST yêu cầu trích sao + POST upload file) vẫn không cần token theo design hiện tại.
+- Auth pattern: client dùng `authService.getAuthHeader()` để đính Bearer token vào fetch — tận dụng token đã lưu trong memory sau login, không cần thay đổi `AuthService`.
+- Lưu ý: tất cả GET/PATCH/DELETE khác trong `record-requests.routes.ts` (line 26-119 cũ) hiện **không có middleware auth** — ngoài scope task này, có thể cân nhắc audit riêng trong phase sau.
+- Không cần update spec docx (file preview không thuộc đặc tả UI/UX hiện hành — chỉ là bug fix gap tích hợp).
+
+---
+
+## PHASE 78 — Redesign UX Modal chi tiết Yêu cầu trích sao (2026-07-28)
+
+### Mô tả
+
+Modal chi tiết yêu cầu trích sao (Admin → Yêu cầu trích sao hồ sơ → bấm icon Eye) đang ở layout 1 cột dọc thẳng, thông tin trải dài, thiếu điểm nhấn thị giác, thiếu trạng thái bằng badge lớn, thiếu animation nâng/hover trên file thumbnail, chưa có modal preview riêng cho ảnh/PDF — user mất ngữ cảnh khi cần mở file lớn.
+
+### Nguyên nhân (gap UX)
+
+| Tầng | Vấn đề |
+|------|--------|
+| Layout | 1 cột dọc nhiều section → cuộn dài, không có hierarchy rõ giữa thông tin / tiến trình / xử lý |
+| Header | Header trắng đơn điệu, status badge nhỏ, không nổi bật so với tiêu đề |
+| File grid | Thumbnail ảnh chỉ render `<FileText>` icon + tên — không có hover lift, không có icon ZoomIn |
+| Preview | Click thumbnail chỉ mở tab mới qua `window.open(blobUrl)` — không có modal preview in-app cho ảnh/PDF |
+
+### Thay đổi
+
+**Modal layout** (`RecordRequestsTab.tsx:432-774`):
+- Header đổi sang gradient `from-green-dark via-green-900 to-brand-green` với ambient white blur orb góc phải, badge status nổi bật cùng mã yêu cầu ở chip `bg-white/20 backdrop-blur-md`.
+- Body đổi từ 1 cột → grid 2 cột `lg:grid-cols-12` (trái 5 cols / phải 7 cols):
+  - **Trái**: 2 glass card trắng — "Thông tin đối tượng" (bệnh nhân + liên hệ) + "Đặc tả hồ sơ đề nghị" (loại/khoảng thời gian/phương thức nhận/lý do).
+  - **Phải**: 3 card — Visual Progress Timeline (3 bước: Tiếp nhận → Xử lý → Hoàn thành/Hủy) với icon đổi màu theo status, Tài liệu đính kèm grid, Phản hồi & Xử lý (note + buttons).
+
+**File preview grid** (`RecordRequestsTab.tsx:614-692`):
+- Thumbnail card có `hover:-translate-y-1 hover:shadow-md transition-all duration-200`, hover overlay `bg-black/30 backdrop-blur-xs` + `ZoomIn` icon cho ảnh.
+- PDF placeholder riêng: gradient red `from-gray-50 to-gray-100 hover:bg-red-50/50`, icon `FileText text-red-500/70` + badge "PDF".
+- Button "Xem" (xanh) + "Tải về" (xám) ngay dưới thumbnail.
+
+**Modal preview riêng** (`RecordRequestsTab.tsx:777-855`):
+- Thêm `previewModalFile` state + `handleOpenPreviewModal(f)` (block nếu không phải ảnh/PDF).
+- Modal `bg-zinc-900` với header `bg-zinc-900/90 border-b border-white/10`, button "Tải về" + nút đóng.
+- Body hiển thị `<img>` cho ảnh (max-w-full, max-h-[75vh], contain), `<iframe>` cho PDF (h-[75vh], bg-white), fallback "không hỗ trợ trực tiếp" cho file khác.
+- Loader spinner `border-2 border-brand-green border-t-transparent` khi đang fetch.
+
+### Files affected
+
+- `src/components/admin/tabs/RecordRequestsTab.tsx`
+- `memory/phase-history.md` (entry mới)
+- `memory.md` (Trạng thái hiện tại)
+
+### Verify
+
+- `npx tsc --noEmit` — không lỗi mới trong `RecordRequestsTab.tsx` (2 pre-existing ở `vite.config.ts` + `ChoBenhNhanPage.tsx` không liên quan).
+- `npx vite build` — pass (986 KB JS, 154 KB CSS).
+- `docker restart bvdh-frontend` để Vite serve code mới (HMR đang BẬT — Phase 76).
+- Test thủ công: mở admin → tab Yêu cầu trích sao → bấm Eye một yêu cầu → kiểm tra header gradient + 2 cột + timeline 3 bước + hover thumbnail + modal preview ảnh/PDF.
+
+### Ghi chú
+
+- Modal preview file mới chỉ render ảnh/PDF (image/* + application/pdf) — các file khác (Word, Excel…) vẫn chỉ cho phép tải về, hiển thị fallback message.
+- Tận dụng `previewUrls` cache có sẵn từ Phase 77 — modal preview dùng lại blob URL đã fetch, không gọi API lại.
+- Layout 2 cột responsive: stack về 1 cột dưới `lg` (1024px) theo `lg:col-span-5 / lg:col-span-7`.
+- Không thay đổi API backend, không thay đổi schema DB — chỉ refactor UI/UX in-place.

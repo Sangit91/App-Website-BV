@@ -17,13 +17,48 @@ Mục tiêu:
 
 ## 📖 Tài liệu đặc tả UI/UX (nguồn tham chiếu chính)
 
-`dac-ta-uiux-tong-hop-vX.X.docx` là **single source of truth** cho hành vi UI/UX, design token, template trang, RBAC Admin và lược đồ CSDL. AGENTS.md không lặp lại nội dung đặc tả — chỉ nêu quy tắc vận hành khi code.
+`Dac-ta-Master-v3.0-SRS-TRD.docx` là **single source of truth** cho toàn bộ hệ thống (SRS + TRD): hành vi UI/UX, design token, template trang, RBAC Admin, Cổng thông tin bệnh nhân (Patient Portal HIS), kiến trúc kỹ thuật, lược đồ CSDL, bảo mật & tuân thủ pháp lý. Tài liệu tổ chức theo **6 KHỐI** độc lập, áp dụng nguyên tắc **In-place Update**.
+
+Lịch sử version:
+- **v3.0 (27/07/2026)** — Master Production-Ready SRS/TRD, thay thế `dac-ta-uiux-tonghop-v2_13.docx` + patch `dac-ta-v2_14-supplement.md`. Refactor toàn diện theo 6 KHỐI, loại bỏ append-only dev log.
+- v2.x (deprecated) — các bản đặc tả UI/UX tổng hợp trước đó, không còn là nguồn tham chiếu.
 
 Bắt buộc:
 
-* Khi một thay đổi làm lệch với đặc tả hiện có (đổi bố cục, đổi luồng, đổi trạng thái) → phải cập nhật docx tương ứng (đánh version mới, ghi vào mục "Nhật ký phiên bản") trong cùng phiên làm việc, không để lệch giữa code và tài liệu.
-* Khi một tính năng mới đã triển khai trên code nhưng chưa có trong docx (ví dụ: tính năng dựng nhanh theo yêu cầu gấp) → ghi nhận vào `memory.md` trước, và nêu rõ trong ghi chú "chưa đồng bộ vào đặc tả UI/UX — cần bổ sung ở lần cập nhật docx kế tiếp".
-* Không tự ý đổi số mục trong docx khi chỉ thêm nội dung — bổ sung mục mới nối tiếp (mục lớn nhất hiện có + 1), giữ nguyên số mục cũ để không phá cross-reference.
+* Khi một thay đổi làm lệch với đặc tả hiện có (đổi bố cục, đổi luồng, đổi trạng thái) → phải cập nhật docx tương ứng (đánh version mới, ghi vào mục "Changelog tóm tắt" KHỐI 1.5) trong cùng phiên làm việc, không để lệch giữa code và tài liệu.
+* Khi một tính năng mới đã triển khai trên code nhưng chưa có trong docx → ghi nhận vào `memory.md` trước, đồng thời bổ sung vào `dactaupdate.md` (xem section bên dưới) để làm buffer nâng version kế tiếp.
+* **Nguyên tắc In-place Update (mới từ v3.0):** cập nhật đè trực tiếp vào đúng KHỐI liên quan — không nối đuôi chương/mục mới ở cuối file. Số mục cũ có thể đổi nếu cấu trúc 6 KHỐI yêu cầu, nhưng phải giữ cross-reference内部 bằng emblem `KHỐI X.Y.Z`.
+
+### `dactaupdate.md` — Buffer nâng version spec docx
+
+`dactaupdate.md` là **bản nháp kế thừa** cho docx: nơi ghi các thay đổi lớn chưa có trong docx chính, làm cơ sở merge + đánh version mới ở lần cập nhật kế tiếp (single source of truth vẫn là docx). Không phải log phase — `memory/phase-history.md` đã lo việc đó.
+
+**Chỉ ghi vào `dactaupdate.md` khi thay đổi thoả:**
+
+* Thêm/sửa/xoá **cấu trúc dữ liệu** (bảng CSDL mới, ENUM mới, quan hệ ERD đổi, index retention).
+* Thêm/sửa **API contract** đáng kể (endpoint mới có ảnh hưởng luồng client, schema response thay đổi, versioning `/api/v1/*` thêm nhóm).
+* Thay đổi **kiến trúc deployment** (Docker topology, port policy, môi trường DMZ, security headers network-level).
+* Thay đổi **RBAC matrix** (-role mới, -permission mới, -đổi ownership theo department).
+* Đề xuất **bổ sung mục docx mới** cho lần version kế tiếp.
+
+**KHÔNG ghi vào `dactaupdate.md` khi:**
+
+* Bug fix thuần UI/UX (sửa class CSS thừa, sửa scrollbar, sửa layout).
+* Refactor nội bộ component (không đổi API, không đổi schema).
+* Tiên phong thay đổi nhỏ typography/spacing/animation tuân design system.
+* Log phase đã hoặc thay đổi đã track sẵn trong `memory/phase-history.md`.
+
+**Quy tắc dọn dẹp (bắt buộc mỗi kỳ version docx):**
+
+* Khi cập nhật `dactaupdate.md`, rà các mục cũ đã merge vào docx hoặc đã lỗi thời vs code thực tế → **xoá** chứ không giữ làm audit trail (audit trail nằm trong `memory/phase-history.md`).
+* Mỗi mục còn lại phải cross-check được với: (a) schema Prisma (`prisma/schema.prisma`), (b) code thực tế (`server/`, `src/`), (c) docx hiện tại. Mục nào lệch 1 trong 3 → sửa hoặc xoá.
+* Header luôn tham chiếu tới version docx **mới nhất** hiện có, không giữ tham chiếu version cũ.
+* "Nhật ký thay đổi" ở cuối file chỉ giữ entry từ kỳ version docx gần nhất trở đi, không tích luỹ entry cũ từ các version đã merge.
+
+**Trường hợp lệch giữa dactaupdate và thực tế:**
+
+* Code đã đổi nhưng `dactaupdate.md` chưa ghi → cập nhật `memory.md` + bổ sung entry dactaupdate trong cùng session.
+* `dactaupdate.md` ghi nhưng code/schema không có → đánh dấu "chưa implement" rõ ràng trong entry, không để mơ hồ.
 
 ---
 
@@ -164,6 +199,43 @@ Quy ước port **bất biến** để tránh xung đột với các app khác t
 ### Lint/build
 
 Nếu lint báo lỗi `server.allowedHosts` ở `vite.config.ts`, đó là pre-existing issue không liên quan port policy — không fix trừ khi yêu cầu riêng.
+
+---
+
+## 📌 Docker Dev Workflow — BẮT BUỘC NHỚ
+
+**Vite HMR đang TẮT trong container** (`docker-compose.yml:16` set `DISABLE_HMR=true`, `vite.config.ts:18-19` theo đó set `hmr: false` + `watch: null`).
+
+### Nguyên nhân
+
+Mount `. → /app` trong `docker-compose.yml:17` vẫn sync file từ host vào container ngay lập tức, nhưng Vite không watch file nên **không auto-transform** khi source đổi. Browser tiếp tục nhận module transform cũ từ lần container khởi động trước.
+
+### Quy tắc bắt buộc
+
+Mỗi lần sửa file `.tsx` / `.ts` / `.css` / `vite.config.ts` (hoặc bất kỳ file Vite phục vụ):
+
+```powershell
+docker restart bvdh-frontend       # ~3s, healthcheck healthy sau ~39s
+```
+
+Rồi **Ctrl+Shift+R** trong browser để bypass cache.
+
+### Triệu chứng điển hình khi quên rule
+
+- User báo "code mới không có hiệu lực" / "sửa rồi mà vẫn vậy".
+- `docker exec bvdh-frontend grep <pattern> src/...` thấy fix **CÓ** trong container, nhưng `wget -qO- http://127.0.0.1:8000/src/...` trả về module transform cũ.
+- → Đề xuất lệnh `docker restart bvdh-frontend` **trước khi debug sâu** vào code.
+
+### Khi nào KHÔNG cần restart
+
+- Sửa file trong `server/` (backend) — `tsx watch` tự reload (`docker-compose.yml:58`).
+- Sửa file cấu hình Docker (`docker-compose.yml`, `Dockerfile.*`, `nginx/nginx.conf`) — phải `docker compose up -d --build` để rebuild image, không chỉ restart.
+- Sửa file trong `prisma/` — phải chạy lại `prisma generate` + restart backend.
+
+### Ghi chú
+
+- Rule này được promote từ `memory/phase-history.md` (Phase 72) sau khi gặp lại ở Phase 74 (re-encounter). Xem chi tiết tại `memory/bugs-fixed.md` entry "Bug Re-encounter: Vite không pick up source fix trong container".
+- **2026-07-28**: Đã bật lại HMR (`DISABLE_HMR=false` trong `docker-compose.yml:16`) để dev auto-reload. Khi cần tắt HMR để giống production: đổi `false → true` + `docker compose up -d --build public-web`. Nginx config (`nginx/nginx.conf:133`) đã proxy WebSocket đúng cho HMR.
 
 ---
 
