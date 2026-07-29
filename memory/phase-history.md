@@ -2144,3 +2144,76 @@ Modal chi tiết yêu cầu trích sao (Admin → Yêu cầu trích sao hồ sơ
 - Tận dụng `previewUrls` cache có sẵn từ Phase 77 — modal preview dùng lại blob URL đã fetch, không gọi API lại.
 - Layout 2 cột responsive: stack về 1 cột dưới `lg` (1024px) theo `lg:col-span-5 / lg:col-span-7`.
 - Không thay đổi API backend, không thay đổi schema DB — chỉ refactor UI/UX in-place.
+---
+
+## PHASE 79 — AGENTS.md split + RBAC scaffold + service/testimonial routes (2026-07-29)
+
+### AGENTS.md module split (tách core + extended reference)
+
+AGENTS.md trước đây 1243 dòng / 33KB — quá lớn để load mỗi session. Tách thành **9 file theo nhóm** trong gents/ + AGENTS.md làm **index** (3437 bytes, giảm 90%):
+
+| # | File | Nhóm quy tắc |
+|---|------|---------------|
+| 01 | gents/01-getting-started.md | Mục tiêu + Tài liệu đặc tả UI/UX (v3.0) + dactaupdate.md + Bắt đầu session + Nguyên tắc vàng + Quy trình làm việc |
+| 02 | gents/02-architecture.md | Port Policy + Docker Dev Workflow (HMR BẬT) + State Management + Cấu trúc Frontend/Backend |
+| 03 | gents/03-ui-design-system.md | UI Governance + Design System (Typography, Spacing, Shadow, Color, Radius) + Animation Pattern (Modern Page Design + prefers-reduced-motion) |
+| 04 | gents/04-components.md | Component Governance (Reusable, EditModal chuẩn) + Responsive Governance + Accessibility (WCAG) |
+| 05 | gents/05-hospital-ux.md | Booking / Test Lookup / Patient Portal (5 trạng thái) / PHI protection / AI Advisor / Hotline / Liên hệ |
+| 06 | gents/06-server-api.md | Server/API Governance (Routes/Services/DB Layer) + Data Retention + HIS API Standards + Public Form API Standards |
+| 07 | gents/07-self-review.md | Self Review bắt buộc (Code/UI/UX/Accessibility/Performance) |
+| 08 | gents/08-memory-management.md | Cấu trúc memory + Memory Safety Rules + Phase numbering |
+| 09 | gents/09-ops.md | Backup Policy + Git Policy + Quality Gate + Cấm + OpenBrain + Định nghĩa thành công |
+
+AGENTS.md index giữ: mục lục quick-ref + Quick Start (agent mới) + ghi chú tách file + quy tắc đồng bộ khi sửa file con.
+
+### Fix lệch Docker Dev Workflow (cùng Phase 79)
+
+Phát hiện AGENTS.md (dòng 205-240, trước tách) **lệch nghiêm trọng** vs memory.md:
+
+- AGENTS.md cũ nói: "Vite HMR đang **TẮT**" (DISABLE_HMR=true, yêu cầu docker restart bvdh-frontend mỗi lần sửa file).
+- memory.md (Phase 75, 2026-07-28) nói: "Vite HMR đang **BẬT**" (DISABLE_HMR=false, auto-reload qua WebSocket).
+
+→ Đã fix nội dung "Docker Dev Workflow" cho khớp memory.md **trước khi tách** (nội dung đúng nằm trong gents/02-architecture.md). Rule "HMR TẮT → phải restart" cũ (Phase 72-74) đã lỗi thời, chỉ giữ làm ghi chú lịch sử.
+
+### RBAC scaffold + service/testimonial routes (verify vs memory.md)
+
+Verify 6 file service/routes mới đã có trong working tree (untracked, chưa commit) vs memory.md:
+
+| File | Vai trò | Verify vs memory.md |
+|------|---------|---------------------|
+| server/middleware/auth.middleware.ts | uthenticate, uthorize, uthorizeExact, uthorizeDepartmentAccess + helper equireSuperAdmin/equireAdmin/equireDoctor/equireReceptionist | ✅ Khớp — Role type Super Admin/Receptionist/Doctor/Department Admin đúng memory.md:161 |
+| server/services/auth.service.ts | dminLogin, efreshTokens, erifyAccessToken, erifyRefreshToken, PBKDF2-SHA512 hash, login lockout (5 lần → 30 phút) | ✅ Khớp — pbkdf2Sync(password, salt, 100000, 64, "sha512") đúng memory.md:144 (PBKDF2-SHA512 100k iterations). Access token 30 phút, refresh 7 ngày đúng memory.md:138-140. Login lockout 5/30p đúng memory.md:155 |
+| server/services/service.service.ts | CRUD ServiceGroup + Service (Prisma), slug auto-generate, isActive default true | ✅ Khớp AGENTS.md Server/API Governance (service layer = business logic, không trực tiếp DB) |
+| server/services/testimonial.service.ts | CRUD Testimonial + pproveTestimonial, getTestimonials có includeUnapproved flag | ✅ Khớp — service layer pattern |
+| server/routes/service.routes.ts | GET public, POST/PUT/DELETE equireSuperAdmin | ✅ Khớp RBAC matrix memory.md:202 (settings:write = Super Admin only) |
+| server/routes/testimonial.routes.ts | GET/POST public, PUT/DELETE/PATCH /approve equireSuperAdmin | ✅ Khớp — testimonial approve = admin only |
+
+**Ghi chú enforce RBAC hiện tại:** RBAC scaffold (middleware + 4 role helper) đã sẵn sàng, nhưng các route admin hiện có (specialties, doctors, news, organization, services admin, tender, contact, record-requests) chưa tất cả gắn middleware equireAdmin/equireDoctor/uthorizeDepartmentAccess. Phase tiếp theo cần audit toàn bộ route admin và gắn đúng middleware theo matrix memory.md:193-205.
+
+### Files affected
+
+- AGENTS.md — rewrite thành index (33758 → 3437 bytes)
+- gents/01-getting-started.md — tạo mới
+- gents/02-architecture.md — tạo mới (đã fix lệch HMR)
+- gents/03-ui-design-system.md — tạo mới
+- gents/04-components.md — tạo mới
+- gents/05-hospital-ux.md — tạo mới
+- gents/06-server-api.md — tạo mới
+- gents/07-self-review.md — tạo mới
+- gents/08-memory-management.md — tạo mới
+- gents/09-ops.md — tạo mới
+- memory.md — cập nhật mục cấu trúc + trạng thái Phase 79
+- memory/phase-history.md — append Phase 79
+
+### Verify
+
+- Kiểm tra 9 file con đều tạo thành công (Get-ChildItem agents).
+- AGENTS.md index 3437 bytes, tham chiếu đúng 9 file con.
+- Nội dung file con khớp AGENTS.md cũ (đã fix lệch HMR trước khi tách) — không mất quy tắc.
+- RBAC scaffold khớp memory.md Security & RBAC Standards.
+
+### Ghi chú
+
+- **Không tạo file mới thêm** trừ khi có task tách lại — nếu cần thêm nhóm quy tắc, mở rộng file gents/0X-*.md hiện có tương ứng trước.
+- **Đồng bộ chéo:** khi sửa 1 file gents/0X-*.md, kiểm tra các file khác không bị lệch (đặc biệt Port Policy ở 02, Memory Safety ở 08, Design Token ở 03).
+- Working tree trước Phase 79 đã commit tại 43ec915 (chore: snapshot working tree before AGENTS.md split). Các file service/routes/middleware mới vẫn untracked — sẽ commit cùng Phase 79 hoặc Phase kế tiếp theo quyết định user.

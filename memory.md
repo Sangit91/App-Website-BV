@@ -67,12 +67,17 @@ src/
 └── lib/                  # Utilities
 
 server/
-├── routes/               # patient.routes, auth.routes, appointment.routes
-├── services/             # Business logic (booking, feedback, record-request, ai)
+├── routes/               # patient.routes, auth.routes, appointment.routes, service.routes, testimonial.routes
+├── services/             # Business logic (booking, feedback, record-request, ai, auth, service, testimonial)
 ├── db/                   # prisma.ts (Prisma client singleton), database.ts (legacy + getGeminiClient)
-├── middleware/            # Auth middleware
+├── middleware/            # auth.middleware.ts (authenticate, authorize, authorizeExact, authorizeDepartmentAccess + requireSuperAdmin/Admin/Doctor/Receptionist helpers)
 └── generated/
     └── prisma/           # Generated Prisma Client (Prisma 7)
+
+agents/                    # (Phase 79) 9 file tách từ AGENTS.md theo nhóm — AGENTS.md làm index
+  - 01-getting-started.md, 02-architecture.md, 03-ui-design-system.md,
+    04-components.md, 05-hospital-ux.md, 06-server-api.md,
+    07-self-review.md, 08-memory-management.md, 09-ops.md
 ```
 
 ---
@@ -247,6 +252,7 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 | Migration spec v3.0 SRS-TRD (Phase 75): user cung cấp `Dac-ta-Master-v3.0-SRS-TRD.docx` (27/07/2026) thay thế v2.13 docx + patch v2.14 supplement. Refactor toàn diện 6 KHỐI độc lập + nguyên tắc In-place Update (đè đúng KHỐI, không append-only). AGENTS.md + dactaupdate.md cập nhật tham chiếu v3.0. Xoá `dac-ta-uiux-tong-hop-v2.14.docx`. Verify cross-check v3.0 vs Prisma schema + code: 95% khớp, 7 gap minor ghi vào dactaupdate v3.1 (KHỐI 4-6) | ✅ Hoàn thành (2026-07-27) |
 | Record Request File Preview trong Admin (Phase 77): backend `GET /api/v1/record-requests/:id/files/:fileId` (authenticate + requireAdmin, chống path traversal bằng `resolveSafePhysicalPath` whitelist uploads/pending + uploads/approved); frontend RecordRequestsTab grid thumbnail + button "Xem"/"Mở PDF"/"Tải", fetch qua `authedFetch` đính Bearer token, preview blob URL với cleanup khi đóng modal | ✅ Hoàn thành (2026-07-28) |
 | Redesign UX Modal chi tiết Yêu cầu trích sao (Phase 78): header gradient `from-green-dark via-green-900 to-brand-green` + status badge lớn; body grid `lg:grid-cols-12` (trái 5 cols: glass card "Thông tin đối tượng" + "Đặc tả hồ sơ đề nghị"; phải 7 cols: Visual Progress Timeline 3 bước + File grid + Phản hồi & Xử lý); thumbnail có `hover:-translate-y-1` + overlay `ZoomIn`; modal preview riêng (`bg-zinc-900`, `<img>` cho ảnh / `<iframe>` cho PDF) dùng lại `previewUrls` cache | ✅ Hoàn thành (2026-07-28) |
+| AGENTS.md split + RBAC scaffold + service/testimonial routes (Phase 79): AGENTS.md tách thành 9 file theo nhóm trong `agents/` + AGENTS.md làm index (33758→3437 bytes, giảm 90%). Fix lệch Docker Dev Workflow trong AGENTS.md (HMR đang BẬT, Phase 75) trước khi tách. Verify 6 file RBAC scaffold mới (`server/middleware/auth.middleware.ts`, `server/services/auth.service.ts`, `server/services/service.service.ts`, `server/services/testimonial.service.ts`, `server/routes/service.routes.ts`, `server/routes/testimonial.routes.ts`) khớp memory.md Security & RBAC Standards. RBAC scaffold sẵn sàng, route admin hiện có chưa tất cả gắn middleware — Phase kế tiếp cần audit toàn bộ route admin | ✅ Hoàn thành (2026-07-29) |
 | Spec v2.9 review + Database gap analysis | ✅ Hoàn thành (2026-07-22) |
 | dactaupdate.md updated with DB gaps | ✅ Hoàn thành |
 | Expert System Review Report (report-review.md) | ✅ Hoàn thành |

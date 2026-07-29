@@ -9,6 +9,9 @@ dist-server/
 .env
 .env.local
 .env.*.local
+.env.production
+.env.*.example
+!.env.example
 
 # Logs
 *.log
@@ -39,3 +42,25 @@ Thumbs.db
 *.tsbuildinfo
 /src/generated/prisma
 /server/generated/prisma
+
+# SSL certs/keys (dev self-signed — không commit private key)
+certs/
+nginx/ssl/
+
+# OpenBrain local DB (agent persistent memory — state, không track)
+openbrain/
+
+# Debug output
+inspect-text.txt
+
+# Test output
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Agent/IDE config tool dirs (config local — không track)
+.claude/
+.windsurf/
+.agents/
+opencode.json
+skills-lock.json
