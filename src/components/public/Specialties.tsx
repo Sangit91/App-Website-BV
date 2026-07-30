@@ -1,15 +1,9 @@
 import React, { useState, useRef } from "react";
 import { motion, useInView, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import {
-  Heart,
-  Baby,
-  Activity,
-  Stethoscope,
   Layers,
-  Smile,
   Plus,
   Minus,
-  Sparkles,
   ArrowRight
 } from "lucide-react";
 import { useHospital } from "../../context/HospitalContext";
@@ -48,18 +42,18 @@ export default function Specialties() {
     return configs[type] || configs.general;
   };
 
-  const getIcon = (type: string) => {
-    switch (type) {
-      case "cardiology": return <Heart size={24} className="fill-brand-green/30" />;
-      case "obstetrics": return <Baby size={24} />;
-      case "pediatrics": return <Baby size={24} />;
-      case "emergency": return <Activity size={24} />;
-      case "general": return <Stethoscope size={24} />;
-      case "diagnostics": return <Layers size={24} />;
-      case "ent": return <Activity size={24} />;
-      case "odontology": return <Smile size={24} />;
-      default: return <Stethoscope size={24} />;
-    }
+  const getIconImage = (type: string) => {
+    const paths: Record<string, string> = {
+      cardiology: "/images/pages/timmach-1.jpeg",
+      obstetrics: "/images/pages/sanphukhoa-1.jpeg",
+      pediatrics: "/images/pages/nhi-1.jpeg",
+      emergency: "/images/pages/icu-1.jpeg",
+      general: "/images/pages/khamtongquat-1.jpeg",
+      diagnostics: "/images/pages/xetnghiem-1.jpeg",
+      ent: "/images/pages/taimuihong-1.jpeg",
+      odontology: "/images/pages/ranghamach-1.jpeg",
+    };
+    return paths[type] || paths.general;
   };
 
   return (
@@ -211,7 +205,7 @@ export default function Specialties() {
                     spec={spec}
                     index={index}
                     badge={getIconBadge(spec.iconType)}
-                    icon={getIcon(spec.iconType)}
+                    iconImage={getIconImage(spec.iconType)}
                     onClick={() => setSelectedSpecialty(spec)}
                   />
                 </motion.div>
@@ -273,13 +267,13 @@ function SpecialtyCard({
   spec,
   index,
   badge,
-  icon,
+  iconImage,
   onClick
 }: {
   spec: Specialty;
   index: number;
   badge: { bg: string; iconColor: string; gradient: string; glow: string };
-  icon: React.ReactNode;
+  iconImage: string;
   onClick?: () => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -337,15 +331,15 @@ function SpecialtyCard({
         <div className="relative z-10 p-6 flex flex-col h-full">
           {/* Icon container with glow effect */}
           <motion.div
-            className={`w-[60px] h-[60px] ${badge.bg} ${badge.iconColor} rounded-2xl flex items-center justify-center mb-5 ${badge.glow} transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 relative overflow-hidden`}
+            className={`w-[60px] h-[60px] rounded-2xl mb-5 ${badge.glow} transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 relative overflow-hidden`}
             style={{ transform: "translateZ(30px)" }}
           >
-            {/* Inner glow */}
+            <img
+              src={iconImage}
+              alt={spec.name}
+              className="w-full h-full object-cover"
+            />
             <div className={`absolute inset-0 bg-gradient-to-br from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-            {/* Icon */}
-            <div className="relative z-10">
-              {icon}
-            </div>
           </motion.div>
 
           {/* Title */}
