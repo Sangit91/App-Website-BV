@@ -113,9 +113,7 @@ export default function AdminPage() {
           <div className="px-6 md:px-8 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-green to-green-dark flex items-center justify-center shadow-sm">
-                  <span className="text-white text-xs font-bold">BV</span>
-                </div>
+                <img src="/images/logo/Logo_bqn.png" alt="BVĐK Quảng Nam" className="w-8 h-8 object-contain" />
                 <div>
                   <h1 className="text-sm font-display font-bold text-green-dark">BVĐK Quảng Nam</h1>
                   <p className="text-[10px] text-ink/50 font-medium">Cổng Quản trị Nội bộ</p>

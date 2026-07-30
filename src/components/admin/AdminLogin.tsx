@@ -344,26 +344,20 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
               boxShadow: "0 20px 80px rgba(0, 255, 157, 0.15), 0 8px 32px rgba(0, 255, 157, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)"
             }}
           >
-            <div className="text-center mb-7">
-              <div
-                className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 relative"
-                style={{
-                  background: "linear-gradient(135deg, #164B36 0%, #2FA968 100%)",
-                  boxShadow: "0 8px 32px rgba(47, 169, 104, 0.4), 0 0 48px rgba(47, 169, 104, 0.15)"
-                }}
-              >
-                <ShieldCheck className="text-white w-8 h-8" />
-                <div
-                  className="absolute -right-1 -top-1 w-3 h-3 rounded-full bg-[#00FF9D]"
-                  style={{
-                    boxShadow: "0 0 8px #00FF9D, 0 0 16px #00FF9D",
-                    animation: reducedMotion ? "none" : "pulse 2s ease-in-out infinite"
-                  }}
-                />
-              </div>
-              <h2 className="font-display font-bold text-2xl text-[#164B36] mb-1">
-                Đăng nhập hệ thống
-              </h2>
+              <div className="text-center mb-7">
+                <div className="w-16 h-16 mx-auto mb-4 relative">
+                  <img src="/images/logo/Logo_bqn.png" alt="BVĐK Quảng Nam" className="w-full h-full object-contain" />
+                  <div
+                    className="absolute -right-1 -top-1 w-3 h-3 rounded-full bg-[#00FF9D]"
+                    style={{
+                      boxShadow: "0 0 8px #00FF9D, 0 0 16px #00FF9D",
+                      animation: reducedMotion ? "none" : "pulse 2s ease-in-out infinite"
+                    }}
+                  />
+                </div>
+                <h2 className="font-display font-bold text-2xl text-[#164B36] mb-1">
+                  Đăng nhập hệ thống
+                </h2>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EAF7EE] text-[#164B36] text-xs font-semibold">
                 <span>Cổng quản trị nội bộ</span>
                 <span className="w-1 h-1 rounded-full bg-[#2FA968]" />
