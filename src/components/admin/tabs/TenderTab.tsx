@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { FileText, Building2, Calendar, DollarSign, Phone, Mail, Plus, Download } from "lucide-react";
+import { motion } from "framer-motion";
+import { FileText, Building2, Calendar, DollarSign, Phone, Mail, Plus, Download, Briefcase, Gavel } from "lucide-react";
 import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog } from "../ui";
 import { Button } from "../../ui";
 
@@ -39,20 +40,53 @@ const STATUS_OPTIONS = [
 
 const DEPT_OPTIONS = DEPARTMENTS.map(d => ({ value: d.id, label: d.name }));
 
+const statusColorMap: Record<string, string> = {
+  "Đang mở": "bg-brand-green/10 text-brand-green border-l-brand-green",
+  "Sắp đóng": "bg-peach/10 text-peach border-l-peach",
+  "Đã đóng": "bg-gray-100 text-gray-500 border-l-gray-400",
+};
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.1, duration: 0.35, ease: "easeOut" }
+  })
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.05, duration: 0.3, ease: "easeOut" }
+  })
+};
+
 export default function TenderTab() {
   return (
-    <div className="space-y-6">
+    <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-display font-bold text-2xl text-green-dark">Quản lý Thông tin thầu</h2>
-          <p className="text-sm text-ink/60 mt-1">Cập nhật thông tin đấu thầu và mua sắm công</p>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-green/20 to-green-dark/20 flex items-center justify-center shadow-sm">
+            <Gavel size={18} className="text-brand-green" />
+          </div>
+          <div>
+            <h2 className="font-display font-bold text-lg text-green-dark">Thông tin thầu</h2>
+            <p className="text-[11px] text-ink/50">Cập nhật thông tin đấu thầu và mua sắm công</p>
+          </div>
         </div>
         <span className="text-xs font-bold bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full">2 Sections</span>
       </div>
 
-      <TenderNoticesSection />
-      <DepartmentsSection />
-    </div>
+      <motion.div custom={0} initial="hidden" animate="visible" variants={sectionVariants}>
+        <TenderNoticesSection />
+      </motion.div>
+      <motion.div custom={1} initial="hidden" animate="visible" variants={sectionVariants}>
+        <DepartmentsSection />
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -105,35 +139,36 @@ function TenderNoticesSection() {
         <div className="p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {tenders.map((tender, idx) => (
-              <ItemCard
-                key={tender.id}
-                title={tender.title}
-                description={`${tender.tenderNumber} • ${tender.dept}`}
-                index={idx}
-                actions={{
-                  onEdit: () => handleOpenEdit(tender),
-                  onDelete: () => setDeleteConfirm(tender.id)
-                }}
-                footer={
-                  <div className="space-y-1 mt-2">
-                    <div className="flex items-center gap-1 text-xs text-ink/60">
-                      <DollarSign size={12} className="text-brand-green" />
-                      <span>{tender.estimateValue}</span>
+              <motion.div key={tender.id} custom={idx} initial="hidden" animate="visible" variants={itemVariants}>
+                <ItemCard
+                  title={tender.title}
+                  description={`${tender.tenderNumber} • ${tender.dept}`}
+                  index={idx}
+                  actions={{
+                    onEdit: () => handleOpenEdit(tender),
+                    onDelete: () => setDeleteConfirm(tender.id)
+                  }}
+                  footer={
+                    <div className="space-y-1 mt-2">
+                      <div className="flex items-center gap-1 text-xs text-ink/60">
+                        <DollarSign size={12} className="text-brand-green" />
+                        <span>{tender.estimateValue}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-ink/60">
+                        <Calendar size={12} className="text-peach" />
+                        <span>Hạn: {tender.endDate}</span>
+                      </div>
+                      <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        tender.status === "Đang mở" ? "bg-brand-green/10 text-brand-green" :
+                        tender.status === "Sắp đóng" ? "bg-peach/10 text-peach" :
+                        "bg-gray-100 text-gray-500"
+                      }`}>
+                        {tender.status}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-ink/60">
-                      <Calendar size={12} className="text-peach" />
-                      <span>Hạn: {tender.endDate}</span>
-                    </div>
-                    <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      tender.status === "Đang mở" ? "bg-brand-green/10 text-brand-green" :
-                      tender.status === "Sắp đóng" ? "bg-peach/10 text-peach" :
-                      "bg-gray-100 text-gray-500"
-                    }`}>
-                      {tender.status}
-                    </span>
-                  </div>
-                }
-              />
+                  }
+                />
+              </motion.div>
             ))}
             <AddCard title="Thêm thông báo" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="green" />
           </div>
@@ -186,15 +221,16 @@ function DepartmentsSection() {
       <div className="p-5">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {DEPARTMENTS.map((dept, idx) => (
-            <ItemCard
-              key={dept.id}
-              title={dept.name}
-              description={dept.id}
-              index={idx}
-              footer={
-                <div className="w-2 h-2 rounded-full bg-brand-green mt-2 mx-auto" />
-              }
-            />
+            <motion.div key={dept.id} custom={idx} initial="hidden" animate="visible" variants={itemVariants}>
+              <ItemCard
+                title={dept.name}
+                description={dept.id}
+                index={idx}
+                footer={
+                  <div className="w-2 h-2 rounded-full bg-brand-green mt-2 mx-auto" />
+                }
+              />
+            </motion.div>
           ))}
         </div>
       </div>

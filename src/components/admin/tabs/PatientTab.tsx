@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Heart, FileText, List, Plus, CheckCircle, Calendar, Clock, User, Ambulance, Shield } from "lucide-react";
+import { motion } from "framer-motion";
+import { Heart, FileText, List, Plus, CheckCircle, Calendar, Clock, User, Ambulance, Shield, Stethoscope, Wallet } from "lucide-react";
 import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog } from "../ui";
 import { Button } from "../../ui";
 
@@ -25,8 +26,8 @@ const ICON_MAP: Record<string, any> = {
   calendar: Calendar,
   check: CheckCircle,
   user: User,
-  stethoscope: Heart,
-  wallet: FileText,
+  stethoscope: Stethoscope,
+  wallet: Wallet,
   clipboard: List,
   clock: Clock,
   card: FileText,
@@ -53,23 +54,58 @@ interface BringItem {
   icon: string;
 }
 
+const sectionVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.1, duration: 0.35, ease: "easeOut" }
+  })
+};
+
+const colorMap: Record<string, string> = {
+  green: "bg-brand-green/10 text-brand-green border-l-brand-green",
+  amber: "bg-amber-50 text-amber-700 border-l-amber-400",
+  blue: "bg-blue-50 text-blue-700 border-l-blue-400",
+};
+
 export default function PatientTab() {
   return (
-    <div className="space-y-6">
+    <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-display font-bold text-2xl text-green-dark">Quản lý Cho bệnh nhân</h2>
-          <p className="text-sm text-ink/60 mt-1">Cập nhật nội dung trang Hướng dẫn bệnh nhân</p>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-green/20 to-green-dark/20 flex items-center justify-center shadow-sm">
+            <Heart size={18} className="text-brand-green" />
+          </div>
+          <div>
+            <h2 className="font-display font-bold text-lg text-green-dark">Cho bệnh nhân</h2>
+            <p className="text-[11px] text-ink/50">Cập nhật nội dung trang Hướng dẫn bệnh nhân</p>
+          </div>
         </div>
         <span className="text-xs font-bold bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full">3 Sections</span>
       </div>
 
-      <ProcessSection />
-      <WhatToBringSection />
-      <FaqSection />
-    </div>
+      <motion.div custom={0} initial="hidden" animate="visible" variants={sectionVariants}>
+        <ProcessSection />
+      </motion.div>
+      <motion.div custom={1} initial="hidden" animate="visible" variants={sectionVariants}>
+        <WhatToBringSection />
+      </motion.div>
+      <motion.div custom={2} initial="hidden" animate="visible" variants={sectionVariants}>
+        <FaqSection />
+      </motion.div>
+    </motion.div>
   );
 }
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.05, duration: 0.3, ease: "easeOut" }
+  })
+};
 
 function ProcessSection() {
   const [enabled, setEnabled] = useState(true);
@@ -120,21 +156,22 @@ function ProcessSection() {
             {steps.map((step, idx) => {
               const Icon = ICON_MAP[step.icon] || Calendar;
               return (
-                <ItemCard
-                  key={step.id}
-                  title={`Bước ${step.step}`}
-                  description={`${step.title} - ${step.desc}`}
-                  index={idx}
-                  actions={{
-                    onEdit: () => handleOpenEdit(step),
-                    onDelete: () => setDeleteConfirm(step.id)
-                  }}
-                  footer={
-                    <div className="w-10 h-10 rounded-full bg-brand-green/10 flex items-center justify-center mt-2 mx-auto">
-                      <Icon size={18} className="text-brand-green" />
-                    </div>
-                  }
-                />
+                <motion.div key={step.id} custom={idx} initial="hidden" animate="visible" variants={itemVariants}>
+                  <ItemCard
+                    title={`Bước ${step.step}`}
+                    description={`${step.title} - ${step.desc}`}
+                    index={idx}
+                    actions={{
+                      onEdit: () => handleOpenEdit(step),
+                      onDelete: () => setDeleteConfirm(step.id)
+                    }}
+                    footer={
+                      <div className="w-10 h-10 rounded-full bg-brand-green/10 flex items-center justify-center mt-2 mx-auto">
+                        <Icon size={18} className="text-brand-green" />
+                      </div>
+                    }
+                  />
+                </motion.div>
               );
             })}
             <AddCard title="Thêm bước" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="green" />
@@ -209,22 +246,23 @@ function WhatToBringSection() {
         <div className="p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {items.map((item, idx) => (
-              <ItemCard
-                key={item.id}
-                title={item.text}
-                description="Giấy tờ cần thiết"
-                index={idx}
-                actions={{
-                  onEdit: () => handleOpenEdit(item),
-                  onDelete: () => setDeleteConfirm(item.id)
-                }}
-                footer={
-                  <div className="flex items-center justify-center gap-2 mt-2">
-                    <CheckCircle size={14} className="text-brand-green" />
-                    <span className="text-xs text-ink/60">Bắt buộc</span>
-                  </div>
-                }
-              />
+              <motion.div key={item.id} custom={idx} initial="hidden" animate="visible" variants={itemVariants}>
+                <ItemCard
+                  title={item.text}
+                  description="Giấy tờ cần thiết"
+                  index={idx}
+                  actions={{
+                    onEdit: () => handleOpenEdit(item),
+                    onDelete: () => setDeleteConfirm(item.id)
+                  }}
+                  footer={
+                    <div className="flex items-center justify-center gap-2 mt-2">
+                      <CheckCircle size={14} className="text-brand-green" />
+                      <span className="text-xs text-ink/60">Bắt buộc</span>
+                    </div>
+                  }
+                />
+              </motion.div>
             ))}
             <AddCard title="Thêm giấy tờ" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="amber" />
           </div>
@@ -303,16 +341,17 @@ function FaqSection() {
         <div className="p-5">
           <div className="space-y-4">
             {faqs.map((faq, idx) => (
-              <ItemCard
-                key={faq.id}
-                title={faq.question}
-                description={faq.answer}
-                index={idx}
-                actions={{
-                  onEdit: () => handleOpenEdit(faq),
-                  onDelete: () => setDeleteConfirm(faq.id)
-                }}
-              />
+              <motion.div key={faq.id} custom={idx} initial="hidden" animate="visible" variants={itemVariants}>
+                <ItemCard
+                  title={faq.question}
+                  description={faq.answer}
+                  index={idx}
+                  actions={{
+                    onEdit: () => handleOpenEdit(faq),
+                    onDelete: () => setDeleteConfirm(faq.id)
+                  }}
+                />
+              </motion.div>
             ))}
             <AddCard title="Thêm FAQ" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="blue" />
           </div>

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Phone, MapPin, Mail, Link2, Clock, Plus } from "lucide-react";
+import { motion } from "framer-motion";
+import { Phone, MapPin, Mail, Link2, Clock, Plus, Globe, ExternalLink } from "lucide-react";
 import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog } from "../ui";
 import { Button } from "../../ui";
 
@@ -35,21 +36,59 @@ interface QuickLink {
   link: string;
 }
 
+const sectionVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.1, duration: 0.35, ease: "easeOut" }
+  })
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.05, duration: 0.3, ease: "easeOut" }
+  })
+};
+
+const infoItemMap: Record<string, { icon: any; color: string }> = {
+  address: { icon: MapPin, color: "text-brand-green" },
+  phone: { icon: Phone, color: "text-brand-green" },
+  hotline: { icon: Phone, color: "text-peach" },
+  email: { icon: Mail, color: "text-brand-green" },
+  website: { icon: Globe, color: "text-brand-green" },
+  workingHours: { icon: Clock, color: "text-brand-green" },
+};
+
 export default function ContactTab() {
   return (
-    <div className="space-y-6">
+    <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-display font-bold text-2xl text-green-dark">Quản lý Liên hệ / Footer</h2>
-          <p className="text-sm text-ink/60 mt-1">Cập nhật thông tin liên hệ và Footer</p>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-green/20 to-green-dark/20 flex items-center justify-center shadow-sm">
+            <Phone size={18} className="text-brand-green" />
+          </div>
+          <div>
+            <h2 className="font-display font-bold text-lg text-green-dark">Liên hệ / Footer</h2>
+            <p className="text-[11px] text-ink/50">Cập nhật thông tin liên hệ và Footer</p>
+          </div>
         </div>
         <span className="text-xs font-bold bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full">3 Sections</span>
       </div>
 
-      <ContactInfoSection />
-      <QuickLinksSection />
-      <SupportLinksSection />
-    </div>
+      <motion.div custom={0} initial="hidden" animate="visible" variants={sectionVariants}>
+        <ContactInfoSection />
+      </motion.div>
+      <motion.div custom={1} initial="hidden" animate="visible" variants={sectionVariants}>
+        <QuickLinksSection />
+      </motion.div>
+      <motion.div custom={2} initial="hidden" animate="visible" variants={sectionVariants}>
+        <SupportLinksSection />
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -73,6 +112,15 @@ function ContactInfoSection() {
     setIsEditOpen(false);
   };
 
+  const infoFields: { key: keyof ContactInfo; label: string }[] = [
+    { key: "address", label: "Địa chỉ" },
+    { key: "phone", label: "Điện thoại" },
+    { key: "hotline", label: "Hotline" },
+    { key: "email", label: "Email" },
+    { key: "website", label: "Website" },
+    { key: "workingHours", label: "Giờ làm việc" },
+  ];
+
   return (
     <>
       <SectionCard
@@ -91,52 +139,28 @@ function ContactInfoSection() {
       >
         <div className="p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <MapPin size={16} className="text-brand-green mt-0.5" />
-                <div>
-                  <p className="text-[10px] font-bold text-green-dark uppercase">Địa chỉ</p>
-                  <p className="text-sm text-ink">{info.address}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Phone size={16} className="text-brand-green mt-0.5" />
-                <div>
-                  <p className="text-[10px] font-bold text-green-dark uppercase">Điện thoại</p>
-                  <p className="text-sm text-ink">{info.phone}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Phone size={16} className="text-peach mt-0.5" />
-                <div>
-                  <p className="text-[10px] font-bold text-green-dark uppercase">Hotline</p>
-                  <p className="text-sm text-ink font-semibold">{info.hotline}</p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <Mail size={16} className="text-brand-green mt-0.5" />
-                <div>
-                  <p className="text-[10px] font-bold text-green-dark uppercase">Email</p>
-                  <p className="text-sm text-ink">{info.email}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Link2 size={16} className="text-brand-green mt-0.5" />
-                <div>
-                  <p className="text-[10px] font-bold text-green-dark uppercase">Website</p>
-                  <p className="text-sm text-ink">{info.website}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Clock size={16} className="text-brand-green mt-0.5" />
-                <div>
-                  <p className="text-[10px] font-bold text-green-dark uppercase">Giờ làm việc</p>
-                  <p className="text-sm text-ink">{info.workingHours}</p>
-                </div>
-              </div>
-            </div>
+            {infoFields.map((field, idx) => {
+              const meta = infoItemMap[field.key] || { icon: MapPin, color: "text-brand-green" };
+              const Icon = meta.icon;
+              return (
+                <motion.div
+                  key={field.key}
+                  custom={idx}
+                  initial="hidden"
+                  animate="visible"
+                  variants={itemVariants}
+                  className="flex items-start gap-3 p-3 rounded-xl hover:bg-cream-white transition-colors group"
+                >
+                  <div className={`w-8 h-8 rounded-lg bg-brand-green/5 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${meta.color}`}>
+                    <Icon size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-green-dark uppercase tracking-wide">{field.label}</p>
+                    <p className={`text-sm ${field.key === "hotline" ? "font-bold text-peach" : "text-ink"}`}>{info[field.key]}</p>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </SectionCard>
@@ -202,16 +226,17 @@ function QuickLinksSection() {
         <div className="p-5">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
             {links.map((link, idx) => (
-              <ItemCard
-                key={link.id}
-                title={link.label}
-                description={link.link}
-                index={idx}
-                actions={{
-                  onEdit: () => handleOpenEdit(link),
-                  onDelete: () => setDeleteConfirm(link.id)
-                }}
-              />
+              <motion.div key={link.id} custom={idx} initial="hidden" animate="visible" variants={itemVariants}>
+                <ItemCard
+                  title={link.label}
+                  description={link.link}
+                  index={idx}
+                  actions={{
+                    onEdit: () => handleOpenEdit(link),
+                    onDelete: () => setDeleteConfirm(link.id)
+                  }}
+                />
+              </motion.div>
             ))}
             <AddCard title="Thêm liên kết" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="blue" />
           </div>
@@ -284,16 +309,17 @@ function SupportLinksSection() {
         <div className="p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
             {links.map((link, idx) => (
-              <ItemCard
-                key={link.id}
-                title={link.label}
-                description={link.link}
-                index={idx}
-                actions={{
-                  onEdit: () => handleOpenEdit(link),
-                  onDelete: () => setDeleteConfirm(link.id)
-                }}
-              />
+              <motion.div key={link.id} custom={idx} initial="hidden" animate="visible" variants={itemVariants}>
+                <ItemCard
+                  title={link.label}
+                  description={link.link}
+                  index={idx}
+                  actions={{
+                    onEdit: () => handleOpenEdit(link),
+                    onDelete: () => setDeleteConfirm(link.id)
+                  }}
+                />
+              </motion.div>
             ))}
             <AddCard title="Thêm liên kết" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="amber" />
           </div>
