@@ -16,8 +16,6 @@ import specialtyRoutes from "./routes/specialty.routes";
 import doctorRoutes from "./routes/doctor.routes";
 import newsRoutes from "./routes/news.routes";
 import consentRoutes from "./routes/consent.routes";
-import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
-
 const app = express();
 
 app.use(helmet());
@@ -53,8 +51,5 @@ app.use("/api/v1/specialties", specialtyRoutes);
 app.use("/api/v1/doctors", doctorRoutes);
 app.use("/api/v1/news", newsRoutes);
 app.use("/api/v1/consent", consentRoutes);
-
-app.use(notFoundHandler);
-app.use(errorHandler);
 
 export default app;
