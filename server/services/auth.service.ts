@@ -1,8 +1,15 @@
 import crypto from "crypto";
 import { getPrisma } from "../db/prisma.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-in-production-min-32-chars";
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "dev-refresh-secret-change-in-production";
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+
+if (!JWT_SECRET && process.env.NODE_ENV === "production") {
+  throw new Error("JWT_SECRET is required in production");
+}
+if (!JWT_REFRESH_SECRET && process.env.NODE_ENV === "production") {
+  throw new Error("JWT_REFRESH_SECRET is required in production");
+}
 
 const ACCESS_TOKEN_EXPIRY = 30 * 60 * 1000; // 30 minutes
 const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days

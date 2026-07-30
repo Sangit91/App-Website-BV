@@ -285,6 +285,72 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
 
 ---
 
+## 🔎 Audit tổng thể (2026-07-30) — phát hiện qua code review
+
+> **Nguồn gốc:** Rà soát toàn bộ project (frontend `src/` + backend `server/`) sau Phase refresh token.
+> **Chi tiết từng issue:** xem kết quả review trong session log (grep "CRITICAL\|HIGH\|MEDIUM\|LOW").
+> **Cập nhật tiến triển:** mỗi lần xử lý xong 1 vấn đề, quay lại đây đánh dấu ✅.
+
+### 🔴 CRITICAL — cần xử lý gấp
+
+| # | Vấn đề | File | Trạng thái |
+|---|--------|------|------------|
+| C1 | Endpoint debug `/api/debug-update` không auth — ai cũng sửa được `feedbackRequest.status` | `server/app.ts:25-37` | ❌ |
+| C2 | Hầu hết admin CRUD routes không auth — doctors, news, specialties, feedback, record-requests, appointments, patients — ai cũng POST/PUT/DELETE được | Toàn bộ `server/routes/*.routes.ts` | ❌ |
+| C3 | File upload không auth — `/record-requests/:id/files` | `record-requests.routes.ts:53-63` | ❌ |
+| C4 | Error handler middleware chưa register — lỗi không catch sẽ crash server + leak stack trace | `server/app.ts` | ❌ |
+| C5 | Không rate limiting trên login/OTP — brute-force dễ dàng | `auth.routes.ts` | ❌ |
+| C6 | Unhandled promise rejection trong consent middleware | `consent.middleware.ts:51-67` | ❌ |
+| C7 | JWT secret fallback cứng — nếu thiếu `.env` vẫn chạy, ai đọc source cũng forge token được | `auth.service.ts:4-5` | ❌ |
+| C8 | Mock data trong production routes — `patient.routes.ts` và `appointment.routes.ts` toàn bộ là mock array, restart mất hết | `patient.routes.ts`, `appointment.routes.ts` | ❌ |
+| C9 | ErrorBoundary có nhưng không dùng — component throw error → crash trắng trang | `src/components/ui/ErrorBoundary.tsx` | ❌ |
+
+### 🟠 HIGH
+
+| # | Vấn đề | File | Trạng thái |
+|---|--------|------|------------|
+| H1 | Không input validation (Zod/Joi) — request body dùng raw từ client | Toàn bộ routes | ❌ |
+| H2 | Không Prisma transaction — multi-step operation dễ mất đồng bộ (upload file + DB insert, xoá policy cũ + tạo mới...) | `server/services/*.ts` | ❌ |
+| H3 | Không pagination API — list endpoint sẽ trả hàng ngàn records | `booking/feedback/news/doctor.service.ts` | ❌ |
+| H4 | Custom JWT — không theo RFC 7519 (thiếu `iat`, `exp` sai format) | `auth.service.ts:43-56` | ❌ |
+| H5 | Không helmet/CORS — thiếu security headers, CORS mở trắng | `server/app.ts` | ❌ |
+| H6 | Path traversal protection cần hardening — `resolveSafePhysicalPath` có thể bypass | `record-request.service.ts:46-55` | ❌ |
+| H7 | In-memory login attempt tracker — mất khi restart server, không scale được | `auth.service.ts:17` | ❌ |
+| H8 | **~30+ `any` types** trong frontend — `Record<string, any>` khắp admin tabs | `HospitalContext.tsx`, `PatientTab.tsx`, `HomeTab/index.tsx`, các admin tabs | ❌ |
+| H9 | **~36 unused lucide-react icons** — import nhưng không dùng trong JSX | `Navbar.tsx`, `TenderTab.tsx`, `BookingsTab.tsx`, nhiều file | ❌ |
+| H10 | **`console.log` trong production** — leak OTP/token qua log | `auth.routes.ts:94,149,204`, `reset-admin-password.ts:25` | ❌ |
+
+### 🟡 MEDIUM
+
+| # | Vấn đề | File | Trạng thái |
+|---|--------|------|------------|
+| M1 | `key={idx}` thay vì unique ID — ~20 files bị ảnh hưởng | Nhiều files | ❌ |
+| M2 | `useEffect` missing dependencies — `fetchRequests`/`fetchFeedbacks` không trong deps | `FeedbackTab.tsx`, `RecordRequestsTab.tsx` | ❌ |
+| M3 | `window.location.reload()` trong `ShiftsTab.tsx` — hard reload | `ShiftsTab.tsx:71` | ❌ |
+| M4 | Thiếu cascade delete trong Prisma schema | `prisma/schema.prisma` | ❌ |
+| M5 | Mass assignment — `...data` spread cho phép ghi field tuỳ ý vào DB | `news/specialty/service.service.ts` | ❌ |
+| M6 | Version API không đồng nhất — `/api/booking` vs `/api/v1/auth` | `server/app.ts:39-52` | ❌ |
+| M7 | Consent middleware defined nhưng không wire vào route nào | `consent.middleware.ts` | ❌ |
+| M8 | Response format không đồng nhất — `{success, data}` vs `{error}` | Toàn bộ routes | ❌ |
+| M9 | Soft delete không enforce — cần Prisma middleware filter `deletedAt: null` | `prisma/schema.prisma` | ❌ |
+| M10 | JSON body size limit không set — dễ bị DoS payload lớn | `server/app.ts:19` | ❌ |
+| M11 | `console.log` silent sync error thay vì `console.error` | `HospitalContext.tsx:652` | ❌ |
+| M12 | Prop drilling — `PatientPortalSection.tsx` nhận 9 props | `PatientPortalSection.tsx` | ❌ |
+| M13 | Tên component gây nhầm — `PatientTab.tsx` (admin guide) vs `PatientsTab.tsx` (patient records) | `admin/tabs/` | ❌ |
+
+### 🟢 LOW
+
+| # | Vấn đề | File | Trạng thái |
+|---|--------|------|------------|
+| L1 | Orphaned temp files khi DB insert fail trong upload | `record-request.service.ts:143-155` | ❌ |
+| L2 | Doctor schedule validation thiếu — day value không check | `doctor.service.ts:74-86` | ❌ |
+| L3 | Organization dùng in-memory store thay vì Prisma | `organization.routes.ts` vs `prisma/schema.prisma` | ❌ |
+| L4 | Non-optional foreign key policyVersion có thể gây constraint violation | `prisma/schema.prisma:551` | ❌ |
+| L5 | Dead type definitions trong `database.ts` (không dùng nữa) | `server/db/database.ts` | ❌ |
+| L6 | `Hash` icon import semantic không rõ ràng | `RecordRequestsTab.tsx:L7` | ❌ |
+
+---
+
 ## 🚧 Pending Tasks
 
 ### Phase 49 (Hoàn thành)

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as doctorService from "../services/doctor.service";
+import { authenticate, requireAdmin } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -34,7 +35,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", authenticate, requireAdmin, async (req, res) => {
   try {
     const doctor = await doctorService.createDoctor(req.body);
     res.status(201).json(doctor);
@@ -44,7 +45,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticate, requireAdmin, async (req, res) => {
   try {
     const doctor = await doctorService.updateDoctor(req.params.id, req.body);
     res.json(doctor);
@@ -54,7 +55,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticate, requireAdmin, async (req, res) => {
   try {
     await doctorService.deleteDoctor(req.params.id);
     res.json({ success: true });
@@ -64,7 +65,7 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-router.patch("/:id/schedule", async (req, res) => {
+router.patch("/:id/schedule", authenticate, requireAdmin, async (req, res) => {
   try {
     const schedule = await doctorService.updateDoctorSchedule(req.params.id, req.body);
     res.json(schedule);

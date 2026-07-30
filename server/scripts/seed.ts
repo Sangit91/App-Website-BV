@@ -167,14 +167,78 @@ const isTender = !!(n as any).isTender;
   // ============================================================
   console.log("Creating patients...");
   await pool.query(`
-    INSERT INTO patients (id, patient_code, full_name, phone, visit_count, registered_at, is_active, created_at, updated_at)
+    INSERT INTO patients (id, patient_code, full_name, cccd, phone, birth_date, gender, address, visit_count, registered_at, is_active, created_at, updated_at)
     VALUES
-      ('pat-001', 'BN-001', 'Cô Trương Thị Hoa', '0905777888', 5, '2026-01-15', true, NOW(), NOW()),
-      ('pat-002', 'BN-002', 'Anh Nguyễn Văn Hoàng', '0905666777', 2, '2026-02-20', true, NOW(), NOW()),
-      ('pat-003', 'BN-003', 'Chị Phan Thị Vy', '0905555666', 1, '2026-03-10', true, NOW(), NOW()),
-      ('pat-004', 'BN-004', 'Nguyễn Văn An', '0905123456', 3, '2026-04-05', true, NOW(), NOW()),
-      ('pat-005', 'BN-005', 'Trần Thị Bình', '0905111222', 4, '2026-05-12', true, NOW(), NOW()),
-      ('pat-006', 'BN-006', 'Phạm Văn Cường', '0905888999', 6, '2026-06-01', true, NOW(), NOW())
+      ('pat-001', 'BN-001', 'Cô Trương Thị Hoa', '001234567890', '0905777888', '1985-06-15', 'nữ', '123 Quang Trung, Đại Lộc', 5, '2026-01-15', true, NOW(), NOW()),
+      ('pat-002', 'BN-002', 'Anh Nguyễn Văn Hoàng', '002345678901', '0905666777', '1978-12-20', 'nam', '456 Lê Lợi, Đại Lộc', 2, '2026-02-20', true, NOW(), NOW()),
+      ('pat-003', 'BN-003', 'Chị Phan Thị Vy', '003456789012', '0905555666', '1992-03-10', 'nữ', '789 Nguyễn Huệ, Đại Lộc', 1, '2026-03-10', true, NOW(), NOW()),
+      ('pat-004', 'BN-004', 'Nguyễn Văn An', '004567890123', '0905123456', '1990-04-05', 'nam', '12 Trần Phú, Đại Lộc', 3, '2026-04-05', true, NOW(), NOW()),
+      ('pat-005', 'BN-005', 'Trần Thị Bình', '005678901234', '0905111222', '1982-05-12', 'nữ', '34 Bà Triệu, Đại Lộc', 4, '2026-05-12', true, NOW(), NOW()),
+      ('pat-006', 'BN-006', 'Phạm Văn Cường', '006789012345', '0905888999', '1975-06-01', 'nam', '56 Hùng Vương, Đại Lộc', 6, '2026-06-01', true, NOW(), NOW()),
+      ('pat-010', 'BN-2020-00001', 'NGUYỄN VĂN MINH', '012345678901', '0912345678', '1965-03-15', 'nam', '123 Quang Trung, Xã Đại Lộc, TP Đà Nẵng', 12, '2020-01-15', true, NOW(), NOW()),
+      ('pat-011', 'BN-2021-00042', 'TRẦN THỊ HOA', '023456789012', '0987654321', '1978-07-22', 'nữ', '456 Lê Lợi, Xã Đại Lộc, TP Đà Nẵng', 8, '2021-03-20', true, NOW(), NOW()),
+      ('pat-012', 'BN-2022-00156', 'LÊ VĂN SƠN', '034567890123', '0903123456', '1990-11-08', 'nam', '789 Nguyễn Huệ, Xã Đại Lộc, TP Đà Nẵng', 5, '2022-06-10', true, NOW(), NOW())
+    ON CONFLICT (id) DO NOTHING
+  `);
+
+  // ============================================================
+  // MEDICAL RECORDS (for demo patients)
+  // ============================================================
+  console.log("Creating medical records...");
+  await pool.query(`
+    INSERT INTO medical_records (id, patient_id, record_number, admission_date, discharge_date, diagnosis, icd10_code, treatment, notes, is_active, created_at, updated_at)
+    VALUES
+      ('mr-001', 'pat-010', 'BA-2024-001', '2024-03-15', '2024-03-15', 'Bệnh lý mạch vành, tăng huyết áp độ I', 'I25.10', 'Điều trị nội khoa, theo dõi và tái khám sau 2 tuần', 'Cần theo dõi huyết áp tại nhà', true, NOW(), NOW()),
+      ('mr-002', 'pat-010', 'BA-2024-002', '2024-02-20', '2024-02-20', 'Viêm dạ dày mạn tính, H. pylori dương tính', 'K29.5', 'Diệt H. pylori theo phác đồ 14 ngày, ăn uống điều độ', NULL, true, NOW(), NOW()),
+      ('mr-003', 'pat-010', 'BA-2024-003', '2023-11-10', '2023-11-10', 'Viêm amidan cấp tính', 'J03.90', 'Kháng sinh, hạ sốt, súc họng nước muối', NULL, true, NOW(), NOW())
+    ON CONFLICT (id) DO NOTHING
+  `);
+
+  // ============================================================
+  // CLINICAL TESTS (for demo patients)
+  // ============================================================
+  console.log("Creating clinical tests...");
+  await pool.query(`
+    INSERT INTO clinical_tests (id, patient_id, medical_record_id, test_code, test_name, result_value, test_date, specimen_type, notes, created_at, updated_at)
+    VALUES
+      ('ct-001', 'pat-010', 'mr-001', 'LAB-240315-001', 'Lipid máu', 'Cholesterol: 220 mg/dL, HDL: 42, LDL: 148', '2024-03-15', 'xet-nghiem-mau', 'Cần điều chỉnh chế độ ăn', NOW(), NOW()),
+      ('ct-002', 'pat-010', 'mr-001', 'XQA-240315-001', 'X-quang ngực thẳng', 'Tim không giãn, không dịch màng phổi', '2024-03-15', 'x-quang', NULL, NOW(), NOW()),
+      ('ct-003', 'pat-010', 'mr-002', 'SA-240220-001', 'Siêu âm bụng tổng quát', 'Gan, mật, tụy, lách, thận: bình thường', '2024-02-20', 'sieu-am', NULL, NOW(), NOW()),
+      ('ct-004', 'pat-010', 'mr-002', 'LAB-240220-002', 'Công thức máu', 'WBC: 7.2, RBC: 4.8, Hb: 14.2, Hct: 42%, Plt: 245', '2024-02-20', 'xet-nghiem-mau', NULL, NOW(), NOW())
+    ON CONFLICT (id) DO NOTHING
+  `);
+
+  // ============================================================
+  // TREATMENT HISTORIES (for demo patients)
+  // ============================================================
+  console.log("Creating treatment histories...");
+  await pool.query(`
+    INSERT INTO treatment_history (id, patient_id, medical_record_id, treatment_date, diagnosis, prescription, notes, created_at, updated_at)
+    VALUES
+      ('th-001', 'pat-010', 'mr-001', '2024-03-15', 'Bệnh lý mạch vành, tăng huyết áp độ I', 'Aspirin 100mg 1v/ngày, Atorvastatin 20mg 1v/ngày, Amlodipin 5mg 1v/ngày', 'Tái khám sau 2 tuần', NOW(), NOW()),
+      ('th-002', 'pat-010', 'mr-002', '2024-02-20', 'Viêm dạ dày mạn tính, H. pylori', 'Amoxicillin 500mg 2v x 2l/ngày, Clarithromycin 500mg 1v x 2l/ngày, Esomeprazole 40mg 1v x 2l/ngày', 'Hoàn tất phác đồ 14 ngày', NOW(), NOW())
+    ON CONFLICT (id) DO NOTHING
+  `);
+
+  // ============================================================
+  // NEW APPOINTMENTS (for demo patients)
+  // ============================================================
+  console.log("Creating additional demo appointments...");
+  await pool.query(`
+    INSERT INTO appointments (
+      id, patient_id, patient_name, patient_code, phone, service_type,
+      specialty_name, doctor_name, appointment_date, time_slot, symptoms,
+      status, booking_code, created_at, updated_at
+    ) VALUES
+      ('apt-010', 'pat-010', 'NGUYỄN VĂN MINH', 'BN-2020-00001', '0912345678', 'kham-benh',
+       'Khoa Tim Mạch', 'BS. Nguyễn Văn Minh', '2026-08-15', '08:00',
+       'Đau ngực trái, khó thở', 'cho_xac_nhan', 'LH-987001', NOW(), NOW()),
+      ('apt-011', 'pat-011', 'TRẦN THỊ HOA', 'BN-2021-00042', '0987654321', 'kham-benh',
+       'Khoa Nội Tổng Hợp', 'BS. Trần Thị Hương', '2026-08-16', '09:30',
+       'Đau bụng thượng vị, ợ chua', 'cho_xac_nhan', 'LH-987002', NOW(), NOW()),
+      ('apt-012', 'pat-012', 'LÊ VĂN SƠN', 'BN-2022-00156', '0903123456', 'kham-benh',
+       'Khoa Tai Mũi Họng', 'BS. Lê Văn Sơn', '2026-08-17', '14:00',
+       'Đau họng, nuốt đau', 'cho_xac_nhan', 'LH-987003', NOW(), NOW())
     ON CONFLICT (id) DO NOTHING
   `);
 

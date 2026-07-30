@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { feedbackService } from "../services/feedback.service";
+import { authenticate, requireAdmin } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -23,7 +24,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", authenticate, requireAdmin, async (req, res) => {
   try {
     const { status, from, to } = req.query;
     const allFeedback = await feedbackService.getAll({
@@ -49,7 +50,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", authenticate, requireAdmin, async (req, res) => {
   try {
     const { status, admin_response, responded_by } = req.body;
     const updated = await feedbackService.update(req.params.id, { status, admin_response, responded_by });

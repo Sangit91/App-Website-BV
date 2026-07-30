@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import rateLimit from "express-rate-limit";
 import bookingRoutes from "./routes/booking.routes";
 import testResultRoutes from "./routes/test-result.routes";
 import aiRoutes from "./routes/ai.routes";
@@ -13,27 +14,22 @@ import specialtyRoutes from "./routes/specialty.routes";
 import doctorRoutes from "./routes/doctor.routes";
 import newsRoutes from "./routes/news.routes";
 import consentRoutes from "./routes/consent.routes";
+import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
 
 const app = express();
 
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { success: false, error: "Quá nhiều yêu cầu đăng nhập. Vui lòng thử lại sau 15 phút." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", time: new Date().toISOString() });
-});
-
-app.post("/api/debug-update", async (req, res) => {
-  const { id, status } = req.body;
-  try {
-    const { getPrisma } = await import("./db/prisma");
-    const r = await getPrisma().feedbackRequest.update({
-      where: { id },
-      data: { status },
-    });
-    res.json({ success: true, data: r });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message, stack: err.stack });
-  }
 });
 
 app.use("/api/booking", bookingRoutes);
@@ -42,7 +38,7 @@ app.use("/api/gemini", aiRoutes);
 app.use("/api/organization", organizationRoutes);
 
 app.use("/api/v1/patients", patientRoutes);
-app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/auth", authLimiter, authRoutes);
 app.use("/api/v1/appointments", appointmentRoutes);
 app.use("/api/v1/feedback-requests", feedbackRoutes);
 app.use("/api/v1/record-requests", recordRequestsRoutes);
@@ -50,5 +46,8 @@ app.use("/api/v1/specialties", specialtyRoutes);
 app.use("/api/v1/doctors", doctorRoutes);
 app.use("/api/v1/news", newsRoutes);
 app.use("/api/v1/consent", consentRoutes);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;

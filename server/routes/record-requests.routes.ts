@@ -50,7 +50,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.post("/:id/files", upload.single("file"), async (req, res) => {
+router.post("/:id/files", authenticate, requireAdmin, upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "Không có file được tải lên" });
@@ -62,7 +62,7 @@ router.post("/:id/files", upload.single("file"), async (req, res) => {
   }
 });
 
-router.delete("/:id/files/:fileId", async (req, res) => {
+router.delete("/:id/files/:fileId", authenticate, requireAdmin, async (req, res) => {
   try {
     await recordRequestService.deleteFile(req.params.fileId);
     res.json({ success: true, message: "Đã xóa file" });
@@ -98,7 +98,7 @@ router.get("/:id/files/:fileId", authenticate, requireAdmin, async (req, res) =>
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", authenticate, requireAdmin, async (req, res) => {
   try {
     const { status, from, to } = req.query;
     const allRequests = await recordRequestService.getAll({
@@ -112,7 +112,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", authenticate, requireAdmin, async (req, res) => {
   try {
     const request = await recordRequestService.getById(req.params.id);
     if (!request) {
@@ -124,7 +124,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", authenticate, requireAdmin, async (req, res) => {
   try {
     const { status, admin_notes, processed_by } = req.body;
     const current = await recordRequestService.getById(req.params.id);

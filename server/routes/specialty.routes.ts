@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as specialtyService from "../services/specialty.service";
+import { authenticate, requireAdmin } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -24,7 +25,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", authenticate, requireAdmin, async (req, res) => {
   try {
     const specialty = await specialtyService.createSpecialty(req.body);
     res.status(201).json(specialty);
@@ -34,7 +35,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticate, requireAdmin, async (req, res) => {
   try {
     const specialty = await specialtyService.updateSpecialty(req.params.id, req.body);
     res.json(specialty);
@@ -44,7 +45,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticate, requireAdmin, async (req, res) => {
   try {
     await specialtyService.deleteSpecialty(req.params.id);
     res.json({ success: true });

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { adminLogin, refreshTokens, hashNewPassword } from "../services/auth.service.js";
+import { getPrisma } from "../db/prisma.js";
 
 const router = Router();
 
@@ -18,13 +19,7 @@ interface RefreshToken {
 }
 
 const otpSessions = new Map<string, OTPSession>();
-const refreshTokens = new Map<string, RefreshToken>();
-
-const MOCK_PATIENTS = [
-  { patientCode: "BN-2020-00001", phone: "0912345678" },
-  { patientCode: "BN-2021-00042", phone: "0987654321" },
-  { patientCode: "BN-2022-00156", phone: "0903123456" }
-];
+const refreshTokensStore = new Map<string, RefreshToken>();
 
 function generateSessionId(): string {
   return `sess_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
@@ -55,7 +50,7 @@ function cleanExpiredSessions() {
   }
 }
 
-router.post("/otp/send", (req, res) => {
+router.post("/otp/send", async (req, res) => {
   const { patientCode, phone } = req.body;
 
   if (!patientCode || !phone) {
@@ -65,40 +60,46 @@ router.post("/otp/send", (req, res) => {
     });
   }
 
-  const patient = MOCK_PATIENTS.find(
-    p => p.patientCode === patientCode && p.phone === phone
-  );
+  try {
+    const patient = await getPrisma().patient.findFirst({
+      where: { patientCode, phone, isActive: true, deletedAt: null },
+    });
 
-  if (!patient) {
-    return res.status(404).json({
+    if (!patient) {
+      return res.status(404).json({
+        success: false,
+        message: "Thông tin không khớp với hồ sơ đăng ký"
+      });
+    }
+
+    cleanExpiredSessions();
+
+    const sessionId = generateSessionId();
+    const otpCode = generateOTP();
+    const expiresAt = Date.now() + 5 * 60 * 1000;
+
+    otpSessions.set(sessionId, {
+      sessionId,
+      patientCode,
+      phone,
+      otpCode,
+      expiresAt,
+      verified: false
+    });
+
+    res.json({
+      success: true,
+      sessionId,
+      message: "Mã OTP đã được gửi đến số điện thoại đăng ký",
+      expiresIn: 300
+    });
+  } catch (error) {
+    console.error("[auth] otp/send error:", error);
+    res.status(500).json({
       success: false,
-      message: "Thông tin không khớp với hồ sơ đăng ký"
+      message: "Lỗi máy chủ, vui lòng thử lại sau"
     });
   }
-
-  cleanExpiredSessions();
-
-  const sessionId = generateSessionId();
-  const otpCode = generateOTP();
-  const expiresAt = Date.now() + 5 * 60 * 1000;
-
-  otpSessions.set(sessionId, {
-    sessionId,
-    patientCode,
-    phone,
-    otpCode,
-    expiresAt,
-    verified: false
-  });
-
-  console.log(`[MOCK OTP] Session: ${sessionId} | Code: ${otpCode} | Expires: ${new Date(expiresAt).toISOString()}`);
-
-  res.json({
-    success: true,
-    sessionId,
-    message: "Mã OTP đã được gửi đến số điện thoại đăng ký",
-    expiresIn: 300
-  });
 });
 
 router.post("/otp/verify", (req, res) => {
@@ -146,8 +147,6 @@ router.post("/otp/verify", (req, res) => {
     expiresAt
   });
 
-  console.log(`[MOCK OTP] Verified session: ${sessionId} | ReadToken: ${readToken}`);
-
   res.json({
     success: true,
     readToken,
@@ -163,17 +162,17 @@ router.post("/token/refresh", (req, res) => {
     return res.status(400).json({ error: "Thiếu refresh token" });
   }
 
-  const stored = refreshTokens.get(refreshToken);
+  const stored = refreshTokensStore.get(refreshToken);
 
   if (!stored || stored.expiresAt < Date.now()) {
-    refreshTokens.delete(refreshToken);
+    refreshTokensStore.delete(refreshToken);
     return res.status(401).json({ error: "Refresh token không hợp lệ hoặc đã hết hạn" });
   }
 
   const accessToken = generateAccessToken();
   const expiresAt = Date.now() + 30 * 60 * 1000;
 
-  refreshTokens.set(refreshToken, { token: refreshToken, expiresAt });
+  refreshTokensStore.set(refreshToken, { token: refreshToken, expiresAt });
 
   res.json({
     accessToken,
@@ -181,14 +180,16 @@ router.post("/token/refresh", (req, res) => {
   });
 });
 
-router.post("/token/access", (req, res) => {
+router.post("/token/access", async (req, res) => {
   const { patientCode } = req.body;
 
   if (!patientCode) {
     return res.status(400).json({ error: "Thiếu mã bệnh nhân" });
   }
 
-  const patient = MOCK_PATIENTS.find(p => p.patientCode === patientCode);
+  const patient = await getPrisma().patient.findFirst({
+    where: { patientCode, isActive: true, deletedAt: null },
+  });
 
   if (!patient) {
     return res.status(404).json({ error: "Không tìm thấy bệnh nhân" });
@@ -199,9 +200,7 @@ router.post("/token/access", (req, res) => {
   const accessExpiresAt = Date.now() + 30 * 60 * 1000;
   const refreshExpiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
 
-  refreshTokens.set(refreshToken, { token: refreshToken, expiresAt: refreshExpiresAt });
-
-  console.log(`[MOCK AUTH] New access token for ${patientCode}: ${accessToken}`);
+  refreshTokensStore.set(refreshToken, { token: refreshToken, expiresAt: refreshExpiresAt });
 
   res.json({
     accessToken,

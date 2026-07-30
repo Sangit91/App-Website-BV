@@ -38,7 +38,7 @@ export function createConsentMiddleware(patientIdExtractor: (req: Request) => st
   };
 }
 
-export function consentCheckMiddleware(req: ConsentCheckRequest, res: Response, next: NextFunction) {
+export async function consentCheckMiddleware(req: ConsentCheckRequest, res: Response, next: NextFunction) {
   if (req.skipConsentCheck) {
     return next();
   }
@@ -48,25 +48,20 @@ export function consentCheckMiddleware(req: ConsentCheckRequest, res: Response, 
     return next();
   }
 
-  consentService
-    .hasValidConsent(patientId)
-    .then((hasConsent) => {
-      if (!hasConsent) {
-        const policy = consentService.getActivePolicy();
-        policy.then((p) => {
-          return res.status(403).json({
-            error: "CONSENT_REQUIRED",
-            message: "Bạn cần đồng ý chính sách bảo mật trước khi xem dữ liệu y tế",
-            policyVersion: p?.version || null,
-            policyTitle: p?.title || null,
-          });
-        });
-      } else {
-        next();
-      }
-    })
-    .catch((error) => {
-      console.error("[ConsentCheckMiddleware] error:", error);
-      res.status(500).json({ error: "Lỗi khi kiểm tra đồng ý" });
-    });
+  try {
+    const hasConsent = await consentService.hasValidConsent(patientId);
+    if (!hasConsent) {
+      const policy = await consentService.getActivePolicy();
+      return res.status(403).json({
+        error: "CONSENT_REQUIRED",
+        message: "Bạn cần đồng ý chính sách bảo mật trước khi xem dữ liệu y tế",
+        policyVersion: policy?.version || null,
+        policyTitle: policy?.title || null,
+      });
+    }
+    next();
+  } catch (error) {
+    console.error("[ConsentCheckMiddleware] error:", error);
+    res.status(500).json({ error: "Lỗi khi kiểm tra đồng ý" });
+  }
 }
