@@ -1,10 +1,11 @@
 ﻿import { useState } from "react";
+import { motion } from "framer-motion";
 import { useHospital } from "../../../context/HospitalContext";
 import { useAdmin } from "../../../context/AdminContext";
 import { Card, Button } from "../../ui";
 import EditModal from "../ui/EditModal";
 import ConfirmDialog from "../ui/ConfirmDialog";
-import { Plus, Edit, Trash2, ShieldAlert } from "lucide-react";
+import { Plus, Edit, Trash2, ShieldAlert, Heart, Baby, Stethoscope, Ambulance, Microscope, Ear, Syringe, Activity } from "lucide-react";
 import { IconType } from "../../../types/models/specialty";
 
 const iconTypeOptions = [
@@ -17,6 +18,41 @@ const iconTypeOptions = [
   { value: "ent", label: "Tai mũi họng" },
   { value: "odontology", label: "Răng hàm mặt" }
 ];
+
+const iconMap: Record<string, typeof Heart> = {
+  general: Activity,
+  cardiology: Heart,
+  obstetrics: Baby,
+  pediatrics: Baby,
+  emergency: Ambulance,
+  diagnostics: Microscope,
+  ent: Ear,
+  odontology: Syringe,
+};
+
+const colorMap: Record<string, string> = {
+  general: "bg-blue-100 text-blue-700",
+  cardiology: "bg-red-100 text-red-700",
+  obstetrics: "bg-pink-100 text-pink-700",
+  pediatrics: "bg-cyan-100 text-cyan-700",
+  emergency: "bg-orange-100 text-orange-700",
+  diagnostics: "bg-purple-100 text-purple-700",
+  ent: "bg-teal-100 text-teal-700",
+  odontology: "bg-amber-100 text-amber-700",
+};
+
+const accentMap: Record<string, string> = {
+  general: "border-l-blue-400",
+  cardiology: "border-l-red-400",
+  obstetrics: "border-l-pink-400",
+  pediatrics: "border-l-cyan-400",
+  emergency: "border-l-orange-400",
+  diagnostics: "border-l-purple-400",
+  ent: "border-l-teal-400",
+  odontology: "border-l-amber-400",
+};
+
+const stickyHeaderClass = "sticky top-0 z-10 bg-cream-white/95 backdrop-blur-sm";
 
 export default function SpecialtiesTab() {
   const { specialties, addSpecialty, updateSpecialty, deleteSpecialty } = useHospital();
@@ -111,13 +147,30 @@ export default function SpecialtiesTab() {
     iconType: editing.iconType
   } : {};
 
+  const itemVariants = {
+    hidden: { opacity: 0, y: 12 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.04, duration: 0.3, ease: "easeOut" }
+    })
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="font-display font-bold text-lg text-green-dark">Danh Sách Chuyên Khoa Lâm Sàng</h3>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-green/20 to-green-dark/20 flex items-center justify-center shadow-sm">
+            <Stethoscope size={18} className="text-brand-green" />
+          </div>
+          <div>
+            <h3 className="font-display font-bold text-lg text-green-dark">Chuyên Khoa Lâm Sàng</h3>
+            <p className="text-[11px] text-ink/50">Quản lý {specialties.length} chuyên khoa đang hoạt động</p>
+          </div>
+        </div>
         <Button variant="primary" size="md" onClick={() => handleOpen(null)} disabled={!canEdit}>
           <Plus size={14} />
-          <span>Thêm Chuyên Khoa Mới</span>
+          <span>Thêm Chuyên Khoa</span>
         </Button>
       </div>
 
@@ -128,47 +181,82 @@ export default function SpecialtiesTab() {
         </div>
       )}
 
-      <Card variant="default" padding="lg">
+      <Card variant="default" padding="none" className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-ink/5 text-ink/60 font-semibold uppercase bg-cream-white">
-                <th className="p-3">Mã Code</th>
+              <tr className={`border-b border-ink/5 text-ink/60 font-semibold uppercase ${stickyHeaderClass}`}>
+                <th className="p-3 w-10"></th>
                 <th className="p-3">Tên Chuyên Khoa</th>
                 <th className="p-3">Mô Tả Tóm Tắt</th>
-                <th className="p-3">Mô tả chi tiết kỹ thuật</th>
-                <th className="p-3 text-right">Hành động</th>
+                <th className="p-3 hidden md:table-cell">Mô tả chi tiết kỹ thuật</th>
+                <th className="p-3 text-right w-24">Hành động</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-ink/5">
-              {specialties.map((s) => (
-                <tr key={s.id} className="hover:bg-cream-white transition-colors">
-                  <td className="p-3 font-mono font-bold text-green-dark">{s.id}</td>
-                  <td className="p-3 font-extrabold text-green-dark">{s.name}</td>
-                  <td className="p-3 max-w-[200px] truncate">{s.description}</td>
-                  <td className="p-3 max-w-[300px] truncate">{s.detail}</td>
-                  <td className="p-3 text-right">
-<div className="flex items-center justify-end gap-1.5">
-                      <button
-                        onClick={() => handleOpen(s)}
-                        disabled={!canEdit}
-                        className={`p-1.5 rounded-lg transition-all ${canEdit ? "bg-mint text-brand-green hover:bg-mint/80 cursor-pointer" : "bg-ink/10 text-ink/30 cursor-not-allowed"}`}
-                        title="Chỉnh sửa"
-                      >
-                        <Edit size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(s.id, s.name)}
-                        disabled={!canEdit}
-                        className={`p-1.5 rounded-lg transition-all ${canEdit ? "bg-red-50 text-red-500 hover:bg-red-100 cursor-pointer" : "bg-ink/10 text-ink/30 cursor-not-allowed"}`}
-                        title="Xóa bỏ"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
+              {specialties.map((s, i) => {
+                const Icon = iconMap[s.iconType as keyof typeof iconMap] || Activity;
+                const colorClass = colorMap[s.iconType as keyof typeof colorMap] || "bg-gray-100 text-gray-700";
+                const accentClass = accentMap[s.iconType as keyof typeof accentMap] || "border-l-gray-400";
+
+                return (
+                  <motion.tr
+                    key={s.id}
+                    custom={i}
+                    initial="hidden"
+                    animate="visible"
+                    variants={itemVariants}
+                    className={`group hover:bg-cream-white/80 transition-all duration-200 border-l-2 ${accentClass} border-l-2`}
+                  >
+                    <td className="p-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shadow-sm transition-transform duration-200 group-hover:scale-110 ${colorClass}`}>
+                        <Icon size={14} />
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div className="flex flex-col">
+                        <span className="font-extrabold text-green-dark text-sm">{s.name}</span>
+                        <span className="text-[10px] text-ink/40 font-mono mt-0.5">{s.id}</span>
+                      </div>
+                    </td>
+                    <td className="p-3 max-w-[220px]">
+                      <span className="text-ink/80 leading-relaxed">{s.description}</span>
+                    </td>
+                    <td className="p-3 max-w-[260px] hidden md:table-cell">
+                      <span className="text-ink/60 leading-relaxed line-clamp-2">{s.detail}</span>
+                    </td>
+                    <td className="p-3 text-right">
+                      <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity duration-200">
+                        <button
+                          onClick={() => handleOpen(s)}
+                          disabled={!canEdit}
+                          className={`p-1.5 rounded-lg transition-all ${canEdit ? "bg-mint text-brand-green hover:bg-mint/80 cursor-pointer" : "bg-ink/10 text-ink/30 cursor-not-allowed"}`}
+                          title="Chỉnh sửa"
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(s.id, s.name)}
+                          disabled={!canEdit}
+                          className={`p-1.5 rounded-lg transition-all ${canEdit ? "bg-red-50 text-red-500 hover:bg-red-100 cursor-pointer" : "bg-ink/10 text-ink/30 cursor-not-allowed"}`}
+                          title="Xóa bỏ"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                );
+              })}
+              {specialties.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-ink/40">
+                    <Activity size={24} className="mx-auto mb-2 opacity-40" />
+                    <p className="text-sm font-medium">Chưa có chuyên khoa nào</p>
+                    <p className="text-xs mt-1">Nhấn "Thêm Chuyên Khoa" để bắt đầu</p>
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
