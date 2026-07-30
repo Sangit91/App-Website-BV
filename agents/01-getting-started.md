@@ -162,7 +162,11 @@ npm run lint
 ↓
 npm run build
 ↓
+docker restart bvdh-frontend  ← BẮT BUỘC sau mỗi lần sửa frontend
+↓
 Update memory.md
 ↓
 Commit
 ```
+
+> ⚠️ **Luật restart container:** Sau mỗi lần sửa file trong `src/` (bất kỳ `.tsx`, `.ts`, `.css` nào), agent **bắt buộc** phải chạy `docker restart bvdh-frontend` và đợi container healthy trước khi thông báo hoàn tất cho user. Không bỏ qua bước này dù HMR đang bật — HMR có thể silent-fail, restart là cách đảm bảo chắc chắn. Xem `memory.md:101-106` (HMR silent-fail rule).

@@ -42,20 +42,13 @@ Nếu lint báo lỗi `server.allowedHosts` ở `vite.config.ts`, đó là pre-e
 - Trước Phase 74: HMR từng bị tắt (`DISABLE_HMR=true`) → phải `docker restart bvdh-frontend` mỗi lần sửa code.
 - **Phase 75 (2026-07-28)**: Bật lại HMR để dev auto-reload nhanh hơn. Nginx config (`nginx/nginx.conf:133`) đã proxy WebSocket đúng cho HMR.
 
-#### Quy tắc hiện tại (HMR BẬT)
+#### ⚠️ LUẬT CỨNG: Restart container sau mỗi lần sửa frontend
 
-Mỗi lần sửa file `.tsx` / `.ts` / `.css` / `vite.config.ts`:
+> **Bất kể HMR đang BẬT hay TẮT**, sau mỗi lần sửa file `.tsx` / `.ts` / `.css` trong `src/`, agent **bắt buộc** phải chạy `docker restart bvdh-frontend` và đợi container healthy trước khi xác nhận hoàn tất cho user.
 
-- **KHÔNG cần restart container** — Vite auto-transform và browser auto-reload qua WebSocket.
-- Chỉ cần save file → browser tự refresh (hoặc Ctrl+R nếu cần force).
+**Lý do:** HMR có thể silent-fail (Vite không pick up source fix trong container dù `docker exec` thấy file mới). Restart container là cách duy nhất đảm bảo chắc chắn code mới được serve. Xem `memory.md:101-106` và `memory/bugs-fixed.md` entry "Bug Re-encounter: Vite không pick up source fix trong container".
 
-#### Khi nào CẦN restart/rebuild
-
-- Sửa file cấu hình Docker (`docker-compose.yml`, `Dockerfile.*`, `nginx/nginx.conf`) — phải `docker compose up -d --build` để rebuild image.
-- Sửa file trong `prisma/` — phải chạy lại `prisma generate` + restart backend.
-- Sửa file trong `server/` — `tsx watch` tự reload (không cần restart).
-
-#### Khi muốn tắt HMR (giống production)
+**Không bỏ qua bước này dù browser đã tự reload thành công.**
 
 ```yaml
 # docker-compose.yml:16
