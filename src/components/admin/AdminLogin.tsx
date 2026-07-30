@@ -112,13 +112,11 @@ export default function AdminLogin({ onBackToHome }: AdminLoginProps) {
         return;
       }
 
-      if (rememberMe) {
-        localStorage.setItem("admin_token", data.accessToken);
-      } else {
-        sessionStorage.setItem("admin_token", data.accessToken);
-      }
+      const store = rememberMe ? localStorage : sessionStorage;
+      store.setItem("admin_token", data.accessToken);
+      if (data.refreshToken) store.setItem("admin_refresh_token", data.refreshToken);
 
-      login(adminUser, data.accessToken);
+      login(adminUser, data.accessToken, data.refreshToken);
       setIsSuccess(true);
 
       setTimeout(() => {

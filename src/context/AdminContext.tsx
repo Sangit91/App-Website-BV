@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 
 export type Role = "Super Admin" | "Receptionist" | "Doctor" | "Department Admin";
 
@@ -22,11 +22,14 @@ export interface TokenPayload {
 interface AdminContextType {
   activeUser: AdminUser | null;
   accessToken: string | null;
-  login: (user: AdminUser, token: string) => void;
+  login: (user: AdminUser, accessToken: string, refreshToken?: string) => void;
   logout: () => void;
+  refreshAccessToken: () => Promise<string | null>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
+
+const REFRESH_STORAGE_KEY = "admin_refresh_token";
 
 function decodeJWT(token: string): TokenPayload | null {
   try {
@@ -64,9 +67,12 @@ function mapRoleToAdminUser(payload: TokenPayload, token: string): AdminUser {
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [activeUser, setActiveUser] = useState<AdminUser | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("admin_token");
+    const storedRefresh = localStorage.getItem(REFRESH_STORAGE_KEY);
+    if (storedRefresh) setRefreshToken(storedRefresh);
     if (storedToken) {
       try {
         const payload = decodeJWT(storedToken);
@@ -76,27 +82,81 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           setAccessToken(storedToken);
         } else {
           localStorage.removeItem("admin_token");
+          localStorage.removeItem(REFRESH_STORAGE_KEY);
         }
       } catch {
         localStorage.removeItem("admin_token");
+        localStorage.removeItem(REFRESH_STORAGE_KEY);
       }
     }
   }, []);
 
-  const login = (user: AdminUser, token: string) => {
+  const login = (user: AdminUser, token: string, refresh?: string) => {
     setActiveUser(user);
     setAccessToken(token);
     localStorage.setItem("admin_token", token);
+    if (refresh) {
+      setRefreshToken(refresh);
+      localStorage.setItem(REFRESH_STORAGE_KEY, refresh);
+    }
   };
 
   const logout = () => {
     setActiveUser(null);
     setAccessToken(null);
+    setRefreshToken(null);
     localStorage.removeItem("admin_token");
+    localStorage.removeItem(REFRESH_STORAGE_KEY);
   };
 
+  const refreshAccessToken = useCallback(async () => {
+    const storedRefresh = refreshToken || localStorage.getItem(REFRESH_STORAGE_KEY);
+    if (!storedRefresh) return null;
+
+    try {
+      const res = await fetch("/api/v1/auth/admin/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken: storedRefresh }),
+      });
+
+      if (!res.ok) {
+        logout();
+        return null;
+      }
+
+      const data = await res.json();
+      const newToken = data.accessToken;
+      if (!newToken) {
+        logout();
+        return null;
+      }
+
+      const newRefresh = data.refreshToken;
+
+      const payload = decodeJWT(newToken);
+      if (payload) {
+        const user = mapRoleToAdminUser(payload, newToken);
+        setActiveUser(user);
+      }
+
+      setAccessToken(newToken);
+      localStorage.setItem("admin_token", newToken);
+
+      if (newRefresh) {
+        setRefreshToken(newRefresh);
+        localStorage.setItem(REFRESH_STORAGE_KEY, newRefresh);
+      }
+
+      return newToken;
+    } catch {
+      logout();
+      return null;
+    }
+  }, [refreshToken]);
+
   return (
-    <AdminContext.Provider value={{ activeUser, accessToken, login, logout }}>
+    <AdminContext.Provider value={{ activeUser, accessToken, login, logout, refreshAccessToken }}>
       {children}
     </AdminContext.Provider>
   );

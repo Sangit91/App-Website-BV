@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useAdmin } from "../../../context/AdminContext";
+import { useAuthedFetch } from "../../../hooks/useAuthedFetch";
 
 type RecordRequestStatus = 'moi' | 'dang_xu_ly' | 'da_xu_ly' | 'da_huy';
 
@@ -81,6 +82,7 @@ const rowVariants = {
 
 export default function RecordRequestsTab() {
   const { accessToken } = useAdmin();
+  const authedFetch = useAuthedFetch();
   const [requests, setRequests] = useState<RecordRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -249,25 +251,6 @@ export default function RecordRequestsTab() {
 
   const fileUrl = (requestId: string, fileId: string) =>
     `/api/v1/record-requests/${requestId}/files/${fileId}`;
-
-  const authedFetch = async (input: RequestInfo, init?: RequestInit): Promise<Response> => {
-    const headers: Record<string, string> = {
-      ...(init?.headers as Record<string, string> | undefined),
-    };
-    // Fallback: đọc từ storage nếu context chưa hydrate (vd. sau khi đăng nhập ở tab khác,
-    // hoặc khi state context tạm thời null do re-mount).
-    const token = accessToken
-      ?? localStorage.getItem("admin_token")
-      ?? sessionStorage.getItem("admin_token");
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    } else {
-      console.warn("[record-requests] No admin token available. accessToken from context:", accessToken,
-        "localStorage:", localStorage.getItem("admin_token") ? "has" : "missing",
-        "sessionStorage:", sessionStorage.getItem("admin_token") ? "has" : "missing");
-    }
-    return fetch(input, { ...init, headers });
-  };
 
   const handleViewFile = async (requestId: string, file: RecordRequestFile) => {
     if (!accessToken) {
