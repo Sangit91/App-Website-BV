@@ -72,8 +72,25 @@ export async function getDoctorSchedules() {
   });
 }
 
+const ALLOWED_SHIFTS = new Set(["ca_sang", "ca_chieu", "nghi"]);
+
+function validateScheduleDay(value: string, day: string): void {
+  if (!ALLOWED_SHIFTS.has(value)) {
+    throw new Error(`Giá trị ca cho ${day} không hợp lệ. Chỉ chấp nhận: ca_sang, ca_chieu, nghi (nhận được: "${value}")`);
+  }
+}
+
 export async function updateDoctorSchedule(doctorId: string, data: ScheduleInput) {
   const prisma = getPrisma();
+
+  validateScheduleDay(data.monday, "monday");
+  validateScheduleDay(data.tuesday, "tuesday");
+  validateScheduleDay(data.wednesday, "wednesday");
+  validateScheduleDay(data.thursday, "thursday");
+  validateScheduleDay(data.friday, "friday");
+  validateScheduleDay(data.saturday, "saturday");
+  validateScheduleDay(data.sunday, "sunday");
+
   const schedule = await prisma.doctorSchedule.findFirst({ where: { doctorId } });
   if (!schedule) {
     return prisma.doctorSchedule.create({

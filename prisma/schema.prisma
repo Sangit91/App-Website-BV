@@ -548,7 +548,7 @@ model ConsentPolicy {
 model PatientConsent {
   id            String    @id @default(cuid())
   patientId     String    @map("patient_id")
-  policyVersion String    @map("policy_version") @db.VarChar(20)
+  policyVersion String?   @map("policy_version") @db.VarChar(20)
   isAgreed      Boolean   @default(false) @map("is_agreed")
   agreedScopes  Json      @default("[]") @map("agreed_scopes")
   agreedAt      DateTime? @map("agreed_at")
@@ -558,8 +558,8 @@ model PatientConsent {
   consentHash   String?   @map("consent_hash") @db.VarChar(64)
   createdAt     DateTime  @default(now()) @map("created_at")
 
-  patient       Patient       @relation(fields: [patientId], references: [id])
-  policy        ConsentPolicy @relation(fields: [policyVersion], references: [version])
+  patient       Patient        @relation(fields: [patientId], references: [id])
+  policy        ConsentPolicy? @relation(fields: [policyVersion], references: [version])
 
   @@index([patientId, policyVersion, isAgreed])
   @@map("patient_consents")

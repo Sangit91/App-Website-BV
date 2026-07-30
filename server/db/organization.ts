@@ -1,3 +1,9 @@
+// TODO(L3): Migrate from in-memory store to Prisma OrganizationUnit table
+// Currently organization data (divisions, departments) with UI metadata
+// (colors, icons) is stored in-memory. Should be migrated to PostgreSQL
+// via the OrganizationUnit model to enable multi-server persistence.
+// Blocked by: OrganizationUnit model lacks fields for leader, staffCount,
+// icon, color, bgLight, textColor, borderColor, details.
 export interface DeptNode {
   id: string;
   name: string;

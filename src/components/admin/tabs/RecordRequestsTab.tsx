@@ -4,7 +4,7 @@ import {
   Search, FileText, Eye, Check, X, Clock, Ban, Download, ImageIcon,
   Phone, Mail, User, FileType2, Calendar, Truck, MessageSquare,
   ClipboardList, CheckCircle2, Circle, XCircle, ZoomIn,
-  Hash, ArrowRight, Activity, FolderOpen
+  Tag, ArrowRight, Activity, FolderOpen
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useAdmin } from "../../../context/AdminContext";
@@ -465,7 +465,7 @@ export default function RecordRequestsTab() {
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2.5 flex-wrap">
                       <span className="text-xs font-mono font-bold bg-white/20 text-white px-2.5 py-1 rounded-md backdrop-blur-md flex items-center gap-1">
-                        <Hash size={12} /> {selectedRequest.request_code}
+                        <Tag size={12} /> {selectedRequest.request_code}
                       </span>
                       <Badge className={STATUS_CONFIG[selectedRequest.status].className}>
                         {STATUS_CONFIG[selectedRequest.status].label}

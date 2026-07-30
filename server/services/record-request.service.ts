@@ -141,8 +141,6 @@ export const recordRequestService = {
     const safeFilename = `${request.requestCode}_${timestamp}${ext}`;
     const filePath = path.join(PENDING_UPLOADS_DIR, safeFilename);
 
-    await fs.copyFile(file.path, filePath);
-
     const dbFile = await getPrisma().recordRequestFile.create({
       data: {
         recordRequestId: requestId,
@@ -153,6 +151,7 @@ export const recordRequestService = {
       },
     });
 
+    await fs.copyFile(file.path, filePath);
     await fs.unlink(file.path).catch(() => {});
 
     return { fileId: dbFile.id, filePath: dbFile.filePath };
