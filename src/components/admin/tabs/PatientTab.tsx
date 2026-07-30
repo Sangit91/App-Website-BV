@@ -169,9 +169,12 @@ function ProcessSection() {
                   <div className={`group w-52 bg-white border border-green-800/5 rounded-xl overflow-hidden hover:shadow-lg hover:border-brand-green/20 transition-all duration-300 border-l-4 ${c.border}`}>
                     <div className="p-4">
                       <div className="flex items-start justify-between mb-3">
-                        <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-[11px] font-bold ${c.iconBg} ${c.iconCol}`}>
-                          {step.step}
-                        </span>
+                        <div className={`relative w-11 h-11 rounded-xl ${c.bg} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                          <Icon size={20} className={c.iconCol} />
+                          <span className={`absolute -top-1.5 -right-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-bold ${c.iconBg} ${c.iconCol} ring-2 ring-white`}>
+                            {step.step}
+                          </span>
+                        </div>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button onClick={() => handleOpenEdit(step)} className="p-1 rounded-md text-gray-400 hover:text-brand-green hover:bg-brand-green/5 transition-colors cursor-pointer" title="Sửa">
                             <Edit size={12} />
@@ -180,9 +183,6 @@ function ProcessSection() {
                             <Trash2 size={12} />
                           </button>
                         </div>
-                      </div>
-                      <div className={`w-11 h-11 rounded-xl ${c.bg} flex items-center justify-center mb-3 transition-transform group-hover:scale-110`}>
-                        <Icon size={22} className={c.iconCol} />
                       </div>
                       <h4 className="font-display font-bold text-sm text-green-dark">{step.title}</h4>
                       <p className="text-[11px] text-ink/60 mt-1 leading-relaxed">{step.desc}</p>
@@ -262,25 +262,44 @@ function WhatToBringSection() {
       >
         <div className="p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {items.map((item, idx) => (
-              <motion.div key={item.id} custom={idx} initial="hidden" animate="visible" variants={itemVariants}>
-                <ItemCard
-                  title={item.text}
-                  description="Giấy tờ cần thiết"
-                  index={idx}
-                  actions={{
-                    onEdit: () => handleOpenEdit(item),
-                    onDelete: () => setDeleteConfirm(item.id)
-                  }}
-                  footer={
-                    <div className="flex items-center justify-center gap-2 mt-2">
-                      <CheckCircle size={14} className="text-brand-green" />
-                      <span className="text-xs text-ink/60">Bắt buộc</span>
+            {items.map((item, idx) => {
+              const Icon = ICON_MAP[item.icon] || FileText;
+              const bringColors = [
+                { bg: "bg-amber-50", iconBg: "bg-amber-100", iconCol: "text-amber-600", border: "border-l-amber-400" },
+                { bg: "bg-blue-50", iconBg: "bg-blue-100", iconCol: "text-blue-600", border: "border-l-blue-400" },
+                { bg: "bg-emerald-50", iconBg: "bg-emerald-100", iconCol: "text-emerald-600", border: "border-l-emerald-400" },
+                { bg: "bg-purple-50", iconBg: "bg-purple-100", iconCol: "text-purple-600", border: "border-l-purple-400" },
+                { bg: "bg-rose-50", iconBg: "bg-rose-100", iconCol: "text-rose-600", border: "border-l-rose-400" },
+                { bg: "bg-cyan-50", iconBg: "bg-cyan-100", iconCol: "text-cyan-600", border: "border-l-cyan-400" },
+              ];
+              const c = bringColors[idx % bringColors.length];
+              return (
+                <motion.div key={item.id} custom={idx} initial="hidden" animate="visible" variants={itemVariants}>
+                  <div className={`group bg-white border border-green-800/5 rounded-xl overflow-hidden hover:shadow-lg hover:border-brand-green/20 transition-all duration-300 border-l-4 ${c.border}`}>
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className={`w-10 h-10 rounded-xl ${c.bg} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                          <Icon size={18} className={c.iconCol} />
+                        </div>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => handleOpenEdit(item)} className="p-1 rounded-md text-gray-400 hover:text-brand-green hover:bg-brand-green/5 transition-colors cursor-pointer" title="Sửa">
+                            <Edit size={12} />
+                          </button>
+                          <button onClick={() => setDeleteConfirm(item.id)} className="p-1 rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer" title="Xóa">
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
+                      <h4 className="font-display font-bold text-sm text-green-dark leading-tight mb-2">{item.text}</h4>
+                      <div className="flex items-center gap-1.5">
+                        <CheckCircle size={11} className="text-brand-green" />
+                        <span className="text-[10px] text-ink/50 font-medium">Bắt buộc</span>
+                      </div>
                     </div>
-                  }
-                />
-              </motion.div>
-            ))}
+                  </div>
+                </motion.div>
+              );
+            })}
             <AddCard title="Thêm giấy tờ" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="amber" />
           </div>
         </div>
