@@ -4,7 +4,7 @@ import {
   Search, FileText, Eye, Check, X, Clock, Ban, Download, ImageIcon,
   Phone, Mail, User, FileType2, Calendar, Truck, MessageSquare,
   ClipboardList, CheckCircle2, Circle, XCircle, Sparkles, ZoomIn,
-  Hash, Building2, ArrowRight, Activity, FileText as FileTextIcon
+  Hash, Building2, ArrowRight, Activity, FileText as FileTextIcon, FolderOpen
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useAdmin } from "../../../context/AdminContext";
@@ -60,6 +60,23 @@ const DELIVERY_METHOD_LABELS: Record<string, string> = {
   'tai-kham': 'Nhận khi tái khám',
   'nhan-tai-quay': 'Nhận tại quầy',
   'chuyen-bo-post': 'Chuyển bưu điện'
+};
+
+const TYPE_COLORS: Record<string, string> = {
+  'ho-so-y-te': 'bg-blue-100 text-blue-700',
+  'phieu-xet-nghiem': 'bg-purple-100 text-purple-700',
+  'anh-pha': 'bg-amber-100 text-amber-700',
+  'don-thuoc': 'bg-green-100 text-green-700',
+  'giay-chung-nhan': 'bg-cyan-100 text-cyan-700',
+  'other': 'bg-gray-100 text-gray-600',
+};
+
+const rowVariants = {
+  hidden: { opacity: 0, x: -8 },
+  visible: (i: number) => ({
+    opacity: 1, x: 0,
+    transition: { delay: i * 0.03, duration: 0.25, ease: "easeOut" }
+  })
 };
 
 export default function RecordRequestsTab() {
@@ -300,11 +317,16 @@ export default function RecordRequestsTab() {
   const isPdf = (mime?: string | null) => mime === "application/pdf";
 
   return (
-    <div className="space-y-6">
+    <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-display font-bold text-2xl text-green-dark">Yêu cầu trích sao hồ sơ</h2>
-          <p className="text-sm text-ink/60 mt-1">Xem và xử lý yêu cầu cấp bản sao hồ sơ y tế</p>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-green/20 to-green-dark/20 flex items-center justify-center shadow-sm">
+            <FolderOpen size={18} className="text-brand-green" />
+          </div>
+          <div>
+            <h2 className="font-display font-bold text-lg text-green-dark">Yêu cầu trích sao hồ sơ</h2>
+            <p className="text-[11px] text-ink/50">Xem và xử lý yêu cầu cấp bản sao hồ sơ y tế</p>
+          </div>
         </div>
         <span className="text-xs font-bold bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full">
           {requests.length} yêu cầu
@@ -346,7 +368,10 @@ export default function RecordRequestsTab() {
         {loading ? (
           <div className="text-center py-12 text-ink/50 text-sm">Đang tải dữ liệu...</div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-ink/50 text-sm">Không có yêu cầu nào</div>
+          <div className="text-center py-12 text-ink/40">
+            <FolderOpen size={28} className="mx-auto mb-2 opacity-30" />
+            <p className="text-sm font-medium">Không có yêu cầu nào</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
@@ -363,11 +388,23 @@ export default function RecordRequestsTab() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink/5">
-                {filtered.map(r => (
-                  <tr key={r.id} className="hover:bg-cream-white transition-colors">
+                {filtered.map((r, i) => (
+                  <motion.tr key={r.id} custom={i} initial="hidden" animate="visible" variants={rowVariants}
+                    className="group hover:bg-cream-white/80 transition-all duration-200 border-l-2 border-l-transparent hover:border-l-brand-green">
                     <td className="p-3 font-mono font-bold text-green-dark">{r.request_code}</td>
-                    <td className="p-3 font-bold text-green-dark">{r.patient_name}</td>
-                    <td className="p-3 text-ink/70">{REQUEST_TYPE_LABELS[r.request_type] || r.request_type}</td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-brand-green/10 flex items-center justify-center text-[10px] font-bold text-brand-green shrink-0">
+                          {r.patient_name.charAt(0)}
+                        </div>
+                        <span className="font-bold text-green-dark">{r.patient_name}</span>
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${TYPE_COLORS[r.request_type] || 'bg-gray-100 text-gray-600'}`}>
+                        {REQUEST_TYPE_LABELS[r.request_type] || r.request_type}
+                      </span>
+                    </td>
                     <td className="p-3 text-ink/60 text-xs whitespace-nowrap">
                       {formatDate(r.date_range_from)} → {formatDate(r.date_range_to)}
                     </td>
@@ -379,12 +416,12 @@ export default function RecordRequestsTab() {
                       {r.contact_email && <div>{r.contact_email}</div>}
                     </td>
                     <td className="p-3">
-                      <Badge className={STATUS_CONFIG[r.status].className}>
+                      <span className={`inline-block text-[10px] font-bold px-2.5 py-1 rounded-full ${STATUS_CONFIG[r.status].className}`}>
                         {STATUS_CONFIG[r.status].label}
-                      </Badge>
+                      </span>
                     </td>
                     <td className="p-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => handleOpenDetail(r)}
                           className="p-1.5 rounded-lg bg-brand-green/10 hover:bg-brand-green/20 text-brand-green cursor-pointer transition-colors"
@@ -421,7 +458,7 @@ export default function RecordRequestsTab() {
                         )}
                       </div>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>
@@ -853,6 +890,6 @@ export default function RecordRequestsTab() {
           </div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
