@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { patientService } from "../services/patient.service";
+import { consentCheckMiddleware } from "../middleware/consent.middleware";
 
 const router = Router();
 
@@ -28,7 +29,7 @@ router.post("/lookup", async (req, res) => {
   }
 });
 
-router.get("/:patientId/medical-records", async (req, res) => {
+router.get("/:patientId/medical-records", consentCheckMiddleware, async (req, res) => {
   try {
     const { patientId } = req.params;
     const { startDate, endDate, clinicId } = req.query;
@@ -51,7 +52,7 @@ router.get("/:patientId/medical-records", async (req, res) => {
   }
 });
 
-router.get("/:patientId/clinical-tests", async (req, res) => {
+router.get("/:patientId/clinical-tests", consentCheckMiddleware, async (req, res) => {
   try {
     const { patientId } = req.params;
     const { startDate, endDate, testType, status } = req.query;
@@ -75,7 +76,7 @@ router.get("/:patientId/clinical-tests", async (req, res) => {
   }
 });
 
-router.get("/:patientId/treatment-histories", async (req, res) => {
+router.get("/:patientId/treatment-histories", consentCheckMiddleware, async (req, res) => {
   try {
     const { patientId } = req.params;
 

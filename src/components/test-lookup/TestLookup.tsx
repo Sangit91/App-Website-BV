@@ -27,7 +27,7 @@ export default function TestLookup({ isOpen, onClose }: TestLookupProps) {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/test-results/${encodeURIComponent(code.trim().toUpperCase())}`);
+      const response = await fetch(`/api/v1/test-results/${encodeURIComponent(code.trim().toUpperCase())}`);
       const data = await response.json();
       
       if (!response.ok) {
@@ -193,7 +193,7 @@ export default function TestLookup({ isOpen, onClose }: TestLookupProps) {
                         }
 
                         return (
-                          <tr key={idx} className="hover:bg-mint/10">
+                          <tr key={ind.name} className="hover:bg-mint/10">
                             <td className="py-2.5 px-3 font-semibold text-ink">{ind.name}</td>
                             <td className={`py-2.5 px-3 ${ind.status !== "normal" ? "text-red-500 font-bold" : "text-ink font-semibold"}`}>{ind.value}</td>
                             <td className="py-2.5 px-3 text-ink/75">{ind.range}</td>

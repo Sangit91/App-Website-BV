@@ -3,7 +3,7 @@ export { default as HomeTab } from "./HomeTab";
 export { default as AboutTab } from "./AboutTab";
 export { default as SpecialtiesTab } from "./SpecialtiesTab";
 export { default as ServicesTab } from "./ServicesTab";
-export { default as PatientTab } from "./PatientTab";
+export { default as PatientGuideTab } from "./PatientTab";
 export { default as NewsTab } from "./NewsTab";
 export { default as TenderTab } from "./TenderTab";
 export { default as ContactTab } from "./ContactTab";

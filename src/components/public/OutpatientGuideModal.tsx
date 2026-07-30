@@ -70,7 +70,7 @@ export default function OutpatientGuideModal({ isOpen, onClose }: OutpatientGuid
             const Icon = step.icon;
             return (
               <motion.div
-                key={idx}
+                key={step.number}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}

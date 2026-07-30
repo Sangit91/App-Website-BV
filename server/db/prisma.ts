@@ -2,6 +2,25 @@ import { PrismaClient } from "../generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
+const SOFT_DELETE_MODELS = new Set(["Patient", "AdminUser"]);
+
+function isSoftDeleteModel(modelName: string): boolean {
+  return SOFT_DELETE_MODELS.has(modelName);
+}
+
+function addDeletedAtFilter(args: unknown): void {
+  if (args && typeof args === "object" && "where" in args) {
+    const where = (args as Record<string, unknown>).where as Record<string, unknown> | undefined;
+    if (where) {
+      if (where.deletedAt === undefined) {
+        where.deletedAt = null;
+      }
+    } else {
+      (args as Record<string, unknown>).where = { deletedAt: null };
+    }
+  }
+}
+
 let _prisma: PrismaClient | null = null;
 let _pool: Pool | null = null;
 
@@ -12,7 +31,21 @@ function createPrismaClient(): PrismaClient {
   }
   _pool = new Pool({ connectionString });
   const adapter = new PrismaPg(_pool);
-  return new PrismaClient({ adapter });
+  return new PrismaClient({ adapter }).$extends({
+    query: {
+      $allModels: {
+        async $allOperations({ model, operation, args, query }) {
+          if (
+            isSoftDeleteModel(model) &&
+            (operation === "findMany" || operation === "findFirst" || operation === "count")
+          ) {
+            addDeletedAtFilter(args);
+          }
+          return query(args);
+        },
+      },
+    },
+  }) as unknown as PrismaClient;
 }
 
 export function getPrisma(): PrismaClient {

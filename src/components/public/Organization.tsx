@@ -47,7 +47,7 @@ export default function Organization() {
   const INITIAL_DISPLAY = 6;
 
   useEffect(() => {
-    fetch("/api/organization")
+    fetch("/api/v1/organization")
       .then(res => res.json())
       .then(data => {
         setDivisions(data);
@@ -121,7 +121,7 @@ const directors: Member[] = [
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {directors.map((member, index) => (
               <motion.div
-                key={index}
+                key={member.name}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}

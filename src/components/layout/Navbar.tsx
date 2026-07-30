@@ -415,14 +415,14 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
                 megaMenuData[hoveredMenu].columns.length === 3 ? "grid-cols-3" : "grid-cols-2"
               }`}>
                 {megaMenuData[hoveredMenu].columns.map((col: MegaMenuColumn, idx: number) => (
-                  <div key={idx} className="space-y-4">
+                  <div key={col.title} className="space-y-4">
                     <h4 className="font-display font-bold text-[13.5px] text-green-dark border-b border-brand-green/10 pb-1 flex items-center gap-1">
                       <span className="text-peach text-sm">✦</span>
                       {col.title}
                     </h4>
                     <ul className="space-y-2">
                       {col.links.map((link: string, linkIdx: number) => (
-                        <li key={linkIdx}>
+                        <li key={`${link}-${linkIdx}`}>
                           <button
                             onClick={() => {
                               if (link.includes("Đặt khám") || link.includes("đặt khám")) {

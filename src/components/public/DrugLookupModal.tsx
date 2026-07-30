@@ -88,7 +88,7 @@ export default function DrugLookupModal({ isOpen, onClose }: DrugLookupModalProp
             ) : (
               results.map((drug, idx) => (
                 <motion.div
-                  key={idx}
+                  key={drug.name}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}

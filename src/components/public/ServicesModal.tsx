@@ -35,7 +35,7 @@ export default function ServicesModal({ isOpen, onClose }: ServicesModalProps) {
             const Icon = service.icon;
             return (
               <motion.div
-                key={idx}
+                key={service.name}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}

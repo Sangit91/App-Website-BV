@@ -52,9 +52,8 @@ export default function FeedbackTab() {
   const [isReplying, setIsReplying] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
 
-  useEffect(() => { fetchFeedbacks(); }, []);
-
-  const fetchFeedbacks = async () => {
+  useEffect(() => {
+    const fetchFeedbacks = async () => {
     try {
       const res = await fetch("/api/v1/feedback-requests");
       const data = await res.json();
@@ -76,7 +75,9 @@ export default function FeedbackTab() {
       } else setFeedbacks([]);
     } catch { setFeedbacks([]); }
     finally { setLoading(false); }
-  };
+    };
+    fetchFeedbacks();
+  }, []);
 
   const filtered = useMemo(() => {
     return feedbacks.filter(f => {

@@ -645,11 +645,11 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Call server API synchronously to keep in-memory server database in sync
-    fetch("/api/booking", {
+    fetch("/api/v1/bookings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newBooking)
-    }).catch(err => console.log("Silent sync error with API backend:", err));
+    }).catch(err => console.error("Silent sync error with API backend:", err));
 
     addLogInternal(`Người bệnh ${newBooking.patientName} đăng ký lịch khám #${id}`, "Khách trực tuyến");
     return newBooking;

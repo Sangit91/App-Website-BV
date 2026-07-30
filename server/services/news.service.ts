@@ -102,7 +102,17 @@ export async function createNews(data: NewsInput) {
 
 export async function updateNews(id: string, data: NewsUpdateInput) {
   const prisma = getPrisma();
-  const updateData: Record<string, unknown> = { ...data };
+  const updateData: Record<string, unknown> = {};
+  const stringFields = ["title", "slug", "summary", "category", "content", "image", "author", "tenderNumber", "tenderMethod", "tenderEstimate", "tenderReceived", "contactName", "contactPhone", "contactEmail"] as const;
+  for (const field of stringFields) {
+    if (data[field as keyof NewsUpdateInput] !== undefined) {
+      updateData[field] = data[field as keyof NewsUpdateInput];
+    }
+  }
+  if (data.isFeatured !== undefined) updateData.isFeatured = data.isFeatured;
+  if (data.isTender !== undefined) updateData.isTender = data.isTender;
+  if (data.downloadCount !== undefined) updateData.downloadCount = data.downloadCount;
+  if (data.isActive !== undefined) updateData.isActive = data.isActive;
   if (data.title && !data.slug) {
     updateData.slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   }

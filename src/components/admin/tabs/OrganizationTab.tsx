@@ -41,7 +41,7 @@ export default function OrganizationTab() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch("/api/organization");
+      const res = await fetch("/api/v1/organization");
       if (res.ok) {
         const data = await res.json();
         setDivisions(data);
@@ -89,13 +89,13 @@ export default function OrganizationTab() {
     try {
       let res;
       if (editing) {
-        res = await fetch("/api/organization/" + editing.divisionId + "/departments/" + editing.dept.id, {
+        res = await fetch("/api/v1/organization/" + editing.divisionId + "/departments/" + editing.dept.id, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(form)
         });
       } else {
-        res = await fetch("/api/organization/" + selectedDivision + "/departments", {
+        res = await fetch("/api/v1/organization/" + selectedDivision + "/departments", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(form)
@@ -119,7 +119,7 @@ export default function OrganizationTab() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      const res = await fetch("/api/organization/" + deleteTarget.divisionId + "/departments/" + deleteTarget.deptId, { method: "DELETE" });
+      const res = await fetch("/api/v1/organization/" + deleteTarget.divisionId + "/departments/" + deleteTarget.deptId, { method: "DELETE" });
       if (res.ok) {
         await fetchData();
         addLog("Xóa khoa/phòng \"" + deleteTarget.deptName + "\" khỏi sơ đồ tổ chức");

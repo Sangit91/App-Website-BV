@@ -174,7 +174,7 @@ export default function BookingForm({ isOpen, onClose, prepopulatedDoctor = "", 
     setIsSearching(true);
     setSearched(true);
     try {
-      const response = await fetch(`/api/booking/search?phone=${encodeURIComponent(searchPhone.trim())}`);
+      const response = await fetch(`/api/v1/bookings/search?phone=${encodeURIComponent(searchPhone.trim())}`);
       const data = await response.json();
       if (response.ok) {
         setSearchResult(data);

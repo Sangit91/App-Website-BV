@@ -63,7 +63,7 @@ export default function WhyChooseUs() {
                 "Chăm sóc người bệnh chu đáo 24/7",
                 "Nhiệt huyết chuyển giao công nghệ mới"
               ].map((item, idx) => (
-                <li key={idx} className="flex items-center gap-2 text-xs md:text-sm font-semibold text-ink/90">
+                <li key={item} className="flex items-center gap-2 text-xs md:text-sm font-semibold text-ink/90">
                   <span className="w-5 h-5 rounded-full bg-brand-green/15 text-brand-green flex items-center justify-center shrink-0">
                     <Check size={12} className="stroke-[3px]" />
                   </span>
@@ -96,7 +96,7 @@ export default function WhyChooseUs() {
                 "Kết quả xét nghiệm tự động hóa nhanh",
                 "Phòng mổ áp lực âm tiêu chuẩn quốc tế"
               ].map((item, idx) => (
-                <li key={idx} className="flex items-center gap-2 text-xs md:text-sm font-semibold text-ink/90">
+                <li key={item} className="flex items-center gap-2 text-xs md:text-sm font-semibold text-ink/90">
                   <span className="w-5 h-5 rounded-full bg-brand-green/15 text-brand-green flex items-center justify-center shrink-0">
                     <Check size={12} className="stroke-[3px]" />
                   </span>

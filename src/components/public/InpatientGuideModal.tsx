@@ -66,7 +66,7 @@ export default function InpatientGuideModal({ isOpen, onClose }: InpatientGuideM
             const Icon = section.icon;
             return (
               <motion.div
-                key={idx}
+                key={section.title}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}

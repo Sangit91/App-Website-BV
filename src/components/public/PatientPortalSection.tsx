@@ -13,13 +13,8 @@ import PatientLookupForm from "./PatientLookupForm";
 import { MOCK_PATIENT_PORTAL_DATA } from "../../data/patient-portal-data";
 
 interface PatientPortalSectionProps {
-  onPatientLookup?: (request: { identifier: string; identifierType: string }) => Promise<Patient>;
-  onFetchMedicalRecords?: (patientId: string) => Promise<MedicalRecord[]>;
-  onFetchClinicalTests?: (patientId: string) => Promise<ClinicalTest[]>;
-  onFetchTreatmentHistories?: (patientId: string) => Promise<TreatmentHistory[]>;
   onOpenRecordRequest?: () => void;
   onOpenFeedback?: () => void;
-  isLoading?: boolean;
   error?: string | null;
 }
 
@@ -133,7 +128,7 @@ function MedicalRecordCard({ record, index }: { record: MedicalRecord; index: nu
                   <h5 className="text-xs font-bold text-ink/50 uppercase tracking-wider mb-2">Đơn thuốc</h5>
                   <div className="space-y-2">
                     {record.prescriptions.map((rx, idx) => (
-                      <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50/50 rounded-xl">
+                      <div key={rx.medicine} className="flex items-start gap-3 p-3 bg-gray-50/50 rounded-xl">
                         <Pill size={16} className="text-brand-green mt-0.5 shrink-0" />
                         <div>
                           <p className="text-sm font-semibold text-green-dark">{rx.medicine}</p>
@@ -224,7 +219,7 @@ function ClinicalTestCard({ test, index }: { test: ClinicalTest; index: number }
                   <h5 className="text-xs font-bold text-ink/50 uppercase tracking-wider mb-2">Chỉ số chi tiết</h5>
                   <div className="space-y-2">
                     {test.indicators.map((ind, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl">
+                      <div key={ind.name} className="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl">
                         <div>
                           <span className="text-sm font-semibold text-green-dark">{ind.name}</span>
                           <span className="text-xs text-ink/50 ml-2">({ind.unit})</span>
@@ -382,13 +377,8 @@ function TreatmentHistoryCard({ history, index }: { history: TreatmentHistory; i
 }
 
 export default function PatientPortalSection({
-  onPatientLookup,
-  onFetchMedicalRecords,
-  onFetchClinicalTests,
-  onFetchTreatmentHistories,
   onOpenRecordRequest,
   onOpenFeedback,
-  isLoading = false,
   error = null
 }: PatientPortalSectionProps) {
   const [activeTab, setActiveTab] = useState<PortalTab>("benh-su");
@@ -409,23 +399,21 @@ export default function PatientPortalSection({
     setLookupError(null);
 
     try {
-      if (onPatientLookup) {
-        // API mode - fetch data for the patient
-        const [records, tests, histories] = await Promise.all([
-          onFetchMedicalRecords?.(patient.id) || [],
-          onFetchClinicalTests?.(patient.id) || [],
-          onFetchTreatmentHistories?.(patient.id) || []
-        ]);
-        setMedicalRecords(records);
-        setClinicalTests(tests);
-        setTreatmentHistories(histories);
-      } else {
-        // Mock mode - load from mock data (replace with real API calls in production)
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setMedicalRecords(MOCK_PATIENT_PORTAL_DATA.medicalRecords);
-        setClinicalTests(MOCK_PATIENT_PORTAL_DATA.clinicalTests);
-        setTreatmentHistories(MOCK_PATIENT_PORTAL_DATA.treatmentHistories);
-      }
+      const [recordsRes, testsRes, historiesRes] = await Promise.all([
+        fetch(`/api/v1/patients/${patient.id}/medical-records`),
+        fetch(`/api/v1/patients/${patient.id}/clinical-tests`),
+        fetch(`/api/v1/patients/${patient.id}/treatment-histories`),
+      ]);
+
+      const [recordsData, testsData, historiesData] = await Promise.all([
+        recordsRes.json(),
+        testsRes.json(),
+        historiesRes.json(),
+      ]);
+
+      setMedicalRecords(recordsData.records || []);
+      setClinicalTests(testsData.tests || []);
+      setTreatmentHistories(historiesData.histories || []);
     } catch (err) {
       setLookupError("Không thể tải dữ liệu bệnh nhân");
     } finally {

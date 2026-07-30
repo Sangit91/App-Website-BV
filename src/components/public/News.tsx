@@ -617,7 +617,7 @@ export default function News() {
                       const isHeading = paragraph.trim().match(/^(I|II|III|IV|V|1|2|3)\.\s+/);
                       if (isHeading) {
                         return (
-                          <h3 key={idx} className="font-display font-bold text-base text-green-dark pt-3 border-l-2 border-brand-green pl-3">
+                          <h3 key={`${paragraph}-${idx}`} className="font-display font-bold text-base text-green-dark pt-3 border-l-2 border-brand-green pl-3">
                             {paragraph.trim()}
                           </h3>
                         );
@@ -626,7 +626,7 @@ export default function News() {
                       const isGreeting = paragraph.trim().toLowerCase().startsWith("kính gửi:");
                       if (isGreeting) {
                         return (
-                          <p key={idx} className="font-bold">
+                          <p key={`${paragraph}-${idx}`} className="font-bold">
                             {paragraph}
                           </p>
                         );
@@ -635,14 +635,14 @@ export default function News() {
                       const isNote = paragraph.trim().toLowerCase().includes("mọi thông tin phản hồi") || paragraph.trim().toLowerCase().includes("xin vui lòng gửi về");
                       if (isNote) {
                         return (
-                          <p key={idx} className="italic text-gray-500 pt-4 text-xs">
+                          <p key={`${paragraph}-${idx}`} className="italic text-gray-500 pt-4 text-xs">
                             {paragraph}
                           </p>
                         );
                       }
 
                       return (
-                        <p key={idx}>
+                        <p key={`${paragraph}-${idx}`}>
                           {paragraph}
                         </p>
                       );

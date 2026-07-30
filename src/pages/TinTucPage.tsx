@@ -473,7 +473,7 @@ export default function TinTucPage() {
                   <div className="font-sans text-ink text-[14.5px] leading-relaxed space-y-4 text-left">
                     {selectedNews.content ? (
                       selectedNews.content.split("\n\n").map((paragraph, idx) => (
-                        <p key={idx}>{paragraph}</p>
+                        <p key={`${paragraph}-${idx}`}>{paragraph}</p>
                       ))
                     ) : (
                       <>

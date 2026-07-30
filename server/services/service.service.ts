@@ -108,7 +108,13 @@ export async function createService(data: ServiceInput) {
 
 export async function updateServiceGroup(id: string, data: Partial<ServiceGroupInput>) {
   const prisma = getPrisma();
-  const updateData: Record<string, unknown> = { ...data };
+  const updateData: Record<string, unknown> = {};
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.slug !== undefined) updateData.slug = data.slug;
+  if (data.description !== undefined) updateData.description = data.description;
+  if (data.icon !== undefined) updateData.icon = data.icon;
+  if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
+  if (data.isActive !== undefined) updateData.isActive = data.isActive;
   if (data.name && !data.slug) {
     updateData.slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   }
@@ -117,7 +123,15 @@ export async function updateServiceGroup(id: string, data: Partial<ServiceGroupI
 
 export async function updateService(id: string, data: Partial<ServiceInput>) {
   const prisma = getPrisma();
-  const updateData: Record<string, unknown> = { ...data };
+  const updateData: Record<string, unknown> = {};
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.slug !== undefined) updateData.slug = data.slug;
+  if (data.groupId !== undefined) updateData.groupId = data.groupId;
+  if (data.icon !== undefined) updateData.icon = data.icon;
+  if (data.description !== undefined) updateData.description = data.description;
+  if (data.price !== undefined) updateData.price = data.price;
+  if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
+  if (data.isActive !== undefined) updateData.isActive = data.isActive;
   if (data.name && !data.slug) {
     updateData.slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   }

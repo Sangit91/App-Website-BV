@@ -589,7 +589,7 @@ export default function GioiThieuPage() {
                       <ul className="space-y-3">
                         {whyChooseItems.map((item, idx) => (
                           <motion.li
-                            key={idx}
+                            key={item}
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.05 }}
@@ -765,7 +765,7 @@ export default function GioiThieuPage() {
 
                 return (
                   <motion.div
-                    key={idx}
+                    key={item.title}
                     initial={{ opacity: 0, y: 40 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1, duration: 0.5 }}

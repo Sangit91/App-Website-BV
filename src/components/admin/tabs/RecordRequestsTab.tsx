@@ -95,10 +95,7 @@ export default function RecordRequestsTab() {
   const [previewModalFile, setPreviewModalFile] = useState<RecordRequestFile | null>(null);
 
   useEffect(() => {
-    fetchRequests();
-  }, []);
-
-  const fetchRequests = async () => {
+    const fetchRequests = async () => {
     try {
       const res = await fetch("/api/v1/record-requests");
       const data = await res.json();
@@ -138,7 +135,9 @@ export default function RecordRequestsTab() {
     } finally {
       setLoading(false);
     }
-  };
+    };
+    fetchRequests();
+  }, []);
 
   const filtered = useMemo(() => {
     return requests.filter(r => {

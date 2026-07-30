@@ -10,7 +10,7 @@ import {
   AboutTab,
   SpecialtiesTab,
   ServicesTab,
-  PatientTab,
+  PatientGuideTab,
   NewsTab,
   TenderTab,
   ContactTab,
@@ -62,7 +62,7 @@ export default function AdminPage() {
       case "about": return <AboutTab />;
       case "specialties": return <SpecialtiesTab />;
       case "services": return <ServicesTab />;
-      case "patient": return <PatientTab />;
+      case "patient": return <PatientGuideTab />;
       case "news": return <NewsTab />;
       case "tender": return <TenderTab />;
       case "contact": return <ContactTab />;

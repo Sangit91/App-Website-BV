@@ -113,7 +113,7 @@ export default function Footer({ onScrollToSection, onOpenAdmin }: FooterProps) 
           </h3>
           <ul className="space-y-2.5">
             {supportLinks.map((link, idx) => (
-              <li key={idx}>
+              <li key={link.url}>
                 <a
                   href={link.url}
                   className="text-xs md:text-[13px] hover:text-peach text-mint/85 flex items-center gap-1 group"

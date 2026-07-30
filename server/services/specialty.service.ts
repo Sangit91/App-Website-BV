@@ -41,7 +41,11 @@ export async function createSpecialty(data: SpecialtyInput) {
 
 export async function updateSpecialty(id: string, data: Partial<SpecialtyInput>) {
   const prisma = getPrisma();
-  const updateData: Record<string, unknown> = { ...data };
+  const updateData: Record<string, unknown> = {};
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.description !== undefined) updateData.description = data.description;
+  if (data.icon !== undefined) updateData.icon = data.icon;
+  if (data.detail !== undefined) updateData.detail = data.detail;
   if (data.name && !data.slug) {
     updateData.slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   }

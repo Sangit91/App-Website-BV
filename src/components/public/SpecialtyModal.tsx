@@ -248,7 +248,7 @@ export default function SpecialtyModal({ isOpen, onClose, specialty }: Specialty
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {content.services.map((service, idx) => (
               <motion.div
-                key={idx}
+                key={`service-${idx}`}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.03 }}
@@ -270,7 +270,7 @@ export default function SpecialtyModal({ isOpen, onClose, specialty }: Specialty
           <ul className="space-y-2">
             {content.highlights.map((highlight, idx) => (
               <motion.li
-                key={idx}
+                key={`highlight-${idx}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: idx * 0.05 }}
@@ -292,7 +292,7 @@ export default function SpecialtyModal({ isOpen, onClose, specialty }: Specialty
           <div className="space-y-2">
             {content.experts.map((expert, idx) => (
               <motion.div
-                key={idx}
+                key={`expert-${idx}`}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.05 }}

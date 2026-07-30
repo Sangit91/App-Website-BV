@@ -68,7 +68,6 @@ export default function ShiftsTab() {
           sunday: shiftMap[s.sunday] || "Nghỉ",
         }));
         localStorage.setItem("hosp_schedules", JSON.stringify(mapped));
-        window.location.reload();
       })
       .catch((err) => console.error("Failed to add schedule:", err));
     setIsAddOpen(false);

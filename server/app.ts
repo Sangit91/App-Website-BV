@@ -39,10 +39,10 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", time: new Date().toISOString() });
 });
 
-app.use("/api/booking", bookingRoutes);
-app.use("/api/test-results", testResultRoutes);
-app.use("/api/gemini", aiRoutes);
-app.use("/api/organization", organizationRoutes);
+app.use("/api/v1/bookings", bookingRoutes);
+app.use("/api/v1/test-results", testResultRoutes);
+app.use("/api/v1/ai", aiRoutes);
+app.use("/api/v1/organization", organizationRoutes);
 
 app.use("/api/v1/patients", patientRoutes);
 app.use("/api/v1/auth", authLimiter, authRoutes);

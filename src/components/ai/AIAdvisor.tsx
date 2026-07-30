@@ -65,7 +65,7 @@ export default function AIAdvisor({ isOpen, onClose, onOpenBooking }: AIAdvisorP
           text: m.text
         }));
 
-      const response = await fetch("/api/gemini/consult", {
+      const response = await fetch("/api/v1/ai/consult", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -139,7 +139,7 @@ export default function AIAdvisor({ isOpen, onClose, onOpenBooking }: AIAdvisorP
       
       // Basic bold and italic text parsing for safe rendering
       return (
-        <p key={idx} className={`leading-relaxed text-xs md:text-sm ${isBullet ? "pl-4 list-disc" : ""} mb-2`}>
+        <p key={`line-${idx}`} className={`leading-relaxed text-xs md:text-sm ${isBullet ? "pl-4 list-disc" : ""} mb-2`}>
           {line.split("**").map((chunk, cIdx) => {
             if (cIdx % 2 === 1) {
               return <strong key={cIdx} className="text-green-dark font-bold">{chunk}</strong>;
@@ -262,7 +262,7 @@ export default function AIAdvisor({ isOpen, onClose, onOpenBooking }: AIAdvisorP
             <div className="grid grid-cols-1 gap-2">
               {samplePrompts.map((p, idx) => (
                 <button
-                  key={idx}
+                  key={p.title}
                   onClick={() => handleSendMessage(p.text)}
                   className="w-full text-left bg-white hover:bg-mint border border-green-800/10 p-2.5 rounded-xl text-xs text-green-dark hover:text-brand-green font-semibold flex justify-between items-center cursor-pointer group transition-colors shadow-sm"
                 >

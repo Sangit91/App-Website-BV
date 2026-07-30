@@ -77,11 +77,28 @@ export async function updateDoctorSchedule(doctorId: string, data: ScheduleInput
   const schedule = await prisma.doctorSchedule.findFirst({ where: { doctorId } });
   if (!schedule) {
     return prisma.doctorSchedule.create({
-      data: { doctorId, ...data },
+      data: {
+        doctorId,
+        monday: data.monday,
+        tuesday: data.tuesday,
+        wednesday: data.wednesday,
+        thursday: data.thursday,
+        friday: data.friday,
+        saturday: data.saturday,
+        sunday: data.sunday,
+      },
     });
   }
   return prisma.doctorSchedule.update({
     where: { id: schedule.id },
-    data,
+    data: {
+      monday: data.monday,
+      tuesday: data.tuesday,
+      wednesday: data.wednesday,
+      thursday: data.thursday,
+      friday: data.friday,
+      saturday: data.saturday,
+      sunday: data.sunday,
+    },
   });
 }
