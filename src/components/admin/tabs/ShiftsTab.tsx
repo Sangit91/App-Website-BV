@@ -13,6 +13,7 @@ export default function ShiftsTab() {
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   const isSuperAdmin = activeUser?.role === "Super Admin";
+  const isDeptAdmin = activeUser?.role === "Department Admin";
   const isDoctorRole = activeUser?.role === "Doctor";
   const canEdit = isSuperAdmin || isDoctorRole;
 
@@ -33,6 +34,8 @@ export default function ShiftsTab() {
     const scheduleDoctorIds = new Set(schedules.map(s => s.doctorId));
     return doctors.filter(d => !scheduleDoctorIds.has(d.id));
   }, [doctors, schedules]);
+
+  const canAdd = isSuperAdmin || isDeptAdmin;
 
   const handleAddSubmit = (data: Record<string, string | number | boolean | File | null>) => {
     const doctorId = data.doctorId as string;
@@ -79,11 +82,11 @@ export default function ShiftsTab() {
       label: "Chọn Bác Sĩ",
       type: "select" as const,
       required: true,
-      description: "Bác sĩ chưa có lịch trực — sẽ tạo lịch mặc định Nghỉ cả tuần",
-      hint: "Chọn bác sĩ cần thêm phân ca",
-      options: doctorsWithoutSchedule.map(d => ({
+      description: "Tạo hoặc cập nhật lịch trực cho bác sĩ (mặc định Nghỉ cả tuần)",
+      hint: "Chọn bác sĩ cần thêm hoặc thay đổi phân ca",
+      options: doctors.map(d => ({
         value: d.id,
-        label: `${d.title} ${d.name} (${d.specialtyName || "Chưa phân khoa"})`,
+        label: `${d.title} ${d.name} (${d.specialtyName || "Chưa phân khoa"})${doctorsWithoutSchedule.find(ds => ds.id === d.id) ? " — chưa có lịch" : ""}`,
       })),
     },
   ];
@@ -98,7 +101,7 @@ export default function ShiftsTab() {
               Cập nhật phân ca trực của bác sĩ giúp bệnh nhân dễ dàng tra cứu tại trang chủ. Tổng số: <strong>{schedules.length}</strong> bác sĩ đã phân ca.
             </p>
           </div>
-          {isSuperAdmin && doctorsWithoutSchedule.length > 0 && (
+          {canAdd && (
             <Button variant="primary" size="sm" onClick={() => setIsAddOpen(true)}>
               <Plus size={14} />
               <span>Thêm phân ca</span>
@@ -116,7 +119,7 @@ export default function ShiftsTab() {
         {schedules.length === 0 ? (
           <div className="text-center py-12 text-ink/50">
             <p className="font-semibold mb-2">Chưa có lịch trực nào được phân ca</p>
-            <p className="text-xs">{isSuperAdmin && doctorsWithoutSchedule.length > 0 ? "Nhấn nút \"Thêm phân ca\" ở trên để bắt đầu." : "Vui lòng liên hệ Super Admin để phân ca trực."}</p>
+            <p className="text-xs">Nhấn nút "Thêm phân ca" ở trên để bắt đầu.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
