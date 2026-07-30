@@ -13,6 +13,7 @@ services:
       - PORT=8000
       - API_HOST=admin-api
       - API_PORT=8001
+      - DATABASE_URL=postgresql://postgres:devpass@db:5432/bvdh_db?schema=public
       - DISABLE_HMR=false
     volumes:
       - .:/app

@@ -155,13 +155,13 @@ export default function TinTucPage() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-green-950/5 rounded-3xl overflow-hidden border border-green-800/5">
                     {hospitalNews[0] && (
                       <motion.div
-                        className="relative h-80 lg:h-96 overflow-hidden cursor-pointer"
+                        className="relative h-80 lg:h-96 overflow-hidden rounded-3xl cursor-pointer"
                         initial={{ clipPath: "inset(100% 0 0 0)" }}
                         animate={{ clipPath: "inset(0% 0 0 0)" }}
                         transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
                         onClick={() => setSelectedNews(hospitalNews[0])}
                       >
-                        <motion.img src={hospitalNews[0].image} alt={hospitalNews[0].title} className="w-full h-full object-cover" referrerPolicy="no-referrer" initial={{ scale: 1.2 }} animate={{ scale: reducedMotion ? 1 : 1 }} transition={{ duration: reducedMotion ? 0 : 1.2, ease: [0.25, 0.46, 0.45, 0.94] }} />
+                        <motion.img src={hospitalNews[0].image} alt={hospitalNews[0].title} className="w-full h-full object-cover" referrerPolicy="no-referrer" initial={{ scale: 1.2 }} animate={{ scale: 1 }} transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }} />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-8">
                           <motion.span className="inline-flex bg-brand-green/90 text-white text-xs font-bold px-4 py-1.5 rounded-full mb-4" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>
@@ -269,8 +269,8 @@ export default function TinTucPage() {
                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }} className="mb-12">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-rose-950/5 rounded-3xl overflow-hidden border border-green-800/5">
                     {medicalNews[0] && (
-                      <motion.div className="relative h-80 lg:h-96 overflow-hidden" initial={{ clipPath: "inset(100% 0 0 0)" }} animate={{ clipPath: "inset(0% 0 0 0)" }} transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}>
-                        <motion.img src={medicalNews[0].image} alt={medicalNews[0].title} className="w-full h-full object-cover" referrerPolicy="no-referrer" initial={{ scale: 1.2 }} animate={{ scale: reducedMotion ? 1 : 1 }} transition={{ duration: reducedMotion ? 0 : 1.2, ease: [0.25, 0.46, 0.45, 0.94] }} />
+                      <motion.div className="relative h-80 lg:h-96 overflow-hidden rounded-3xl cursor-pointer" initial={{ clipPath: "inset(100% 0 0 0)" }} animate={{ clipPath: "inset(0% 0 0 0)" }} transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }} onClick={() => setSelectedNews(medicalNews[0])}>
+                        <motion.img src={medicalNews[0].image} alt={medicalNews[0].title} className="w-full h-full object-cover" referrerPolicy="no-referrer" initial={{ scale: 1.2 }} animate={{ scale: 1 }} transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }} />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-8">
                           <motion.span className="inline-flex bg-rose-500/90 text-white text-xs font-bold px-4 py-1.5 rounded-full mb-4" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>

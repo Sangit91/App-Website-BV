@@ -106,14 +106,15 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Load specialties, doctors, news from PostgreSQL API (source of truth)
-    // Load bookings, patients, schedules, logs, activeUser from localStorage (still local-only)
+    // Load news, schedules from PostgreSQL API (source of truth); bookings/patients/logs/activeUser from localStorage
     const init = async () => {
-      // --- API data: specialties, doctors, news ---
+      // --- API data: specialties, doctors, news, schedules ---
       try {
-        const [specRes, docRes, newsRes] = await Promise.all([
+        const [specRes, docRes, newsRes, schedRes] = await Promise.all([
           fetch('/api/v1/specialties'),
           fetch('/api/v1/doctors'),
           fetch('/api/v1/news'),
+          fetch('/api/v1/doctors/schedules'),
         ]);
 
         if (specRes.ok) {
@@ -171,6 +172,28 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
           setNews(mappedNews);
           localStorage.setItem('hosp_news', JSON.stringify(mappedNews));
         }
+
+        if (schedRes.ok) {
+          const dbSchedules = await schedRes.json();
+          const shiftMap: Record<string, DoctorSchedule['monday']> = {
+            ca_sang: 'Ca Sáng',
+            ca_chieu: 'Ca Chiều',
+            nghi: 'Nghỉ',
+          };
+          const mappedSchedules: DoctorSchedule[] = dbSchedules.map((s: any) => ({
+            doctorId: s.doctorId,
+            doctorName: s.doctor?.fullName || '',
+            monday: shiftMap[s.monday] || 'Nghỉ',
+            tuesday: shiftMap[s.tuesday] || 'Nghỉ',
+            wednesday: shiftMap[s.wednesday] || 'Nghỉ',
+            thursday: shiftMap[s.thursday] || 'Nghỉ',
+            friday: shiftMap[s.friday] || 'Nghỉ',
+            saturday: shiftMap[s.saturday] || 'Nghỉ',
+            sunday: shiftMap[s.sunday] || 'Nghỉ',
+          }));
+          setSchedules(mappedSchedules);
+          localStorage.setItem('hosp_schedules', JSON.stringify(mappedSchedules));
+        }
       } catch (err) {
         console.error('Error loading from API, falling back to localStorage:', err);
       }
@@ -197,14 +220,21 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
         setSpecialties(SPECIALTIES);
       }
 
-      // News (fallback)
-      const localNews = localStorage.getItem('hosp_news');
-      if (localNews) {
-        const parsed = JSON.parse(localNews);
-        if (parsed.length > 0) setNews(parsed);
-      } else {
-        localStorage.setItem('hosp_news', JSON.stringify(NEWS));
-        setNews(NEWS);
+      // News (fallback) — chỉ fallback khi state news vẫn rỗng (API lỗi/DB rỗng)
+      if (news.length === 0) {
+        const localNews = localStorage.getItem('hosp_news');
+        if (localNews) {
+          const parsed = JSON.parse(localNews);
+          if (parsed.length > 0) {
+            setNews(parsed);
+          } else {
+            localStorage.setItem('hosp_news', JSON.stringify(NEWS));
+            setNews(NEWS);
+          }
+        } else {
+          localStorage.setItem('hosp_news', JSON.stringify(NEWS));
+          setNews(NEWS);
+        }
       }
 
       // Bookings
@@ -283,59 +313,11 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
         setPatients(defaultPatients);
       }
 
-      // Schedules
+      // Schedules (localStorage cache only — API là source of truth, không còn default static)
       const localSchedules = localStorage.getItem('hosp_schedules');
-      if (localSchedules) {
-        setSchedules(JSON.parse(localSchedules));
-      } else {
-        const defaultSchedules: DoctorSchedule[] = [
-          {
-            doctorId: 'dr-tri',
-            doctorName: 'BS. CKII. Nguyễn Minh Trí',
-            monday: 'Ca Sáng',
-            tuesday: 'Ca Sáng',
-            wednesday: 'Ca Sáng',
-            thursday: 'Ca Sáng',
-            friday: 'Ca Sáng',
-            saturday: 'Nghỉ',
-            sunday: 'Nghỉ'
-          },
-          {
-            doctorId: 'dr-mai',
-            doctorName: 'ThS. BS. Nguyễn Thị Phương Mai',
-            monday: 'Ca Chiều',
-            tuesday: 'Ca Chiều',
-            wednesday: 'Ca Chiều',
-            thursday: 'Ca Chiều',
-            friday: 'Nghỉ',
-            saturday: 'Nghỉ',
-            sunday: 'Nghỉ'
-          },
-          {
-            doctorId: 'dr-hai',
-            doctorName: 'BS. CKI. Phan Thanh Hải',
-            monday: 'Nghỉ',
-            tuesday: 'Ca Sáng',
-            wednesday: 'Ca Sáng',
-            thursday: 'Ca Sáng',
-            friday: 'Ca Sáng',
-            saturday: 'Nghỉ',
-            sunday: 'Nghỉ'
-          },
-          {
-            doctorId: 'dr-hong',
-            doctorName: 'BS. Lê Thị Thu Hồng',
-            monday: 'Ca Chiều',
-            tuesday: 'Ca Chiều',
-            wednesday: 'Ca Chiều',
-            thursday: 'Nghỉ',
-            friday: 'Nghỉ',
-            saturday: 'Nghỉ',
-            sunday: 'Nghỉ'
-          }
-        ];
-        localStorage.setItem('hosp_schedules', JSON.stringify(defaultSchedules));
-        setSchedules(defaultSchedules);
+      if (localSchedules && schedules.length === 0) {
+        const parsed = JSON.parse(localSchedules);
+        if (parsed.length > 0) setSchedules(parsed);
       }
 
       // Logs
@@ -709,6 +691,26 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     };
     if (doctor) {
       addLog(`Cập nhật lịch trực của BS. ${doctor.name} ngày ${dayNamesVi[day]} thành: ${shift}`);
+    }
+    // Sync to DB via API (optimistic update — UI đã update sẵn, API patch chạy nền)
+    const shiftToApi: Record<string, string> = { "Ca Sáng": "ca_sang", "Ca Chiều": "ca_chieu", "Nghỉ": "nghi" };
+    const current = schedules.find(s => s.doctorId === doctorId);
+    if (current) {
+      const payload = {
+        monday: shiftToApi[current.monday] || "nghi",
+        tuesday: shiftToApi[current.tuesday] || "nghi",
+        wednesday: shiftToApi[current.wednesday] || "nghi",
+        thursday: shiftToApi[current.thursday] || "nghi",
+        friday: shiftToApi[current.friday] || "nghi",
+        saturday: shiftToApi[current.saturday] || "nghi",
+        sunday: shiftToApi[current.sunday] || "nghi",
+        [day]: shiftToApi[shift] || "nghi",
+      };
+      fetch(`/api/v1/doctors/${doctorId}/schedule`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }).catch((err) => console.error("Failed to sync schedule to DB:", err));
     }
   };
 
