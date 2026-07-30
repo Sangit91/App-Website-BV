@@ -72,7 +72,7 @@ Mọi bảng file đính kèm dùng cột `file_path` (không dùng `storage_pat
 | Tổ chức | OrganizationTab.tsx | CRUD | — | — |
 | Nhật ký | LogsTab.tsx | Read | Read | Read |
 | Services | ServicesTab.tsx | CRUD | — | — |
-| Patient Guide | PatientTab.tsx | CRUD | — | — |
+| Hướng dẫn BN | PatientGuideTab.tsx | CRUD | — | — |
 | Tender | TenderTab.tsx | CRUD | CRUD khoa mình | — |
 | Contact | ContactTab.tsx | CRUD | — | — |
 | Phản hồi | FeedbackTab.tsx | CRUD đầy đủ | Xem + phản hồi khoa mình | Không |
@@ -136,8 +136,8 @@ Chi tiết: AGENTS.md section "Port Policy (Bắt buộc — không thay đổi 
 | Endpoint | Limit | Code status |
 |----------|-------|-------------|
 | Public form (feedback/record-request/contact/lab-test/teleconsult) | **5 request/IP/15 phút** | ✅ Phase 49 |
-| Admin Auth (login/refresh/OTP) | **5 request/phút** | ❌ Chưa enforce |
-| Login attempts | **5 lần → lockout 30 phút** | ❌ Chưa enforce |
+| Admin Auth (login/refresh/OTP) | **10 request/15 phút** | ✅ Express rate-limit trên `/api/v1/auth` |
+| Login attempts | **5 lần → lockout 30 phút** | ⚠️ Partial — lockout logic trong `auth.service.ts` (loginAttempts Map) |
 | Default public API khác | 100 request/phút | ❌ Chưa enforce |
 
 ### 4. RBAC Roles
@@ -198,11 +198,15 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 | Public form rate limit (5/IP/15ph) | ✅ Có | Phase 49 + AGENTS.md Public Form API |
 | JWT access/refresh + httpOnly cookie | ✅ Có | Phase 68+ Admin Login redesign |
 | Audit logging `activity_logs` | ✅ Schema đủ | Có `userId`/`details`/`ipAddress`/`userAgent`. Cần verify service thực tế ghi |
-| Security headers | ✅ Có | Qua `nginx/nginx.conf` |
+| Security headers (helmet) | ✅ Có | `server/app.ts` — `helmet()` middleware cho mọi route |
+| CORS policy | ✅ Có | `server/app.ts` — `cors({ origin, credentials })` |
+| Rate limit admin auth | ✅ Có | 10 req/15 phút trên `/api/v1/auth` qua `express-rate-limit` |
+| Login lockout (5 attempts → 30 phút) | ⚠️ Partial | Lockout Map trong `auth.service.ts`, chưa persist qua DB restart |
+| Consent middleware wired to PHI routes | ✅ Có | `consentCheckMiddleware` trên `GET /:patientId/medical-records`, `clinical-tests`, `treatment-histories` |
 | RBAC enforcement backend | ⚠️ Partial | Role check cơ bản, chưa enforce matrix + department ownership |
 | PHI access log riêng (dataAccessed/purpose) | ❌ Chưa có | Cần Phase tiếp (Nghị định 13/2023) |
-| Bcrypt salt 12 | ⚠️ PBKDF2-SHA512 100k | Tương đương bcrypt cost 12, OWASP chấp nhận |
-| Rate limit admin auth + login lockout | ❌ Chưa có | Phase tương lai |
+| Password hash | ⚠️ PBKDF2-SHA512 100k | Tương đương bcrypt cost 12, OWASP chấp nhận |
+| Prisma soft-delete middleware | ✅ Có | `$extends` auto-filter `deletedAt: null` cho Patient + AdminUser |
 | Forgot password rate limit + token reset | ❌ Chưa có | Phase tương lai |
 | Frontend password policy validation | ⚠️ Partial | Chưa enforce đầy đủ 8 ký tự + hoa + thường + số |
 
@@ -227,7 +231,13 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 11. **KHỐI 3.2 (Section 6 — Trang chủ)** — Chỉ có 6/32 chuyên khoa trong DB, spec ghi "8 thẻ nổi bật" + "12+ chuyên khoa" + "32 chuyên khoa" (phụ lục A.1). Cần seed thêm dữ liệu hoặc cập nhật spec.
 12. **KHỐI 5.4.4 (Specialties)** — Field `icon` trong Prisma/DB lưu giá trị `iconType` ("cardiology"/"obstetrics"/...) nhưng tên column `icon` không khớp với interface TypeScript `iconType`. Cần thêm `@map("icon")` hoặc đổi tên DB column.
 13. **KHỐI 3.6.3 (Admin Navigation)** — Spec chỉ liệt kê 11 nav items nhưng code có 17 tabs (thêm: Home, About, Services, Patient Guide, Tender, Contact). Cập nhật spec navigation hoặc cắt bỏ bớt tab.
-14. **KHỐI 2.x** — Bổ sung animation pattern mới: admin tables dùng `rowVariants` + `motion.tr` stagger (6/8 tabs). PatientTab & TenderTab chưa đồng bộ.
+14. **KHỐI 2.x** — Bổ sung animation pattern mới: admin tables dùng `rowVariants` + `motion.tr` stagger (6/8 tabs). PatientGuideTab & TenderTab chưa đồng bộ.
+15. **KHỐI 3.x (API versioning)** — Đồng bộ hoá API prefix: `/api/v1/bookings`, `/api/v1/test-results`, `/api/v1/ai`, `/api/v1/organization` (trước đây dùng `/api/booking`, `/api/gemini`, etc). Tất cả endpoint API đều dùng `/api/v1/`.
+16. **KHỐI 4.x (Security middleware)** — `helmet()` + `cors()` đã enable trên `app.ts` cho toàn bộ route. Express rate-limit (10 req/15ph) trên `/api/v1/auth`. Cần ghi nhận vào spec security section.
+17. **KHỐI 4.x (Mass assignment protection)** — Tất cả update service (`news.service.ts`, `specialty.service.ts`, `service.service.ts`, `doctor.service.ts`) đã thay `...data` spread bằng explicit field whitelisting. Spec nên ghi pattern này.
+18. **KHỐI 5.4.x (Soft delete)** — Prisma `$extends` middleware auto-filter `deletedAt: null` cho Patient + AdminUser trên `findMany`/`findFirst`/`count`. Không cần `WHERE deletedAt IS NULL` trong service code.
+19. **KHỐI 6.x (Consent enforcer)** — `consentCheckMiddleware` đã wire vào patient PHI routes (`GET /:patientId/medical-records`, `clinical-tests`, `treatment-histories`). Trả 403 nếu chưa consent.
+20. **KHỐI 3.6.3 (Admin Navigation)** — Rename `PatientTab` → `PatientGuideTab` để phân biệt với `PatientsTab` (quản lý BN). Cập nhật import trong `AdminPage.tsx`.
 
 **Quy ước:**
 - Đánh version v3.1
