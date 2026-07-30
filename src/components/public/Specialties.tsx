@@ -44,14 +44,14 @@ export default function Specialties() {
 
   const getIconImage = (type: string) => {
     const paths: Record<string, string> = {
-      cardiology: "/images/pages/timmach-1.jpeg",
-      obstetrics: "/images/pages/sanphukhoa-1.jpeg",
-      pediatrics: "/images/pages/nhi-1.jpeg",
-      emergency: "/images/pages/icu-1.jpeg",
-      general: "/images/pages/khamtongquat-1.jpeg",
-      diagnostics: "/images/pages/xetnghiem-1.jpeg",
-      ent: "/images/pages/taimuihong-1.jpeg",
-      odontology: "/images/pages/ranghamach-1.jpeg",
+      cardiology: "/images/specialties/cardiology-1.jpeg",
+      obstetrics: "/images/specialties/obstetrics-1.jpeg",
+      pediatrics: "/images/specialties/pediatrics-1.jpeg",
+      emergency: "/images/specialties/emergency-1.jpeg",
+      general: "/images/specialties/general-1.jpeg",
+      diagnostics: "/images/specialties/diagnostics-1.jpeg",
+      ent: "/images/specialties/ent-1.jpeg",
+      odontology: "/images/specialties/odontology-1.jpeg",
     };
     return paths[type] || paths.general;
   };
