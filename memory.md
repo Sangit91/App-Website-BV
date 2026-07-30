@@ -101,8 +101,8 @@ Từ Phase 74: HMR từng bị tắt (`DISABLE_HMR=true`) → phải `docker res
 ### Quy tắc hiện tại (HMR BẬT)
 
 Mỗi lần sửa file `.tsx` / `.ts` / `.css` / `vite.config.ts`:
-- **KHÔNG cần restart container** — Vite auto-transform và browser auto-reload qua WebSocket.
-- Chỉ cần save file → browser tự refresh (hoặc Ctrl+R nếu cần force).
+- **Lý tưởng:** KHÔNG cần restart container — Vite auto-transform và browser auto-reload qua WebSocket. Chỉ cần save file → browser tự refresh (hoặc Ctrl+R nếu cần force).
+- **Thực tế (HMR đôi khi silent fail):** Nếu user báo "code mới chưa có hiệu lực" dù HMR đang BẬT → **docker restart bvdh-frontend NGAY**, không debug sâu — đây là bước đầu tiên, không phải cuối cùng.
 
 ### Khi nào CẦN restart/rebuild
 
