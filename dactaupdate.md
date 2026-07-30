@@ -221,9 +221,16 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 5. **KHỐI 4.x** — Forgot password flow: rate limit 3/giờ/user, token reset 30 phút, dùng 1 lần — chưa implement, docx nên ghi trước.
 6. **KHỐI 3.1 (Template C3) hoặc KHỐI 5.4** — Sửa mâu thuẫn `tender_files`: v3.0 dòng 1919 (template C3) ghi "lưu trong bảng tender_files" nhưng schema không có bảng này (file đấu thầu lưu inline trong `news` qua các field `tender_*`). Cần xoá bỏ tham chiếu `tender_files` hoặc quyết định tạo bảng riêng nếu cần quan hệ file 1-n.
 7. **KHỐI 1.2** — Số lượng bảng: "19+ bảng" nên làm rõ thành "24 bảng" (đếm theo Prisma schema thực tế, bao gồm cả consent_policies/patient_consents của KHỐI 6.2).
+8. **KHỐI 3.2 (Logo)** — Thay thế "icon vuông bo góc gradient" bằng `Logo_bqn.png` (`/images/logo/Logo_bqn.png`) cho toàn bộ surface (Navbar, Footer, AdminPage header, AdminLogin, favicon).
+9. **KHỐI 3.6.2 (Admin Login)** — Layout hiện tại khác spec: full dark overlay (không split-screen), có role pill selector (spec cấm production), thêm time display / SYSTEM ONLINE badge / ATTT badge / wave animation / spotlight cursor. Spec cần ghi nhận UI mới hoặc rollback về thiết kế cũ.
+10. **KHỐI 2.3.5 (Specialty Card)** — Icon Lucide đã được thay bằng ảnh thật JPEG (`/images/specialties/*.jpeg`) từ Pexels. Spec cần cập nhật mô tả để phản ánh ảnh thay vì icon.
+11. **KHỐI 3.2 (Section 6 — Trang chủ)** — Chỉ có 6/32 chuyên khoa trong DB, spec ghi "8 thẻ nổi bật" + "12+ chuyên khoa" + "32 chuyên khoa" (phụ lục A.1). Cần seed thêm dữ liệu hoặc cập nhật spec.
+12. **KHỐI 5.4.4 (Specialties)** — Field `icon` trong Prisma/DB lưu giá trị `iconType` ("cardiology"/"obstetrics"/...) nhưng tên column `icon` không khớp với interface TypeScript `iconType`. Cần thêm `@map("icon")` hoặc đổi tên DB column.
+13. **KHỐI 3.6.3 (Admin Navigation)** — Spec chỉ liệt kê 11 nav items nhưng code có 17 tabs (thêm: Home, About, Services, Patient Guide, Tender, Contact). Cập nhật spec navigation hoặc cắt bỏ bớt tab.
+14. **KHỐI 2.x** — Bổ sung animation pattern mới: admin tables dùng `rowVariants` + `motion.tr` stagger (6/8 tabs). PatientTab & TenderTab chưa đồng bộ.
 
 **Quy ước:**
 - Đánh version v3.1
 - Áp dụng nguyên tắc In-place Update: cập nhật đè trực tiếp vào đúng KHỐI liên quan (KHỐI 4-6), không nối đuôi chương mới.
-- Ghi Changelog tóm tắt KHỐI 1.5: "v3.1 — bổ sung activity_logs index, PHI audit policy, password hash clarification, rate limit matrix, forgot password flow".
+- Ghi Changelog tóm tắt KHỐI 1.5: "v3.1 — bổ sung activity_logs index, PHI audit policy, password hash clarification, rate limit matrix, forgot password flow, logo thật, admin login redesign, specialty images, DB seed gap, admin tabs mở rộng".
 - Audit trail chi tiết: `memory/phase-history.md` Phase tương ứng.
