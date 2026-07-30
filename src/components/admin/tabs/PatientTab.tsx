@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Heart, FileText, List, Plus, CheckCircle, Calendar, Clock, User, Ambulance, Shield, Stethoscope, Wallet } from "lucide-react";
+import { Heart, FileText, List, Plus, CheckCircle, Calendar, Clock, User, Ambulance, Shield, Stethoscope, Wallet, Edit, Trash2 } from "lucide-react";
 import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog } from "../ui";
 import { Button } from "../../ui";
 
@@ -155,22 +155,39 @@ function ProcessSection() {
           <div className="flex flex-wrap gap-4">
             {steps.map((step, idx) => {
               const Icon = ICON_MAP[step.icon] || Calendar;
+              const colors = [
+                { bg: "bg-blue-50", border: "border-l-blue-400", iconBg: "bg-blue-100", iconCol: "text-blue-600" },
+                { bg: "bg-emerald-50", border: "border-l-emerald-400", iconBg: "bg-emerald-100", iconCol: "text-emerald-600" },
+                { bg: "bg-amber-50", border: "border-l-amber-400", iconBg: "bg-amber-100", iconCol: "text-amber-600" },
+                { bg: "bg-purple-50", border: "border-l-purple-400", iconBg: "bg-purple-100", iconCol: "text-purple-600" },
+                { bg: "bg-rose-50", border: "border-l-rose-400", iconBg: "bg-rose-100", iconCol: "text-rose-600" },
+                { bg: "bg-cyan-50", border: "border-l-cyan-400", iconBg: "bg-cyan-100", iconCol: "text-cyan-600" },
+              ];
+              const c = colors[idx % colors.length];
               return (
                 <motion.div key={step.id} custom={idx} initial="hidden" animate="visible" variants={itemVariants}>
-                  <ItemCard
-                    title={`Bước ${step.step}`}
-                    description={`${step.title} - ${step.desc}`}
-                    index={idx}
-                    actions={{
-                      onEdit: () => handleOpenEdit(step),
-                      onDelete: () => setDeleteConfirm(step.id)
-                    }}
-                    footer={
-                      <div className="w-10 h-10 rounded-full bg-brand-green/10 flex items-center justify-center mt-2 mx-auto">
-                        <Icon size={18} className="text-brand-green" />
+                  <div className={`group w-52 bg-white border border-green-800/5 rounded-xl overflow-hidden hover:shadow-lg hover:border-brand-green/20 transition-all duration-300 border-l-4 ${c.border}`}>
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-[11px] font-bold ${c.iconBg} ${c.iconCol}`}>
+                          {step.step}
+                        </span>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => handleOpenEdit(step)} className="p-1 rounded-md text-gray-400 hover:text-brand-green hover:bg-brand-green/5 transition-colors cursor-pointer" title="Sửa">
+                            <Edit size={12} />
+                          </button>
+                          <button onClick={() => setDeleteConfirm(step.id)} className="p-1 rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer" title="Xóa">
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
                       </div>
-                    }
-                  />
+                      <div className={`w-11 h-11 rounded-xl ${c.bg} flex items-center justify-center mb-3 transition-transform group-hover:scale-110`}>
+                        <Icon size={22} className={c.iconCol} />
+                      </div>
+                      <h4 className="font-display font-bold text-sm text-green-dark">{step.title}</h4>
+                      <p className="text-[11px] text-ink/60 mt-1 leading-relaxed">{step.desc}</p>
+                    </div>
+                  </div>
                 </motion.div>
               );
             })}
