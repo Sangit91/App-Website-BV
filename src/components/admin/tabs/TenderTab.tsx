@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FileText, Building2, Calendar, DollarSign, Phone, Mail, Plus, Download, Briefcase, Gavel, Server, Stethoscope, Microscope, Pill, Users, Edit, Trash2, Image, CheckCircle } from "lucide-react";
+import { FileText, Building2, Calendar, Gavel, Server, Stethoscope, Microscope, Pill, Users, Edit, Trash2, LucideIcon } from "lucide-react";
 import { SectionCard, AddCard, EditModal, ConfirmDialog } from "../ui";
 import { Button } from "../../ui";
 
@@ -13,7 +13,7 @@ interface TenderDept {
   description: string;
 }
 
-const DEPT_ICONS: Record<string, any> = {
+const DEPT_ICONS: Record<string, LucideIcon> = {
   Server, Stethoscope, Microscope, Pill, Building2, Users,
 };
 
@@ -258,7 +258,7 @@ function TenderNoticesSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     if (editingTender && tenders.find(t => t.id === editingTender.id)) {
       setTenders(prev => prev.map(t => t.id === editingTender.id ? { ...t, ...formData } : t));
     } else {

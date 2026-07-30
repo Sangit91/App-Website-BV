@@ -82,6 +82,7 @@ export const recordRequestService = {
       where,
       include: { files: true },
       orderBy: { createdAt: "desc" },
+      take: 200,
     });
   },
 

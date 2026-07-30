@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Menu, X, Phone, Calendar, Heart, ChevronDown, ChevronRight, Landmark, Users, Briefcase, FileText, Settings } from "lucide-react";
+import { Menu, X, Phone, Calendar, Heart, ChevronDown, ChevronRight } from "lucide-react";
 import HospitalLogo from "./HospitalLogo";
 
 interface NavbarProps {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Briefcase, List, Calendar, Home, Syringe, Shield, Heart, Truck, Plane, Plus } from "lucide-react";
+import { Briefcase, List, Calendar, Home, Syringe, Shield, Heart, Truck, Plane } from "lucide-react";
 import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog, ImageUploader } from "../ui";
 import { Button } from "../../ui";
 import { LucideIcon } from "lucide-react";
@@ -84,7 +84,7 @@ function ServiceCategoriesSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     setIsEditOpen(false);
     setEditingCategory(null);
   };
@@ -162,7 +162,7 @@ function ServiceItemsSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     if (editingService && currentServices.find(s => s.id === editingService.id)) {
       setServices(prev => ({
         ...prev,

@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import { useHospital } from "../../../context/HospitalContext";
 import { Card, Badge, Button } from "../../ui";
-import { Search, FileDown, Printer, Check, X, Edit, CalendarCheck, User, Phone, Star, AlertCircle } from "lucide-react";
+import { Search, FileDown, Printer, Check, X, Edit, CalendarCheck } from "lucide-react";
 
 const rowVariants = {
   hidden: { opacity: 0, x: -8 },

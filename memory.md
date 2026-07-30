@@ -295,15 +295,15 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
 
 | # | Vấn đề | File | Trạng thái |
 |---|--------|------|------------|
-| C1 | Endpoint debug `/api/debug-update` không auth — ai cũng sửa được `feedbackRequest.status` | `server/app.ts:25-37` | ❌ |
-| C2 | Hầu hết admin CRUD routes không auth — doctors, news, specialties, feedback, record-requests, appointments, patients — ai cũng POST/PUT/DELETE được | Toàn bộ `server/routes/*.routes.ts` | ❌ |
-| C3 | File upload không auth — `/record-requests/:id/files` | `record-requests.routes.ts:53-63` | ❌ |
-| C4 | Error handler middleware chưa register — lỗi không catch sẽ crash server + leak stack trace | `server/app.ts` | ❌ |
-| C5 | Không rate limiting trên login/OTP — brute-force dễ dàng | `auth.routes.ts` | ❌ |
-| C6 | Unhandled promise rejection trong consent middleware | `consent.middleware.ts:51-67` | ❌ |
-| C7 | JWT secret fallback cứng — nếu thiếu `.env` vẫn chạy, ai đọc source cũng forge token được | `auth.service.ts:4-5` | ❌ |
-| C8 | Mock data trong production routes — `patient.routes.ts` và `appointment.routes.ts` toàn bộ là mock array, restart mất hết | `patient.routes.ts`, `appointment.routes.ts` | ❌ |
-| C9 | ErrorBoundary có nhưng không dùng — component throw error → crash trắng trang | `src/components/ui/ErrorBoundary.tsx` | ❌ |
+| C1 | Endpoint debug `/api/debug-update` không auth — ai cũng sửa được `feedbackRequest.status` | `server/app.ts:25-37` | ✅ Đã xoá |
+| C2 | Hầu hết admin CRUD routes không auth — doctors, news, specialties, feedback, record-requests, appointments, patients — ai cũng POST/PUT/DELETE được | Toàn bộ `server/routes/*.routes.ts` | ✅ Đã gắn authenticate + requireAdmin |
+| C3 | File upload không auth — `/record-requests/:id/files` | `record-requests.routes.ts:53-63` | ✅ Đã gắn authenticate + requireAdmin |
+| C4 | Error handler middleware chưa register — lỗi không catch sẽ crash server + leak stack trace | `server/app.ts` | ✅ Đã import + register |
+| C5 | Không rate limiting trên login/OTP — brute-force dễ dàng | `auth.routes.ts` | ✅ Đã thêm rate limit 10 req/15ph |
+| C6 | Unhandled promise rejection trong consent middleware | `consent.middleware.ts:51-67` | ✅ Đã chuyển sang async/await |
+| C7 | JWT secret fallback cứng — nếu thiếu `.env` vẫn chạy, ai đọc source cũng forge token được | `auth.service.ts:4-5` | ✅ Crash hard nếu thiếu trong production |
+| C8 | Mock data trong production routes — `patient.routes.ts` và `appointment.routes.ts` toàn bộ là mock array, restart mất hết | `patient.routes.ts`, `appointment.routes.ts` | ✅ Đã chuyển sang Prisma + tạo service |
+| C9 | ErrorBoundary có nhưng không dùng — component throw error → crash trắng trang | `src/components/ui/ErrorBoundary.tsx` | ✅ Đã wrap App.tsx |
 
 ### 🟠 HIGH
 

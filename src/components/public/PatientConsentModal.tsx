@@ -70,8 +70,8 @@ export default function PatientConsentModal({
       }
       const data = await response.json();
       setPolicy(data);
-    } catch (err: any) {
-      setError(err.message || "Lỗi khi tải chính sách");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Lỗi khi tải chính sách");
     } finally {
       setLoading(false);
     }
@@ -114,8 +114,8 @@ export default function PatientConsentModal({
 
       onConsentGiven?.();
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Lỗi khi lưu đồng ý");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Lỗi khi lưu đồng ý");
     } finally {
       setIsSubmitting(false);
     }

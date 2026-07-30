@@ -57,8 +57,8 @@ export default function FeedbackModal({
       }
 
       setIsSubmitted(true);
-    } catch (error: any) {
-      alert(error.message || "Không thể gửi góp ý");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Không thể gửi góp ý");
     } finally {
       setIsSubmitting(false);
     }

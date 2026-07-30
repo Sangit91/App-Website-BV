@@ -44,9 +44,10 @@ router.post("/", async (req, res) => {
         status: newRequest.status
       }
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[record-requests POST] create failed:", error);
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -57,8 +58,9 @@ router.post("/:id/files", authenticate, requireAdmin, upload.single("file"), asy
     }
     const result = await recordRequestService.handleFileUpload(req.params.id, req.file);
     res.status(201).json({ success: true, data: result });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -66,8 +68,9 @@ router.delete("/:id/files/:fileId", authenticate, requireAdmin, async (req, res)
   try {
     await recordRequestService.deleteFile(req.params.fileId);
     res.json({ success: true, message: "Đã xóa file" });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -93,8 +96,9 @@ router.get("/:id/files/:fileId", authenticate, requireAdmin, async (req, res) =>
     res.setHeader("Cache-Control", "private, max-age=300");
 
     fs.createReadStream(physicalPath).pipe(res);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -107,8 +111,9 @@ router.get("/", authenticate, requireAdmin, async (req, res) => {
       to: to as string
     });
     res.json(allRequests);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -119,8 +124,9 @@ router.get("/:id", authenticate, requireAdmin, async (req, res) => {
       return res.status(404).json({ error: "Không tìm thấy yêu cầu" });
     }
     res.json(request);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -143,8 +149,9 @@ router.patch("/:id", authenticate, requireAdmin, async (req, res) => {
       message: "Cập nhật thành công",
       data: updated
     });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 

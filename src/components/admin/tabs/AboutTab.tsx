@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Info, Users, Building2, Award, Handshake, Plus } from "lucide-react";
+import { Info, Users, Building2, Handshake } from "lucide-react";
 import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog, ImageUploader } from "../ui";
 import { Button } from "../../ui";
 
@@ -69,7 +69,7 @@ function AboutSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     if (editingItem?.id && whyChooseItems.find(i => i.id === editingItem.id)) {
       setWhyChooseItems(prev => prev.map(i => i.id === editingItem.id ? { ...i, ...formData } : i));
     } else {
@@ -184,7 +184,7 @@ function LeadershipSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     if (editingDirector && directors.find(d => d.id === editingDirector.id)) {
       setDirectors(prev => prev.map(d => d.id === editingDirector.id ? { ...d, ...formData } : d));
     } else {
@@ -284,7 +284,7 @@ function PartnersSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     if (editingPartner && partners.find(p => p.id === editingPartner.id)) {
       setPartners(prev => prev.map(p => p.id === editingPartner.id ? { ...p, ...formData } : p));
     } else {
@@ -395,7 +395,7 @@ function FacilitiesSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     if (editingFacility && facilities.find(f => f.id === editingFacility.id)) {
       setFacilities(prev => prev.map(f => f.id === editingFacility.id ? { ...f, ...formData } : f));
     } else {

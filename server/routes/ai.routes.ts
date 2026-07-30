@@ -14,9 +14,10 @@ router.post("/consult", async (req, res) => {
 
     const result = await aiService.consult(message, history || []);
     res.json(result);
-  } catch (error: any) {
+  } catch (error) {
     console.error("AI Consult Error:", error);
-    res.status(500).json({ error: error.message || "Có lỗi xảy ra khi kết nối tới Trí tuệ nhân tạo." });
+    const message = error instanceof Error ? error.message : "Có lỗi xảy ra khi kết nối tới Trí tuệ nhân tạo.";
+    res.status(500).json({ error: message });
   }
 });
 

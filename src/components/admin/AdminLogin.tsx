@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAdmin, decodeAdminToken } from "../../context/AdminContext";
 import {
   ArrowLeft, ShieldCheck, Building2, Stethoscope, Eye, EyeOff,
-  AlertCircle, CheckCircle, Loader2, Activity
+  AlertCircle, CheckCircle, Loader2
 } from "lucide-react";
 import { FloatingShape } from "../../hooks/FloatingShape";
 import { useReducedMotion } from "../../hooks/useReducedMotion";

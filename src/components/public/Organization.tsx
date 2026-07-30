@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Users, ShieldCheck, Landmark, GitFork, X, PhoneCall, Info, Layers, ChevronDown } from "lucide-react";
+import { Users, Landmark, X, PhoneCall, Info, Layers, ChevronDown } from "lucide-react";
 
 interface Member {
   name: string;

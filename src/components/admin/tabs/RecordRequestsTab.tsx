@@ -3,8 +3,8 @@ import { Card, Badge, Button } from "../../ui";
 import {
   Search, FileText, Eye, Check, X, Clock, Ban, Download, ImageIcon,
   Phone, Mail, User, FileType2, Calendar, Truck, MessageSquare,
-  ClipboardList, CheckCircle2, Circle, XCircle, Sparkles, ZoomIn,
-  Hash, Building2, ArrowRight, Activity, FileText as FileTextIcon, FolderOpen
+  ClipboardList, CheckCircle2, Circle, XCircle, ZoomIn,
+  Hash, ArrowRight, Activity, FolderOpen
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useAdmin } from "../../../context/AdminContext";
@@ -219,8 +219,8 @@ export default function RecordRequestsTab() {
         )
       );
       setDetailModalOpen(false);
-    } catch (error: any) {
-      alert(error.message || "Không thể cập nhật xử lý");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Không thể cập nhật xử lý");
     } finally {
       setIsReplying(false);
     }
@@ -239,8 +239,8 @@ export default function RecordRequestsTab() {
       setRequests(prev =>
         prev.map(r => (r.id === id ? { ...r, status, updated_at: new Date().toISOString() } : r))
       );
-    } catch (error: any) {
-      alert(error.message || "Không thể cập nhật trạng thái");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Không thể cập nhật trạng thái");
     }
   };
 

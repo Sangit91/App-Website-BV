@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Clipboard, FileSearch, Calendar, Stethoscope, TestTube,
-  Activity, Pill, Clock, AlertCircle, Check, ChevronDown,
-  ChevronUp, User, MapPin, FileText, TestTube2, Image, MessageSquare
+  Activity, Pill, AlertCircle, Check, ChevronDown,
+  ChevronUp, User, FileText, TestTube2, MessageSquare
 } from "lucide-react";
 import { MedicalRecord } from "../../types/models/medical-record";
 import { ClinicalTest, CLINICAL_TEST_TYPE_LABELS, ClinicalTestStatus } from "../../types/models/clinical-test";

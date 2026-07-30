@@ -41,9 +41,10 @@ router.post("/check-patient", async (req, res) => {
         ? "Đã tạo mới bệnh nhân trong hệ thống"
         : "Bệnh nhân đã tồn tại trong hệ thống",
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[appointment] check-patient error:", error);
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -75,9 +76,10 @@ router.post("/", async (req, res) => {
       },
       message: "Đặt lịch khám thành công",
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[appointment] create error:", error);
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -95,9 +97,10 @@ router.get("/search", async (req, res) => {
     });
 
     res.json({ appointments });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[appointment] search error:", error);
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -110,9 +113,10 @@ router.get("/:bookingCode", async (req, res) => {
     }
 
     res.json({ appointment });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[appointment] get error:", error);
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -129,12 +133,13 @@ router.patch("/:bookingCode/cancel", async (req, res) => {
       appointment: result,
       message: "Đã hủy lịch hẹn thành công",
     });
-  } catch (error: any) {
-    if (error.message === "Lịch hẹn đã khám không thể hủy") {
-      return res.status(400).json({ error: error.message });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    if (message === "Lịch hẹn đã khám không thể hủy") {
+      return res.status(400).json({ error: message });
     }
     console.error("[appointment] cancel error:", error);
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+    res.status(500).json({ error: message });
   }
 });
 

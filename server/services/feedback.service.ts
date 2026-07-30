@@ -30,7 +30,7 @@ export const feedbackService = {
         ...(filters.to && { lte: new Date(filters.to) }),
       };
     }
-    return getPrisma().feedbackRequest.findMany({ where, orderBy: { createdAt: "desc" } });
+    return getPrisma().feedbackRequest.findMany({ where, orderBy: { createdAt: "desc" }, take: 200 });
   },
 
   async getById(id: string) {

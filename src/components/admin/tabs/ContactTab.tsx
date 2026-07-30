@@ -107,7 +107,7 @@ function ContactInfoSection() {
 
   const [info, setInfo] = useState(defaultInfo);
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     setInfo(prev => ({ ...prev, ...formData }));
     setIsEditOpen(false);
   };
@@ -197,7 +197,7 @@ function QuickLinksSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     if (editingLink && links.find(l => l.id === editingLink.id)) {
       setLinks(prev => prev.map(l => l.id === editingLink.id ? { ...l, ...formData } : l));
     } else {
@@ -280,7 +280,7 @@ function SupportLinksSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     if (editingLink && links.find(l => l.id === editingLink.id)) {
       setLinks(prev => prev.map(l => l.id === editingLink.id ? { ...l, ...formData } : l));
     } else {

@@ -1,5 +1,7 @@
 import "dotenv/config";
 import express from "express";
+import helmet from "helmet";
+import cors from "cors";
 import rateLimit from "express-rate-limit";
 import bookingRoutes from "./routes/booking.routes";
 import testResultRoutes from "./routes/test-result.routes";
@@ -18,6 +20,11 @@ import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
 
 const app = express();
 
+app.use(helmet());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+  credentials: true,
+}));
 app.use(express.json({ limit: "1mb" }));
 
 const authLimiter = rateLimit({

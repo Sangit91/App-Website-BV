@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Card, Badge, Button } from "../../ui";
-import { Search, MessageSquare, Star, Eye, Check, X, ChevronDown, HeartHandshake } from "lucide-react";
+import { Search, MessageSquare, Star, Eye, Check, X, HeartHandshake } from "lucide-react";
 
 type FeedbackStatus = 'moi' | 'dang_xu_ly' | 'da_xu_ly';
 type ServiceType = 'kham-benh' | 'noi-tru' | 'cap-cuu' | 'ban-si' | 'other';
@@ -106,7 +106,7 @@ export default function FeedbackTab() {
       if (!res.ok) throw new Error(data.error);
       setFeedbacks(prev => prev.map(f => f.id === selectedFeedback.id ? { ...f, status: "da_xu_ly" as FeedbackStatus, admin_response: responseText, updated_at: new Date().toISOString() } : f));
       setDetailModalOpen(false);
-    } catch (error: any) { alert(error.message || "Không thể cập nhật phản hồi"); }
+    } catch (error) { alert(error instanceof Error ? error.message : "Không thể cập nhật phản hồi"); }
     finally { setIsReplying(false); }
   };
 
@@ -116,7 +116,7 @@ export default function FeedbackTab() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, status, updated_at: new Date().toISOString() } : f));
-    } catch (error: any) { alert(error.message || "Không thể cập nhật trạng thái"); }
+    } catch (error) { alert(error instanceof Error ? error.message : "Không thể cập nhật trạng thái"); }
   };
 
   const renderStars = (rating: number) => (

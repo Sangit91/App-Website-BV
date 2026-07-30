@@ -8,8 +8,9 @@ router.get("/", authenticate, requireAdmin, async (req, res) => {
   try {
     const allBookings = await bookingService.getAll();
     res.json(allBookings);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -21,8 +22,9 @@ router.get("/search", async (req, res) => {
     }
     const filtered = await bookingService.search(phone);
     res.json(filtered);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -37,8 +39,9 @@ router.post("/", async (req, res) => {
 
     const newBooking = await bookingService.create({ patientName, phone, specialty, doctorName, date, timeSlot, symptoms });
     res.status(201).json(newBooking);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 

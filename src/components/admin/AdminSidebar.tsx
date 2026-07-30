@@ -2,9 +2,9 @@ import React, { ReactNode } from "react";
 import { useAdmin } from "../../context/AdminContext";
 import {
   Sliders, Home, Info, Layers, Briefcase, Heart,
-  Newspaper, FileText, Phone, MapPin,
+  Newspaper, FileText, Phone,
   Calendar, Users, CalendarRange, User,
-  ClipboardList, Settings, LogOut, ArrowLeft, ShieldAlert,
+  ClipboardList, LogOut, ArrowLeft, ShieldAlert,
   ChevronRight, MessageSquare, FileStack
 } from "lucide-react";
 import { Button } from "../ui";

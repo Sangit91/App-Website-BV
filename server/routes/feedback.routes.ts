@@ -19,8 +19,9 @@ router.post("/", async (req, res) => {
       message: "Góp ý đã được ghi nhận",
       data: newFeedback
     });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -33,8 +34,9 @@ router.get("/", authenticate, requireAdmin, async (req, res) => {
       to: to as string
     });
     res.json(allFeedback);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -45,8 +47,9 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ error: "Không tìm thấy góp ý" });
     }
     res.json(feedback);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -64,8 +67,9 @@ router.patch("/:id", authenticate, requireAdmin, async (req, res) => {
       message: "Cập nhật thành công",
       data: updated
     });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 

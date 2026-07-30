@@ -1,6 +1,6 @@
 import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
-import { Pill, Search, X, Check, AlertCircle } from "lucide-react";
+import { Pill, Search, AlertCircle } from "lucide-react";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 

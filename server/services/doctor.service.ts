@@ -27,6 +27,7 @@ export async function getDoctors() {
     where: { isActive: true },
     include: { specialty: true },
     orderBy: { createdAt: "asc" },
+    take: 200,
   });
 }
 

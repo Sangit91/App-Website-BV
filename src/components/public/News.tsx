@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, MouseEvent, ElementType } from "react";
 import { motion, useInView, useMotionValue } from "framer-motion";
-import { Calendar, ArrowRight, X, Printer, Download, Eye, FileText, Clock, Share2, Layers, ShieldCheck, AlertCircle, CheckCircle, Phone, MapPin } from "lucide-react";
+import { Calendar, ArrowRight, X, Printer, Download, FileText, Clock, Share2, Layers, ShieldCheck, AlertCircle, CheckCircle, Phone, MapPin } from "lucide-react";
 import { useHospital } from "../../context/HospitalContext";
 import { NewsItem, TenderStatus } from "../../types";
 import { DEPARTMENTS } from "../../data";

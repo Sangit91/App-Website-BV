@@ -15,6 +15,7 @@ export const bookingService = {
   async getAll(): Promise<Appointment[]> {
     return getPrisma().appointment.findMany({
       orderBy: { createdAt: "desc" },
+      take: 200,
     });
   },
 
@@ -22,12 +23,13 @@ export const bookingService = {
     return getPrisma().appointment.findMany({
       where: {
         OR: [
-          { phone: { contains: query, mode: "insensitive" } },
-          { bookingCode: { contains: query, mode: "insensitive" } },
-          { patientName: { contains: query, mode: "insensitive" } },
+          { phone: { contains: query, mode: "insensitive" as const } },
+          { bookingCode: { contains: query, mode: "insensitive" as const } },
+          { patientName: { contains: query, mode: "insensitive" as const } },
         ],
       },
       orderBy: { createdAt: "desc" },
+      take: 50,
     });
   },
 

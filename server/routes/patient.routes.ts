@@ -22,7 +22,7 @@ router.post("/lookup", async (req, res) => {
     }
 
     res.json({ patient, message: "Tìm thấy bệnh nhân" });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[patient] lookup error:", error);
     res.status(500).json({ error: "Lỗi máy chủ" });
   }
@@ -45,7 +45,7 @@ router.get("/:patientId/medical-records", async (req, res) => {
       page: 1,
       pageSize: records.length,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[patient] medical-records error:", error);
     res.status(500).json({ error: "Lỗi máy chủ" });
   }
@@ -69,7 +69,7 @@ router.get("/:patientId/clinical-tests", async (req, res) => {
       page: 1,
       pageSize: tests.length,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[patient] clinical-tests error:", error);
     res.status(500).json({ error: "Lỗi máy chủ" });
   }
@@ -87,7 +87,7 @@ router.get("/:patientId/treatment-histories", async (req, res) => {
       page: 1,
       pageSize: histories.length,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[patient] treatment-histories error:", error);
     res.status(500).json({ error: "Lỗi máy chủ" });
   }

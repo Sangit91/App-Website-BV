@@ -1,8 +1,8 @@
 import crypto from "crypto";
 import { getPrisma } from "../db/prisma.js";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || "";
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "";
 
 if (!JWT_SECRET && process.env.NODE_ENV === "production") {
   throw new Error("JWT_SECRET is required in production");

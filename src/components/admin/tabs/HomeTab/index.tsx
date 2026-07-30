@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog } from "../../ui";
-import { Home, Zap, Heart, Users, FileText, Star, Plus, Settings } from "lucide-react";
+import { Home, Zap, Heart, Users, FileText, Star, Settings } from "lucide-react";
 import { Button } from "../../../ui";
 import { useHospital } from "../../../../context/HospitalContext";
 
@@ -84,7 +84,7 @@ function HeroSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     setData(prev => ({ ...prev, ...formData }));
     setIsEditOpen(false);
   };
@@ -204,7 +204,7 @@ function QuickActionsSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     if (editingAction && actions.find(a => a.id === editingAction.id)) {
       setActions(prev => prev.map(a => a.id === editingAction.id ? { ...a, ...formData } : a));
     } else {
@@ -313,7 +313,7 @@ function WhyChooseUsSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     if (editingReason && reasons.find(r => r.id === editingReason.id)) {
       setReasons(prev => prev.map(r => r.id === editingReason.id ? { ...r, ...formData } : r));
     } else {
@@ -406,7 +406,7 @@ function StatisticsSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     if (editingStat) {
       const idx = stats.findIndex(s => s.label === editingStat.label);
       if (idx !== -1) {
@@ -517,7 +517,7 @@ function TestimonialsSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     if (editingTestimonial && testimonials.find(t => t.id === editingTestimonial.id)) {
       setTestimonials(prev => prev.map(t => t.id === editingTestimonial.id ? { ...t, ...formData } : t));
     } else {

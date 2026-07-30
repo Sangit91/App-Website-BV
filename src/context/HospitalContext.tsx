@@ -119,11 +119,11 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
 
         if (specRes.ok) {
           const dbSpecs = await specRes.json();
-          const mappedSpecs: Specialty[] = dbSpecs.map((s: any) => ({
+          const mappedSpecs: Specialty[] = dbSpecs.map((s: { id: string; name: string; description: string | null; icon: string | null; detail: string | null }) => ({
             id: s.id,
             name: s.name,
             description: s.description || '',
-            iconType: s.icon as Specialty['iconType'],
+            iconType: (s.icon ?? 'general') as Specialty['iconType'],
             detail: s.detail || '',
           }));
           setSpecialties(mappedSpecs);
@@ -132,7 +132,7 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
 
         if (docRes.ok) {
           const dbDocs = await docRes.json();
-          const mappedDocs: Doctor[] = dbDocs.map((d: any) => ({
+          const mappedDocs: Doctor[] = dbDocs.map((d: { id: string; fullName: string; title: string; specialtyId: string | null; specialty: { name: string } | null; image: string | null; bio: string | null }) => ({
             id: d.id,
             name: d.fullName,
             title: d.title,
@@ -148,7 +148,7 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
 
         if (newsRes.ok) {
           const dbNews = await newsRes.json();
-          const mappedNews: NewsItem[] = dbNews.map((n: any) => ({
+          const mappedNews: NewsItem[] = dbNews.map((n: { id: string; title: string; summary: string | null; category: string | null; content: string | null; image: string | null; publishedAt: string | null; isTender: boolean | null; tenderNumber: string | null; isFeatured: boolean | null; author: string | null; tenderStartDate: string | null; tenderEndDate: string | null; tenderMethod: string | null; tenderEstimate: string | null; tenderReceived: string | null; contactName: string | null; contactPhone: string | null; downloadCount: number | null }) => ({
             id: n.id,
             title: n.title,
             summary: n.summary || '',

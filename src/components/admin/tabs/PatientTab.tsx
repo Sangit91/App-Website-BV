@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Heart, FileText, List, Plus, CheckCircle, Calendar, Clock, User, Ambulance, Shield, Stethoscope, Wallet, Edit, Trash2 } from "lucide-react";
+import { Heart, FileText, List, Plus, CheckCircle, Calendar, Clock, User, Ambulance, Shield, Stethoscope, Wallet, Edit, Trash2, LucideIcon } from "lucide-react";
 import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog } from "../ui";
 import { Button } from "../../ui";
 
@@ -22,7 +22,7 @@ const WHAT_TO_BRING = [
   { id: "6", text: "Tiền mặt / Thẻ thanh toán", icon: "wallet" }
 ];
 
-const ICON_MAP: Record<string, any> = {
+const ICON_MAP: Record<string, LucideIcon> = {
   calendar: Calendar,
   check: CheckCircle,
   user: User,
@@ -125,7 +125,7 @@ function ProcessSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     if (editingStep && steps.find(s => s.id === editingStep.id)) {
       setSteps(prev => prev.map(s => s.id === editingStep.id ? { ...s, ...formData } : s));
     } else {
@@ -234,7 +234,7 @@ function WhatToBringSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     if (editingItem && items.find(i => i.id === editingItem.id)) {
       setItems(prev => prev.map(i => i.id === editingItem.id ? { ...i, ...formData } : i));
     } else {
@@ -348,7 +348,7 @@ function FaqSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, any>) => {
+  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
     if (editingFaq && faqs.find(f => f.id === editingFaq.id)) {
       setFaqs(prev => prev.map(f => f.id === editingFaq.id ? { ...f, ...formData } : f));
     } else {

@@ -53,6 +53,7 @@ export async function getNews() {
   return prisma.news.findMany({
     where: { isActive: true },
     orderBy: { publishedAt: "desc" },
+    take: 200,
   });
 }
 

@@ -49,8 +49,9 @@ router.post("/:divisionId/departments", (req, res) => {
     }
 
     res.status(201).json(newDept);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -65,8 +66,9 @@ router.put("/:divisionId/departments/:deptId", (req, res) => {
     }
 
     res.json(updated);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -78,8 +80,9 @@ router.delete("/:divisionId/departments/:deptId", (req, res) => {
       return res.status(404).json({ error: "Không tìm thấy khoa/phòng" });
     }
     res.json({ message: "Xóa khoa/phòng thành công" });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "Lỗi máy chủ" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Lỗi máy chủ";
+    res.status(500).json({ error: message });
   }
 });
 

@@ -56,7 +56,7 @@ export const aiService = {
 
       const replyText = response.text || "Xin lỗi, tôi chưa thể trả lời câu hỏi này lúc này. Bạn vui lòng thử lại sau hoặc đặt lịch hẹn khám với bác sĩ chuyên khoa nhé.";
       return { reply: replyText, isDemo: false };
-    } catch (error: any) {
+    } catch (error) {
       console.error("Gemini Consult Error:", error);
       throw new Error("Có lỗi xảy ra khi kết nối tới Trí tuệ nhân tạo. Hãy thử lại hoặc đặt lịch khám trực tiếp.");
     }
