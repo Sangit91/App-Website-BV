@@ -273,6 +273,12 @@ export default function ChoBenhNhanPage() {
   return (
     <Layout>
       <section ref={heroRef} className="relative min-h-[70vh] flex items-center overflow-hidden bg-gradient-to-br from-green-dark via-brand-green to-emerald-700">
+        {/* Background image with parallax */}
+        <motion.div className="absolute inset-0 z-0" style={reducedMotion ? {} : { opacity: heroOpacity, scale: heroScale }}>
+          <img src="/images/pages/hero-congthongtin.jpeg" alt="Cho bệnh nhân" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+          <div className="absolute inset-0 bg-gradient-to-br from-green-dark/80 via-brand-green/70 to-emerald-700/60" />
+        </motion.div>
+
         <div className="absolute inset-0 overflow-hidden">
           <FloatingShape className="w-96 h-96 bg-peach -top-20 -left-20" delay={0} />
           <FloatingShape className="w-64 h-64 bg-white/10 -top-10 right-20" delay={1} />

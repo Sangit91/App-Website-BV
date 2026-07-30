@@ -233,6 +233,12 @@ export default function ChuyenKhoaPage() {
     <Layout>
       {/* Hero Section */}
       <section ref={heroRef} className="relative min-h-[70vh] flex items-center overflow-hidden bg-gradient-to-br from-green-dark via-green-800 to-brand-green">
+        {/* Background image with parallax */}
+        <motion.div className="absolute inset-0 z-0" style={reducedMotion ? {} : { opacity: heroOpacity, scale: heroScale }}>
+          <img src="/images/pages/hero-chuyenkhoa.jpeg" alt="Chuyên khoa" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+          <div className="absolute inset-0 bg-gradient-to-br from-green-dark/80 via-green-800/70 to-brand-green/60" />
+        </motion.div>
+
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
           <FloatingShape className="w-96 h-96 bg-brand-green -top-20 -left-20" delay={0} />

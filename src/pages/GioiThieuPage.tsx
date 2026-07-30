@@ -381,6 +381,12 @@ export default function GioiThieuPage() {
     <Layout>
       {/* Hero Section */}
       <section ref={heroRef} className="relative min-h-[70vh] flex items-center overflow-hidden bg-gradient-to-br from-green-dark via-green-800 to-brand-green">
+        {/* Background image with parallax */}
+        <motion.div className="absolute inset-0 z-0" style={reducedMotion ? {} : { opacity: heroOpacity, scale: heroScale }}>
+          <img src="/images/pages/hero-gioithieu.jpeg" alt="Bệnh viện Đa khoa Quảng Nam" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+          <div className="absolute inset-0 bg-gradient-to-br from-green-dark/80 via-green-800/70 to-brand-green/60" />
+        </motion.div>
+
         {/* Animated gradient mesh */}
         <div className="absolute inset-0 opacity-30">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-300 via-green-400 to-transparent" />

@@ -175,6 +175,12 @@ export default function ThongTinThauPage() {
       )}
 
       <section ref={heroRef} className="relative min-h-[60vh] flex items-center overflow-hidden bg-gradient-to-br from-green-dark via-emerald-800 to-teal-700">
+        {/* Background image with parallax */}
+        <motion.div className="absolute inset-0 z-0" style={reducedMotion ? {} : { opacity: heroOpacity, scale: heroScale }}>
+          <img src="/images/pages/hero-chi-phi.jpeg" alt="Thông tin thầu" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+          <div className="absolute inset-0 bg-gradient-to-br from-green-dark/80 via-emerald-800/70 to-teal-700/60" />
+        </motion.div>
+
         <div className="absolute inset-0 overflow-hidden">
           <FloatingShape className="w-96 h-96 bg-brand-green -top-20 -left-20" delay={0} />
           <FloatingShape className="w-64 h-64 bg-peach -top-10 right-20" delay={1} />

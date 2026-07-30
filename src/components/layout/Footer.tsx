@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import { MapPin, Phone, Mail, Clock, Heart, Award, ShieldCheck, ArrowUpRight } from "lucide-react";
 import HospitalLogo from "./HospitalLogo";
 
@@ -27,11 +28,22 @@ export default function Footer({ onScrollToSection, onOpenAdmin }: FooterProps) 
   ];
 
   return (
-    <footer id="lien-he" className="bg-green-dark text-mint pt-16 pb-8 border-t border-green-800/20 relative z-10">
-      <div className="max-w-[1180px] mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12 text-left">
+    <footer id="lien-he" className="bg-green-dark text-mint pt-16 pb-8 border-t border-green-800/20 relative z-10 overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-brand-green/3 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-peach/3 blur-3xl" />
+      </div>
+
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-80px" }}
+        variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
+        className="max-w-[1180px] mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12 text-left relative z-10"
+      >
         
         {/* Column 1: Intro (4 Cols on desktop) */}
-        <div className="lg:col-span-4 space-y-5">
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }} className="lg:col-span-4 space-y-5">
           <div className="flex items-center space-x-3 select-none">
             <HospitalLogo className="w-10 h-10 shrink-0" />
             <div className="leading-tight">
@@ -72,10 +84,10 @@ export default function Footer({ onScrollToSection, onOpenAdmin }: FooterProps) 
               </a>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Column 2: Quick Links (2 Cols on desktop) */}
-        <div className="lg:col-span-2 space-y-4">
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.1 } } }} className="lg:col-span-2 space-y-4">
           <h3 className="font-display font-bold text-[16px] text-peach border-b border-white/10 pb-2">
             Liên Kết Nhanh
           </h3>
@@ -92,10 +104,10 @@ export default function Footer({ onScrollToSection, onOpenAdmin }: FooterProps) 
               </li>
             ))}
           </ul>
-        </div>
+        </motion.div>
 
         {/* Column 3: Patient Support (3 Cols on desktop) */}
-        <div className="lg:col-span-3 space-y-4">
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.2 } } }} className="lg:col-span-3 space-y-4">
           <h3 className="font-display font-bold text-[16px] text-peach border-b border-white/10 pb-2">
             Hỗ Trợ Người Bệnh
           </h3>
@@ -123,10 +135,10 @@ export default function Footer({ onScrollToSection, onOpenAdmin }: FooterProps) 
               </li>
             )}
           </ul>
-        </div>
+        </motion.div>
 
         {/* Column 4: Location Contact Info (3 Cols on desktop) */}
-        <div className="lg:col-span-3 space-y-4">
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.3 } } }} className="lg:col-span-3 space-y-4">
           <h3 className="font-display font-bold text-[16px] text-peach border-b border-white/10 pb-2">
             Thông Tin Liên Hệ
           </h3>
@@ -152,9 +164,9 @@ export default function Footer({ onScrollToSection, onOpenAdmin }: FooterProps) 
               <span>Khám BHYT: Thứ 2 đến Thứ 6</span>
             </li>
           </ul>
-        </div>
+        </motion.div>
 
-      </div>
+      </motion.div>
 
       {/* Copyright bottom section */}
       <div className="max-w-[1180px] mx-auto px-4 mt-12 pt-6 border-t border-white/5 text-center space-y-2 relative z-10 text-[11px] md:text-xs">
