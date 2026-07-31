@@ -41,7 +41,7 @@ model Patient {
   id              String    @id @default(cuid())
   patientCode     String    @unique @map("patient_code")
   fullName        String    @map("full_name")
-  cccd            String?   @unique @db.VarChar(20)
+  cccdHash        String?   @unique @map("cccd_hash") @db.VarChar(64)
   cccdEncrypted   String?   @map("cccd_encrypted") @db.Text
   phone           String    @db.VarChar(20)
   birthDate       DateTime? @map("birth_date") @db.Date

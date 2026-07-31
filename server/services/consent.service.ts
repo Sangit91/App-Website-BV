@@ -134,20 +134,22 @@ export const consentService = {
     effective_date: Date;
     created_by?: string;
   }) {
-    await getPrisma().consentPolicy.updateMany({
-      where: { isActive: true },
-      data: { isActive: false },
-    });
+    return getPrisma().$transaction(async (tx) => {
+      await tx.consentPolicy.updateMany({
+        where: { isActive: true },
+        data: { isActive: false },
+      });
 
-    return getPrisma().consentPolicy.create({
-      data: {
-        version: data.version,
-        title: data.title,
-        contentHtml: data.content_html,
-        effectiveDate: data.effective_date,
-        isActive: true,
-        createdBy: data.created_by || null,
-      },
+      return tx.consentPolicy.create({
+        data: {
+          version: data.version,
+          title: data.title,
+          contentHtml: data.content_html,
+          effectiveDate: data.effective_date,
+          isActive: true,
+          createdBy: data.created_by || null,
+        },
+      });
     });
   },
 

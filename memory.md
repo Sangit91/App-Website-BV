@@ -87,7 +87,7 @@ agents/                    # (Phase 79) 9 file tách từ AGENTS.md theo nhóm �
 - `D:\Coding\code backup\App Website BV_20260727_133642` (trước Phase 72 — đồng bộ layout "Cổng thông tin"). Backup sau Phase 74 chưa tạo (Phase 74 chỉ xoá 2 class thừa, không phải refactor lớn — không đủ ngưỡng backup policy).
 - `D:\Coding\code backup\App Website BV_20260727_072435` (trước Phase 69 — fix lỗi 500 upload Record Request)
 - `D:\Coding\code backup\App Website BV_20260719_160404` (sau Local Images Migration)
-- **Lưu ý Wave A (Ph 81-83):** thay đổi security lớn (auth/PHI/CSP) — nên tạo backup trước khi deploy production.
+- **Lưu ý Wave A+B (Ph 81-84):** thay đổi security lớn (auth/PHI/CSP/CCCD encrypt) — nên tạo backup trước khi deploy production.
 
 ---
 
@@ -226,7 +226,7 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 | Security headers | ✅ Qua nginx + helmet | Phase 83: nginx server-level CSP/Permissions-Policy/HSTS + bỏ CORS reflect-any; helmet CSP env-aware (dev lax / prod strict `script-src 'self'`). Có 2 CSP (nginx + helmet) cùng áp dụng — browser lấy intersection. |
 | Rate limit admin auth/login lockout | ✅ Đã có | Phase 83: express-rate-limit 10 req/15ph trên `/auth/admin/*` + `/otp/*`; nginx `admin_auth` zone 50r/m. Lockout 30ph sau 5 lần chưa enforce (Phase 86). |
 | Input validation (Zod) | ❌ Chưa có | Phase 86 (Wave C) |
-| CCCD encrypt | ❌ Chưa có | Phase 84 (Wave B) |
+| CCCD encrypt | ✅ Đã có | Phase 84 (Wave B): AES-256-GCM (`cccd.service.ts`) + `cccdHash` SHA-256 unique + bỏ cột `cccd` plaintext; lookup match qua hash, encrypt roundtrip verify, mask `0012****90` |
 
 ---
 
@@ -265,6 +265,7 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 | Đóng token minting + PHI routes auth (Phase 81): gỡ `/token/access` + `/token/refresh` (không frontend dùng), thay bằng OTP flow — `server/services/otp.service.ts` (OTP session store, MAX_OTP_ATTEMPTS=5, TTL 5min, issueReadToken/verifyReadToken) + `/otp/send` (dev trả `devOtp`) + `/otp/verify` (trả `readToken`). Tạo `server/middleware/patient-access.middleware.ts` (`requirePatientReadAccess`: readToken OTP hoặc JWT admin, verify patientId khớp). 3 PHI routes gắn `requirePatientReadAccess + consentCheckMiddleware`; `/lookup` mask qua `toPublicPatient` (không lộ cccd/address). Org write routes + appointment `/search` + feedback GET `/:id` + consent `/check` gắn auth | ✅ Hoàn thành (2026-07-31) |
 | Session hardening + fail-fast secrets (Phase 82): refresh token có `jti` + in-memory store trong `auth.service.ts` (rotation: revoke cũ + cấp mới, reuse detection → revokeAllForUser). Cookie `bvdh_refresh` httpOnly + secure=IS_PROD + sameSite lax + path `/api/v1/auth`. Thêm `/admin/logout`. `CONSENT_SECRET` fail-fast (throw khi thiếu + production). `seed.ts` PBKDF2 chuẩn + `ADMIN_DEFAULT_PASSWORD` env (fallback "Admin@123") + ON CONFLICT DO NOTHING | ✅ Hoàn thành (2026-07-31) |
 | Edge hardening + CSP (Phase 83): cài `cookie-parser`; `app.ts` trust proxy + helmet CSP env-aware (dev: unsafe-inline/eval + ws://localhost:3000; prod: strict `script-src 'self'`). nginx: bỏ CORS reflect-any, thêm CSP/Permissions-Policy/client_max_body_size 25m server-level. `package.json` build → `dist-server/server.cjs` + start → `node dist-server/server.cjs`; `server.ts` static options; `.dockerignore` thêm dist-server/env. LƯU Ý OPS: frontend container chạy `server.ts` nên mọi edit app.ts cũng cần restart/rebuild bvdh-frontend | ✅ Hoàn thành (2026-07-31) |
+| CCCD encryption + migration drift fix (Phase 84): schema Patient bỏ cột `cccd` plaintext → thêm `cccdHash String? @unique` + `cccdEncrypted`; tạo `server/services/cccd.service.ts` (AES-256-GCM encrypt/decrypt `iv.tag.data` base64, hashCccd SHA-256 + maskCccd `0012****90`). Migration `20260731110412_cccd_hash` applied; `appointment.service` + `patient.service` lookup match qua hash; `toPublicPatient` fix (fullName/registeredAt); `seed.ts` insert patients dùng hash/encrypt (raw SQL). Drift migration `20260731110047_fix_drift` (tender dates Timestamp(3), policy_version nullable, tender_dept) — shadow DB config trong `prisma.config.ts` + docker-compose mount. Soft-delete middleware mở rộng findUnique/update/delete. `$transaction` cho consent.createPolicy + record-request.processStatusChange. `.env.example` đầy đủ biến. Verify: tsc pass, lookup BN-001 qua cccd 001234567890 trả patient, encrypt/decrypt roundtrip OK, DB hash khớp `9e7636...` | ✅ Hoàn thành (2026-07-31) |
 | Spec v2.9 review + Database gap analysis | ✅ Hoàn thành (2026-07-22) |
 | dactaupdate.md updated with DB gaps | ✅ Hoàn thành |
 | Expert System Review Report (report-review.md) | ✅ Hoàn thành |
@@ -321,7 +322,7 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
 | # | Vấn đề | File | Trạng thái |
 |---|--------|------|------------|
 | H1 | Không input validation (Zod/Joi) — request body dùng raw từ client | Toàn bộ routes | ❌ |
-| H2 | Không Prisma transaction — multi-step operation dễ mất đồng bộ (upload file + DB insert, xoá policy cũ + tạo mới...) | `server/services/*.ts` | ❌ |
+| H2 | Không Prisma transaction — multi-step operation dễ mất đồng bộ (upload file + DB insert, xoá policy cũ + tạo mới...) | `server/services/*.ts` | ✅ Phase 84: `consent.service.createPolicy` + `record-request.processStatusChange` bọc `$transaction` |
 | H3 | Không pagination API — list endpoint sẽ trả hàng ngàn records | `booking/feedback/news/doctor.service.ts` | ❌ |
 | H4 | Custom JWT — không theo RFC 7519 (thiếu `iat`, `exp` sai format) | `auth.service.ts:43-56` | ❌ |
 | H5 | Không helmet/CORS — thiếu security headers, CORS mở trắng | `server/app.ts` | ✅ Phase 83: helmet CSP env-aware + CORS chỉ allow `CORS_ORIGIN` (mặc định localhost:3000), nginx bỏ reflect-any |
@@ -343,7 +344,7 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
 | M6 | Version API không đồng nhất — `/api/booking` vs `/api/v1/auth` | `server/app.ts:39-52` | ❌ |
 | M7 | Consent middleware defined nhưng không wire vào route nào | `consent.middleware.ts` | ❌ |
 | M8 | Response format không đồng nhất — `{success, data}` vs `{error}` | Toàn bộ routes | ❌ |
-| M9 | Soft delete không enforce — cần Prisma middleware filter `deletedAt: null` | `prisma/schema.prisma` | ❌ |
+| M9 | Soft delete không enforce — cần Prisma middleware filter `deletedAt: null` | `prisma/schema.prisma` | ✅ Phase 84: `server/db/prisma.ts` middleware filter `deletedAt: null` cho Patient/AdminUser — mở rộng cả `findUnique`/`update`/`delete`/`updateMany`/`deleteMany` |
 | M10 | JSON body size limit không set — dễ bị DoS payload lớn | `server/app.ts:19` | ❌ |
 | M11 | `console.log` silent sync error thay vì `console.error` | `HospitalContext.tsx:652` | ❌ |
 | M12 | Prop drilling — `PatientPortalSection.tsx` nhận 9 props | `PatientPortalSection.tsx` | ❌ |

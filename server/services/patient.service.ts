@@ -1,15 +1,16 @@
 import { getPrisma } from "../db/prisma";
+import { cccdService } from "./cccd.service";
 
 export function toPublicPatient(patient: Record<string, unknown>) {
   return {
     id: patient.id,
     patientCode: patient.patientCode,
-    name: patient.name,
+    name: patient.fullName,
     gender: patient.gender,
     birthDate: patient.birthDate,
     phone: patient.phone,
     visitCount: patient.visitCount,
-    registeredDate: patient.registeredDate,
+    registeredDate: patient.registeredAt,
   };
 }
 
@@ -25,7 +26,7 @@ export const patientService = {  async lookup(identifier: string, identifierType
         break;
       case "cccd":
         patient = await prisma.patient.findFirst({
-          where: { cccd: identifier, isActive: true, deletedAt: null },
+          where: { cccdHash: cccdService.hashCccd(identifier), isActive: true, deletedAt: null },
         });
         break;
       case "phone":

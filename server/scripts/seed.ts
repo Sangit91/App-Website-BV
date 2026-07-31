@@ -1,6 +1,7 @@
 import "dotenv/config";
 import crypto from "crypto";
 import { Pool } from "pg";
+import { cccdService } from "../services/cccd.service.js";
 import { SPECIALTIES, DOCTORS, TESTIMONIALS, NEWS } from "../../src/data";
 
 const connectionString = process.env["DATABASE_URL"];
@@ -175,20 +176,27 @@ const isTender = !!(n as any).isTender;
   // PATIENTS
   // ============================================================
   console.log("Creating patients...");
-  await pool.query(`
-    INSERT INTO patients (id, patient_code, full_name, cccd, phone, birth_date, gender, address, visit_count, registered_at, is_active, created_at, updated_at)
-    VALUES
-      ('pat-001', 'BN-001', 'Cô Trương Thị Hoa', '001234567890', '0905777888', '1985-06-15', 'nữ', '123 Quang Trung, Đại Lộc', 5, '2026-01-15', true, NOW(), NOW()),
-      ('pat-002', 'BN-002', 'Anh Nguyễn Văn Hoàng', '002345678901', '0905666777', '1978-12-20', 'nam', '456 Lê Lợi, Đại Lộc', 2, '2026-02-20', true, NOW(), NOW()),
-      ('pat-003', 'BN-003', 'Chị Phan Thị Vy', '003456789012', '0905555666', '1992-03-10', 'nữ', '789 Nguyễn Huệ, Đại Lộc', 1, '2026-03-10', true, NOW(), NOW()),
-      ('pat-004', 'BN-004', 'Nguyễn Văn An', '004567890123', '0905123456', '1990-04-05', 'nam', '12 Trần Phú, Đại Lộc', 3, '2026-04-05', true, NOW(), NOW()),
-      ('pat-005', 'BN-005', 'Trần Thị Bình', '005678901234', '0905111222', '1982-05-12', 'nữ', '34 Bà Triệu, Đại Lộc', 4, '2026-05-12', true, NOW(), NOW()),
-      ('pat-006', 'BN-006', 'Phạm Văn Cường', '006789012345', '0905888999', '1975-06-01', 'nam', '56 Hùng Vương, Đại Lộc', 6, '2026-06-01', true, NOW(), NOW()),
-      ('pat-010', 'BN-2020-00001', 'NGUYỄN VĂN MINH', '012345678901', '0912345678', '1965-03-15', 'nam', '123 Quang Trung, Xã Đại Lộc, TP Đà Nẵng', 12, '2020-01-15', true, NOW(), NOW()),
-      ('pat-011', 'BN-2021-00042', 'TRẦN THỊ HOA', '023456789012', '0987654321', '1978-07-22', 'nữ', '456 Lê Lợi, Xã Đại Lộc, TP Đà Nẵng', 8, '2021-03-20', true, NOW(), NOW()),
-      ('pat-012', 'BN-2022-00156', 'LÊ VĂN SƠN', '034567890123', '0903123456', '1990-11-08', 'nam', '789 Nguyễn Huệ, Xã Đại Lộc, TP Đà Nẵng', 5, '2022-06-10', true, NOW(), NOW())
-    ON CONFLICT (id) DO NOTHING
-  `);
+  const patients = [
+    { id: "pat-001", patient_code: "BN-001", full_name: "Cô Trương Thị Hoa", cccd: "001234567890", phone: "0905777888", birth_date: "1985-06-15", gender: "nữ", address: "123 Quang Trung, Đại Lộc", visit_count: 5, registered_at: "2026-01-15" },
+    { id: "pat-002", patient_code: "BN-002", full_name: "Anh Nguyễn Văn Hoàng", cccd: "002345678901", phone: "0905666777", birth_date: "1978-12-20", gender: "nam", address: "456 Lê Lợi, Đại Lộc", visit_count: 2, registered_at: "2026-02-20" },
+    { id: "pat-003", patient_code: "BN-003", full_name: "Chị Phan Thị Vy", cccd: "003456789012", phone: "0905555666", birth_date: "1992-03-10", gender: "nữ", address: "789 Nguyễn Huệ, Đại Lộc", visit_count: 1, registered_at: "2026-03-10" },
+    { id: "pat-004", patient_code: "BN-004", full_name: "Nguyễn Văn An", cccd: "004567890123", phone: "0905123456", birth_date: "1990-04-05", gender: "nam", address: "12 Trần Phú, Đại Lộc", visit_count: 3, registered_at: "2026-04-05" },
+    { id: "pat-005", patient_code: "BN-005", full_name: "Trần Thị Bình", cccd: "005678901234", phone: "0905111222", birth_date: "1982-05-12", gender: "nữ", address: "34 Bà Triệu, Đại Lộc", visit_count: 4, registered_at: "2026-05-12" },
+    { id: "pat-006", patient_code: "BN-006", full_name: "Phạm Văn Cường", cccd: "006789012345", phone: "0905888999", birth_date: "1975-06-01", gender: "nam", address: "56 Hùng Vương, Đại Lộc", visit_count: 6, registered_at: "2026-06-01" },
+    { id: "pat-010", patient_code: "BN-2020-00001", full_name: "NGUYỄN VĂN MINH", cccd: "012345678901", phone: "0912345678", birth_date: "1965-03-15", gender: "nam", address: "123 Quang Trung, Xã Đại Lộc, TP Đà Nẵng", visit_count: 12, registered_at: "2020-01-15" },
+    { id: "pat-011", patient_code: "BN-2021-00042", full_name: "TRẦN THỊ HOA", cccd: "023456789012", phone: "0987654321", birth_date: "1978-07-22", gender: "nữ", address: "456 Lê Lợi, Xã Đại Lộc, TP Đà Nẵng", visit_count: 8, registered_at: "2021-03-20" },
+    { id: "pat-012", patient_code: "BN-2022-00156", full_name: "LÊ VĂN SƠN", cccd: "034567890123", phone: "0903123456", birth_date: "1990-11-08", gender: "nam", address: "789 Nguyễn Huệ, Xã Đại Lộc, TP Đà Nẵng", visit_count: 5, registered_at: "2022-06-10" },
+  ];
+  for (const p of patients) {
+    await pool.query(`
+      INSERT INTO patients (id, patient_code, full_name, cccd_hash, cccd_encrypted, phone, birth_date, gender, address, visit_count, registered_at, is_active, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true, NOW(), NOW())
+      ON CONFLICT (id) DO UPDATE SET
+        full_name = EXCLUDED.full_name,
+        cccd_hash = EXCLUDED.cccd_hash,
+        cccd_encrypted = EXCLUDED.cccd_encrypted
+    `, [p.id, p.patient_code, p.full_name, cccdService.hashCccd(p.cccd), cccdService.encryptCccd(p.cccd), p.phone, p.birth_date, p.gender, p.address, p.visit_count, p.registered_at]);
+  }
 
   // ============================================================
   // MEDICAL RECORDS (for demo patients)

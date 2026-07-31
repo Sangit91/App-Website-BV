@@ -39,12 +39,17 @@ services:
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://postgres:devpass@db:5432/bvdh_db?schema=public
+      - SHADOW_DATABASE_URL=postgresql://postgres:devpass@db:5432/bvdh_shadow?schema=public
       - JWT_SECRET=dev-secret-change-in-production-min-32-chars
       - JWT_REFRESH_SECRET=dev-refresh-secret-change-in-production
+      - CONSENT_SECRET=dev-consent-secret-change-in-production
+      - CCCD_SECRET=dev-cccd-secret-change-in-production
       - PORT=8001
     volumes:
       - ./server:/app/server
+      - ./src:/app/src
       - ./prisma:/app/prisma
+      - ./prisma.config.ts:/app/prisma.config.ts
       - backend_uploads:/app/uploads
     depends_on:
       db:

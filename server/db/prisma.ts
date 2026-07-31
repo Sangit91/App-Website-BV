@@ -8,6 +8,18 @@ function isSoftDeleteModel(modelName: string): boolean {
   return SOFT_DELETE_MODELS.has(modelName);
 }
 
+// Operations cần filter deletedAt — tránh truy cập/update/delete record đã soft-delete.
+const FILTERED_OPERATIONS = new Set([
+  "findMany",
+  "findFirst",
+  "findUnique",
+  "count",
+  "update",
+  "updateMany",
+  "delete",
+  "deleteMany",
+]);
+
 function addDeletedAtFilter(args: unknown): void {
   if (args && typeof args === "object" && "where" in args) {
     const where = (args as Record<string, unknown>).where as Record<string, unknown> | undefined;
@@ -35,10 +47,7 @@ function createPrismaClient(): PrismaClient {
     query: {
       $allModels: {
         async $allOperations({ model, operation, args, query }) {
-          if (
-            isSoftDeleteModel(model) &&
-            (operation === "findMany" || operation === "findFirst" || operation === "count")
-          ) {
+          if (isSoftDeleteModel(model) && FILTERED_OPERATIONS.has(operation)) {
             addDeletedAtFilter(args);
           }
           return query(args);

@@ -2333,3 +2333,38 @@ npx tsc --noEmit -p tsconfig.json   # chỉ còn lỗi framer-motion Variants pr
 
 - Frontend container chay server.ts -> moi edit app.ts cung can restart/rebuild bvdh-frontend.
 - Rebuild image (khong chi restart) khi them dependency moi (npm install trong container).
+
+## PHASE 84 - CCCD encryption + migration drift fix (2026-07-31)
+
+### Migration drift fix
+
+- Phat hien drift: migration goc 20260723012247_init co tender_start_date/end_date DATE va patient_consents.policy_version NOT NULL, nhung DB/schema hien tai la Timestamp(3) + nullable + them tender_dept.
+- Tao tay migration `20260731110047_fix_drift`: tender_dept VARCHAR(50), tender dates -> TIMESTAMP(3), policy_version DROP NOT NULL + re-add FK ON DELETE SET NULL.
+- Prisma 7.9.1: migrate diff yeu cau datasource.shadowDatabaseUrl trong prisma.config.ts (flag --shadow-database-url khong ton tai). Tao DB bvdh_shadow truoc.
+- prisma.config.ts them shadowDatabaseUrl tu env; docker-compose mount ./prisma.config.ts + them SHADOW_DATABASE_URL env.
+- `prisma migrate resolve --applied` + migrate status = 4 migrations up to date.
+
+### CCCD encryption
+
+- schema Patient: bo cot `cccd` plaintext -> them `cccdHash String? @unique @db.VarChar(64)`.
+- Tao `server/services/cccd.service.ts`: AES-256-GCM encrypt/decrypt (iv.tag.data base64), hashCccd SHA-256 (plain|CCCD_SECRET, fallback dev), maskCccd (0012****90).
+- Migration `20260731110412_cccd_hash`: backfill encode(sha256(convert_to("cccd",'UTF8')),'hex'), applied + prisma generate.
+- appointment.service findPatientByIdentityCard: lookup qua cccdHash; getOrCreatePatient tao cccdHash + cccdEncrypted, patientCode BN-<8 hex uppercase.
+- patient.service lookup cccd -> hash; fix toPublicPatient (fullName/registeredAt thay vi patient.name/registeredDate sai).
+- seed.ts: import cccdService, insert patients raw SQL voi cccd_hash + cccd_encrypted, ON CONFLICT DO UPDATE. docker-compose backend mount them ./src:/app/src (seed import src/data).
+- docker-compose backend env them CCCD_SECRET; .env.example day du bien.
+
+### Transactions + soft-delete
+
+- consent.service createPolicy: updateMany(deprecate) + create boc `$transaction`.
+- record-request.service processStatusChange (da_xu_ly): copy file truoc, cap nhat DB filePaths trong 1 `$transaction`.
+- server/db/prisma.ts: FILTERED_OPERATIONS mo rong them findUnique/update/updateMany/delete/deleteMany (truoc chi findMany/findFirst/count).
+
+### Verify
+
+- tsc pass (server).
+- docker compose up -d admin-api -> env CCCD_SECRET co.
+- seed chay thanh cong (6 patients).
+- lookup POST /api/v1/patients/lookup (identifierType cccd, 001234567890) tra patient pat-001 BN-001.
+- encrypt/decrypt roundtrip: dec = 001234567890; hash = 9e763602...; mask = 0012****90.
+- DB: BN-001 cccd_hash khớp 9e763602e92e24e83bd29438ed5c223a68c91952b071e68e4127963d28cd316f, cccd_encrypted co du lieu.

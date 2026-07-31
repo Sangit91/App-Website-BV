@@ -18,11 +18,11 @@
 | P5 | Frontend admin mutations (~16 chỗ) gọi fetch **không đính Authorization** — hoặc backend nhận write không auth, hoặc admin không bao giờ sync lên DB | `HospitalContext.tsx:440-718`, `FeedbackTab.tsx:58`, `OrganizationTab.tsx:44` | **Critical** |
 | P6 | Không input validation (Zod/Joi) — hầu hết route ghi raw `req.body`; không `$transaction`; rate limit public form/PHI lookup không có (chỉ nginx 200r/m) | agent backend #2 | **Critical** |
 | P7 | Backend bundle lộ qua static: `server.cjs` + `.map` nằm trong `dist/` được `express.static` serve → `GET /server.cjs` = toàn bộ source | `package.json:8`, `server.ts:22-23` | High |
-| P8 | Migration drift: `tender_start_date/end_date` schema `Timestamp(3)` nhưng migration gốc là `DATE`; `patient_consents.policy_version` schema nullable nhưng migration `NOT NULL` — do dùng `db push` thay `migrate` | `schema.prisma:192,552`, `init/migration.sql:140,19` | High |
+| P8 | Migration drift: `tender_start_date/end_date` schema `Timestamp(3)` nhưng migration gốc là `DATE`; `patient_consents.policy_version` schema nullable nhưng migration `NOT NULL` — do dùng `db push` thay `migrate` | `schema.prisma:192,552`, `init/migration.sql:140,19` | ✅ Phase 84: migration `20260731110047_fix_drift` (tender_dept + Timestamp(3) + policy_version nullable) applied; shadow DB config; cấm `db push` ở prod |
 | P9 | Seed admin password hỏng (`'$2b$10$dummy'` không đúng format PBKDF2 → không login được); `reset-admin-password.ts:14` hardcode `"Admin@123"` + in ra log | `seed.ts:50-52`, `reset-admin-password.ts:14,25` | High |
 | P10 | `CONSENT_SECRET` fallback hardcode `"bvdh-consent-secret-key-2026"` — forge được từ source | `consent.service.ts:22` | High |
 | P11 | nginx `Access-Control-Allow-Origin: $http_origin` + `credentials: true` trên mọi `/api/` (reflect any origin); `add_header` trong `location /api/` **nuốt luôn** security headers server-level → API không có HSTS/X-Frame-Options | `nginx/nginx.conf:101-104` | High |
-| P12 | CCCD lưu plaintext (cột `cccd_encrypted` chết, 0 grep), mask chỉ frontend; `patients.phone`/`appointments.phone` không index | `schema.prisma:45`, `PatientsTab.tsx:7` | High |
+| P12 | CCCD lưu plaintext (cột `cccd_encrypted` chết, 0 grep), mask chỉ frontend; `patients.phone`/`appointments.phone` không index | `schema.prisma:45`, `PatientsTab.tsx:7` | ⚠️ Phase 84: bỏ cột `cccd` plaintext → `cccdHash` SHA-256 unique + `cccd_encrypted` AES-256-GCM (encrypt/decrypt/hash/mask server-side `cccd.service.ts`); lookup match qua hash; mask `0012****90`. Còn: index `patients.phone`/`appointments.phone` (Phase 85) |
 | P13 | `activity_logs`/`notification_logs` **không có code nào ghi** — audit trail chết, vi phạm compliance; không index | grep server → 0 hit | High |
 | P14 | `npm run lint` **ĐỎ**: 23 lỗi TS (21× `Variants` ease type + `ChoBenhNhanPage` + `vite.config.ts:6 allowedHosts`) — Quality Gate hiện không pass | `npm run lint` | High |
 | P15 | Không `trust proxy` → authLimiter (10/15ph) thành 1 bucket global cho mọi user | `server/app.ts:44-50` | High |
@@ -67,11 +67,11 @@
 ### 🟠 Wave B — Toàn vẹn dữ liệu (Phase 84-85)
 
 **Phase 84 — Migrations & transactions**
-1. Sinh migration thật cho drift (`tender_*` Timestamp(3), `policy_version` nullable) — chuyển hẳn workflow sang `prisma migrate deploy`, cấm `db push` ở prod.
-2. Tạo `prisma/seed.ts` chuẩn + `seed` config trong `prisma.config.ts`.
-3. Bọc `$transaction` cho multi-step: processStatusChange (copy+delete+update), createPolicy (deactivate+create), appointment create (patient + booking).
-4. Filter `deletedAt` trong `findUnique`/`update`/`delete` (extend Prisma client).
-5. CCCD: lưu `cccd_encrypted` + mask server-side; bỏ patient code predictable (dùng crypto random).
+1. ✅ Sinh migration thật cho drift (`tender_*` Timestamp(3), `policy_version` nullable) — chuyển hẳn workflow sang `prisma migrate deploy`, cấm `db push` ở prod. (`20260731110047_fix_drift` applied)
+2. ✅ Tạo `prisma/seed.ts` chuẩn + `seed` config trong `prisma.config.ts`. (`prisma.config.ts` migrations.seed = `tsx prisma/seed.ts` → re-export `server/scripts/seed`)
+3. ✅ Bọc `$transaction` cho multi-step: processStatusChange (copy+update filePaths), createPolicy (deactivate+create). Còn: appointment create (patient + booking) — Phase 85.
+4. ✅ Filter `deletedAt` trong `findUnique`/`update`/`delete` (extend Prisma client). (`server/db/prisma.ts` FILTERED_OPERATIONS mở rộng)
+5. ✅ CCCD: lưu `cccd_encrypted` + mask server-side; bỏ patient code predictable (dùng crypto random). (`cccd.service.ts` AES-256-GCM + hash; lookup match hash; verify roundtrip + mask `0012****90`)
 
 **Phase 85 — Audit & RBAC**
 1. Ghi `activity_logs` cho mọi admin action (`userId`, `action`, `IP`, `duration`) + PHI access log riêng; thêm index `activity_logs`.

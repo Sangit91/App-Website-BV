@@ -1,9 +1,11 @@
 import { getPrisma } from "../db/prisma";
+import { cccdService } from "./cccd.service";
+import crypto from "crypto";
 
 export const appointmentService = {
   async findPatientByIdentityCard(identityCard: string) {
     return getPrisma().patient.findFirst({
-      where: { cccd: identityCard, isActive: true, deletedAt: null },
+      where: { cccdHash: cccdService.hashCccd(identityCard), isActive: true, deletedAt: null },
     });
   },
 
@@ -17,15 +19,14 @@ export const appointmentService = {
     const existing = await this.findPatientByIdentityCard(data.cccd);
     if (existing) return { patient: existing, isNew: false };
 
-    const year = new Date().getFullYear();
-    const seq = Math.floor(Math.random() * 100000).toString().padStart(5, "0");
-    const patientCode = `BN-${year}-${seq}`;
+    const patientCode = `BN-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
 
     const patient = await prisma.patient.create({
       data: {
         patientCode,
         fullName: data.fullName.toUpperCase(),
-        cccd: data.cccd,
+        cccdHash: cccdService.hashCccd(data.cccd),
+        cccdEncrypted: cccdService.encryptCccd(data.cccd),
         phone: data.phone,
         birthDate: new Date(data.birthDate),
         visitCount: 0,

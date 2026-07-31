@@ -180,6 +180,8 @@ export const recordRequestService = {
     } else if (newStatus === "da_xu_ly") {
       await ensureDir(APPROVED_UPLOADS_DIR);
 
+      const fileUpdates: { fileId: string; newFilePath: string }[] = [];
+
       for (const file of request.files) {
         const pendingPath = resolvePhysicalPath(file.filePath);
         const ext = path.extname(file.fileName);
@@ -193,14 +195,21 @@ export const recordRequestService = {
           await fs.unlink(pendingPath).catch(() => {});
         } catch (err) {
           console.error("Error moving file to approved:", err);
+          continue;
         }
 
-        const newFilePath = `/uploads/approved/${safeFilename}`;
-        await getPrisma().recordRequestFile.update({
-          where: { id: file.id },
-          data: { filePath: newFilePath },
-        });
+        fileUpdates.push({ fileId: file.id, newFilePath: `/uploads/approved/${safeFilename}` });
       }
+
+      // Cập nhật DB trong 1 transaction — nếu lỗi, giữ file approved (dọn sau) nhưng không để DB lệch.
+      await getPrisma().$transaction(
+        fileUpdates.map((u) =>
+          getPrisma().recordRequestFile.update({
+            where: { id: u.fileId },
+            data: { filePath: u.newFilePath },
+          })
+        )
+      );
     }
   },
 
