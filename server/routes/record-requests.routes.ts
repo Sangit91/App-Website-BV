@@ -3,7 +3,8 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { recordRequestService, resolveSafePhysicalPath } from "../services/record-request.service";
-import { authenticate, requireAdmin } from "../middleware/auth.middleware";
+import { authenticate, requireAdmin, authorizeDepartmentAccess } from "../middleware/auth.middleware";
+import { activityLogger } from "../middleware/activity-log.middleware";
 
 const router = Router();
 
@@ -51,7 +52,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.post("/:id/files", authenticate, requireAdmin, upload.single("file"), async (req, res) => {
+router.post("/:id/files", authenticate, requireAdmin, authorizeDepartmentAccess, activityLogger({ action: "RECORD_REQUEST_FILE_UPLOAD" }), upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "Không có file được tải lên" });
@@ -64,7 +65,7 @@ router.post("/:id/files", authenticate, requireAdmin, upload.single("file"), asy
   }
 });
 
-router.delete("/:id/files/:fileId", authenticate, requireAdmin, async (req, res) => {
+router.delete("/:id/files/:fileId", authenticate, requireAdmin, authorizeDepartmentAccess, activityLogger({ action: "RECORD_REQUEST_FILE_DELETE" }), async (req, res) => {
   try {
     await recordRequestService.deleteFile(req.params.fileId);
     res.json({ success: true, message: "Đã xóa file" });
@@ -130,7 +131,7 @@ router.get("/:id", authenticate, requireAdmin, async (req, res) => {
   }
 });
 
-router.patch("/:id", authenticate, requireAdmin, async (req, res) => {
+router.patch("/:id", authenticate, requireAdmin, authorizeDepartmentAccess, activityLogger({ action: "RECORD_REQUEST_UPDATE" }), async (req, res) => {
   try {
     const { status, admin_notes, processed_by } = req.body;
     const current = await recordRequestService.getById(req.params.id);

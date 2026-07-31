@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as testimonialService from "../services/testimonial.service";
 import { authenticate, requireAdmin, requireSuperAdmin } from "../middleware/auth.middleware.js";
+import { activityLogger } from "../middleware/activity-log.middleware";
 
 const router = Router();
 
@@ -39,7 +40,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.put("/:id", authenticate, requireSuperAdmin, async (req, res) => {
+router.put("/:id", authenticate, requireSuperAdmin, activityLogger({ action: "TESTIMONIAL_UPDATE" }), async (req, res) => {
   try {
     const testimonial = await testimonialService.updateTestimonial(req.params.id, req.body);
     res.json(testimonial);
@@ -49,7 +50,7 @@ router.put("/:id", authenticate, requireSuperAdmin, async (req, res) => {
   }
 });
 
-router.delete("/:id", authenticate, requireSuperAdmin, async (req, res) => {
+router.delete("/:id", authenticate, requireSuperAdmin, activityLogger({ action: "TESTIMONIAL_DELETE" }), async (req, res) => {
   try {
     await testimonialService.deleteTestimonial(req.params.id);
     res.json({ success: true });
@@ -59,7 +60,7 @@ router.delete("/:id", authenticate, requireSuperAdmin, async (req, res) => {
   }
 });
 
-router.patch("/:id/approve", authenticate, requireSuperAdmin, async (req, res) => {
+router.patch("/:id/approve", authenticate, requireSuperAdmin, activityLogger({ action: "TESTIMONIAL_APPROVE" }), async (req, res) => {
   try {
     const testimonial = await testimonialService.approveTestimonial(req.params.id);
     res.json(testimonial);

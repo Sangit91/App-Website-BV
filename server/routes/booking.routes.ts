@@ -1,10 +1,10 @@
 import { Router } from "express";
 import { bookingService } from "../services/booking.service";
-import { authenticate, requireAdmin } from "../middleware/auth.middleware";
+import { authenticate, requireAnyStaff } from "../middleware/auth.middleware";
 
 const router = Router();
 
-router.get("/", authenticate, requireAdmin, async (req, res) => {
+router.get("/", authenticate, requireAnyStaff, async (req, res) => {
   try {
     const allBookings = await bookingService.getAll();
     res.json(allBookings);

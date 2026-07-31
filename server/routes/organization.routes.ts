@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { organizationService } from "../db/organization";
-import { authenticate, requireAdmin } from "../middleware/auth.middleware";
+import { authenticate, requireSuperAdmin } from "../middleware/auth.middleware";
+import { activityLogger } from "../middleware/activity-log.middleware";
 
 const router = Router();
 
@@ -27,7 +28,7 @@ router.get("/:divisionId/departments/:deptId", (req, res) => {
   res.json(dept);
 });
 
-router.post("/:divisionId/departments", authenticate, requireAdmin, (req, res) => {
+router.post("/:divisionId/departments", authenticate, requireSuperAdmin, activityLogger({ action: "ORG_DEPARTMENT_CREATE" }), (req, res) => {
   try {
     const { divisionId } = req.params;
     const { name, leader, phone, staffCount, description, details } = req.body;
@@ -56,7 +57,7 @@ router.post("/:divisionId/departments", authenticate, requireAdmin, (req, res) =
   }
 });
 
-router.put("/:divisionId/departments/:deptId", authenticate, requireAdmin, (req, res) => {
+router.put("/:divisionId/departments/:deptId", authenticate, requireSuperAdmin, activityLogger({ action: "ORG_DEPARTMENT_UPDATE" }), (req, res) => {
   try {
     const { divisionId, deptId } = req.params;
     const updates = req.body;
@@ -73,7 +74,7 @@ router.put("/:divisionId/departments/:deptId", authenticate, requireAdmin, (req,
   }
 });
 
-router.delete("/:divisionId/departments/:deptId", authenticate, requireAdmin, (req, res) => {
+router.delete("/:divisionId/departments/:deptId", authenticate, requireSuperAdmin, activityLogger({ action: "ORG_DEPARTMENT_DELETE" }), (req, res) => {
   try {
     const { divisionId, deptId } = req.params;
     const deleted = organizationService.deleteDepartment(divisionId, deptId);

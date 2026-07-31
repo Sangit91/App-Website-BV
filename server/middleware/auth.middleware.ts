@@ -126,3 +126,4 @@ export const requireSuperAdmin = authorizeExact("Super Admin");
 export const requireAdmin = authorize("Super Admin", "Department Admin");
 export const requireDoctor = authorize("Super Admin", "Department Admin", "Doctor");
 export const requireReceptionist = authorize("Super Admin", "Department Admin", "Receptionist");
+export const requireAnyStaff = authorize("Super Admin", "Department Admin", "Receptionist", "Doctor");

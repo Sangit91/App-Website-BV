@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { feedbackService } from "../services/feedback.service";
-import { authenticate, requireAdmin } from "../middleware/auth.middleware";
+import { authenticate, requireAdmin, authorizeDepartmentAccess } from "../middleware/auth.middleware";
+import { activityLogger } from "../middleware/activity-log.middleware";
 
 const router = Router();
 
@@ -53,7 +54,7 @@ router.get("/:id", authenticate, requireAdmin, async (req, res) => {
   }
 });
 
-router.patch("/:id", authenticate, requireAdmin, async (req, res) => {
+router.patch("/:id", authenticate, requireAdmin, authorizeDepartmentAccess, activityLogger({ action: "FEEDBACK_UPDATE" }), async (req, res) => {
   try {
     const { status, admin_response, responded_by } = req.body;
     const updated = await feedbackService.update(req.params.id, { status, admin_response, responded_by });

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as doctorService from "../services/doctor.service";
-import { authenticate, requireAdmin } from "../middleware/auth.middleware";
+import { authenticate, requireSuperAdmin } from "../middleware/auth.middleware";
+import { activityLogger } from "../middleware/activity-log.middleware";
 
 const router = Router();
 
@@ -35,7 +36,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", authenticate, requireAdmin, async (req, res) => {
+router.post("/", authenticate, requireSuperAdmin, activityLogger({ action: "DOCTOR_CREATE" }), async (req, res) => {
   try {
     const doctor = await doctorService.createDoctor(req.body);
     res.status(201).json(doctor);
@@ -45,7 +46,7 @@ router.post("/", authenticate, requireAdmin, async (req, res) => {
   }
 });
 
-router.put("/:id", authenticate, requireAdmin, async (req, res) => {
+router.put("/:id", authenticate, requireSuperAdmin, activityLogger({ action: "DOCTOR_UPDATE" }), async (req, res) => {
   try {
     const doctor = await doctorService.updateDoctor(req.params.id, req.body);
     res.json(doctor);
@@ -55,7 +56,7 @@ router.put("/:id", authenticate, requireAdmin, async (req, res) => {
   }
 });
 
-router.delete("/:id", authenticate, requireAdmin, async (req, res) => {
+router.delete("/:id", authenticate, requireSuperAdmin, activityLogger({ action: "DOCTOR_DELETE" }), async (req, res) => {
   try {
     await doctorService.deleteDoctor(req.params.id);
     res.json({ success: true });
@@ -65,7 +66,7 @@ router.delete("/:id", authenticate, requireAdmin, async (req, res) => {
   }
 });
 
-router.patch("/:id/schedule", authenticate, requireAdmin, async (req, res) => {
+router.patch("/:id/schedule", authenticate, requireSuperAdmin, activityLogger({ action: "DOCTOR_SCHEDULE_UPDATE" }), async (req, res) => {
   try {
     const schedule = await doctorService.updateDoctorSchedule(req.params.id, req.body);
     res.json(schedule);

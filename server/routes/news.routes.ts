@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as newsService from "../services/news.service";
-import { authenticate, requireAdmin } from "../middleware/auth.middleware";
+import { authenticate, requireAdmin, authorizeDepartmentAccess } from "../middleware/auth.middleware";
+import { activityLogger } from "../middleware/activity-log.middleware";
 
 const router = Router();
 
@@ -35,7 +36,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", authenticate, requireAdmin, async (req, res) => {
+router.post("/", authenticate, requireAdmin, authorizeDepartmentAccess, activityLogger({ action: "NEWS_CREATE" }), async (req, res) => {
   try {
     const item = await newsService.createNews(req.body);
     res.status(201).json(item);
@@ -45,7 +46,7 @@ router.post("/", authenticate, requireAdmin, async (req, res) => {
   }
 });
 
-router.put("/:id", authenticate, requireAdmin, async (req, res) => {
+router.put("/:id", authenticate, requireAdmin, authorizeDepartmentAccess, activityLogger({ action: "NEWS_UPDATE" }), async (req, res) => {
   try {
     const item = await newsService.updateNews(req.params.id, req.body);
     res.json(item);
@@ -55,7 +56,7 @@ router.put("/:id", authenticate, requireAdmin, async (req, res) => {
   }
 });
 
-router.delete("/:id", authenticate, requireAdmin, async (req, res) => {
+router.delete("/:id", authenticate, requireAdmin, authorizeDepartmentAccess, activityLogger({ action: "NEWS_DELETE" }), async (req, res) => {
   try {
     await newsService.deleteNews(req.params.id);
     res.json({ success: true });

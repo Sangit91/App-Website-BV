@@ -2,6 +2,7 @@
 
 > **Ngày:** 2026-07-31 · **Phương pháp:** Production audit (4 agent song song: backend/security, Docker/nginx/ops, frontend, DB/tests) + verify thủ công các phát hiện nghiêm trọng.
 > **Score hiện tại: 45/100 — BLOCKED.** Không vận hành khi còn lỗ hổng PHI + token minting + admin writes không auth.
+> **Cập nhật (2026-07-31):** Wave A (Ph 81-83 security) + Wave B (Ph 84-85 data integrity) đã hoàn thành & commit. Còn blocker từ Wave C trở đi (Zod validation, pagination, rate limit, lint đỏ, tests).
 
 ---
 
@@ -22,8 +23,8 @@
 | P9 | Seed admin password hỏng (`'$2b$10$dummy'` không đúng format PBKDF2 → không login được); `reset-admin-password.ts:14` hardcode `"Admin@123"` + in ra log | `seed.ts:50-52`, `reset-admin-password.ts:14,25` | High |
 | P10 | `CONSENT_SECRET` fallback hardcode `"bvdh-consent-secret-key-2026"` — forge được từ source | `consent.service.ts:22` | High |
 | P11 | nginx `Access-Control-Allow-Origin: $http_origin` + `credentials: true` trên mọi `/api/` (reflect any origin); `add_header` trong `location /api/` **nuốt luôn** security headers server-level → API không có HSTS/X-Frame-Options | `nginx/nginx.conf:101-104` | High |
-| P12 | CCCD lưu plaintext (cột `cccd_encrypted` chết, 0 grep), mask chỉ frontend; `patients.phone`/`appointments.phone` không index | `schema.prisma:45`, `PatientsTab.tsx:7` | ⚠️ Phase 84: bỏ cột `cccd` plaintext → `cccdHash` SHA-256 unique + `cccd_encrypted` AES-256-GCM (encrypt/decrypt/hash/mask server-side `cccd.service.ts`); lookup match qua hash; mask `0012****90`. Còn: index `patients.phone`/`appointments.phone` (Phase 85) |
-| P13 | `activity_logs`/`notification_logs` **không có code nào ghi** — audit trail chết, vi phạm compliance; không index | grep server → 0 hit | High |
+| P12 | CCCD lưu plaintext (cột `cccd_encrypted` chết, 0 grep), mask chỉ frontend; `patients.phone`/`appointments.phone` không index | `schema.prisma:45`, `PatientsTab.tsx:7` | ✅ Phase 84-85: bỏ cột `cccd` plaintext → `cccdHash` SHA-256 unique + `cccd_encrypted` AES-256-GCM (`cccd.service.ts`); lookup match hash; mask `0012****90`. Index `patients.phone` + `appointments.phone` + `activity_logs` trong migration `20260731123000_activity_logs_enrichment` |
+| P13 | `activity_logs`/`notification_logs` **không có code nào ghi** — audit trail chết, vi phạm compliance; không index | grep server → 0 hit | ✅ Phase 85: `activity-log.service.ts` + `activity-log.middleware.ts` (`activityLogger` đo duration qua `res.on("finish")`) wire toàn bộ admin write routes + 3 PHI routes (`dataAccessed:"PHI"` + patientId); migration `20260731123000_activity_logs_enrichment` thêm `durationMs`/`dataAccessed`/`patientId` + index createdAt/userId/patientId |
 | P14 | `npm run lint` **ĐỎ**: 23 lỗi TS (21× `Variants` ease type + `ChoBenhNhanPage` + `vite.config.ts:6 allowedHosts`) — Quality Gate hiện không pass | `npm run lint` | High |
 | P15 | Không `trust proxy` → authLimiter (10/15ph) thành 1 bucket global cho mọi user | `server/app.ts:44-50` | High |
 
@@ -38,6 +39,7 @@
 ### ✅ Đã OK
 
 - Port policy đúng (chỉ 8443 public, DB internal-only); healthcheck 4 services; `.env`/certs không bao giờ commit; password PBKDF2 100k + salt + timingSafeEqual; path traversal read-path chặn tốt; error handler không leak stack trong prod; C1-C9, H1-H10, M1-M13, L1-L6 audit cũ đã fix.
+- **Wave B (Ph 84-85):** migration drift fix, CCCD hash/encrypt (không lưu plaintext), `$transaction`, soft-delete đầy đủ, activity_logs ghi đầy đủ (userId/IP/duration/PHI marker) + index, RBAC role-level + department ownership, index `patients.phone`/`appointments.phone`.
 
 ---
 
@@ -74,9 +76,9 @@
 5. ✅ CCCD: lưu `cccd_encrypted` + mask server-side; bỏ patient code predictable (dùng crypto random). (`cccd.service.ts` AES-256-GCM + hash; lookup match hash; verify roundtrip + mask `0012****90`)
 
 **Phase 85 — Audit & RBAC**
-1. Ghi `activity_logs` cho mọi admin action (`userId`, `action`, `IP`, `duration`) + PHI access log riêng; thêm index `activity_logs`.
-2. Enforce RBAC matrix đầy đủ + department ownership qua `authorizeDepartmentAccess`.
-3. Index `patients.phone`, `appointments.phone`.
+1. ✅ Ghi `activity_logs` cho mọi admin action (`userId`, `action`, `IP`, `duration`) + PHI access log riêng; thêm index `activity_logs`. (`activity-log.service.ts` + middleware; wire toàn bộ admin write routes + 3 PHI routes `dataAccessed:"PHI"`; migration `20260731123000_activity_logs_enrichment` + index createdAt/userId/patientId)
+2. ✅ Enforce RBAC matrix đầy đủ + department ownership qua `authorizeDepartmentAccess`. (specialties/doctors/organization/service/testimonial write → requireSuperAdmin; news/feedback/record-request → requireAdmin + authorizeDepartmentAccess; bookings + appointment search → requireAnyStaff)
+3. ✅ Index `patients.phone`, `appointments.phone`.
 
 ### 🟡 Wave C — API hardening (Phase 86)
 
@@ -141,4 +143,4 @@ Phase 89 → 90 → 91 (ops + tests, có thể xen kẽ)
 
 ## 5. Next action
 
-Bắt đầu **Phase 81** — đóng `/token/access` + fix consent bypass + bảo vệ PHI routes (3 task đầu tiên).
+Wave A (81-83) + Wave B (84-85) đã hoàn thành. Tiếp theo: **Phase 86 (Wave C)** — Zod validation, rate limit Express, pagination thật, health check DB, graceful shutdown + orphan cleanup.

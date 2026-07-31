@@ -68,6 +68,7 @@ model Patient {
   testimonials    Testimonial[]
   patientConsents PatientConsent[]
 
+  @@index([phone])
   @@map("patients")
 }
 
@@ -104,6 +105,7 @@ model Appointment {
   specialty       Specialty? @relation(fields: [specialtyId], references: [id])
   doctor          Doctor?   @relation(fields: [doctorId], references: [id])
 
+  @@index([phone])
   @@map("appointments")
 }
 
@@ -466,8 +468,14 @@ model ActivityLog {
   details     String?   @map("details") @db.Text
   ipAddress   String?   @map("ip_address") @db.VarChar(45)
   userAgent   String?   @map("user_agent") @db.Text
+  durationMs  Int?      @map("duration_ms")
+  dataAccessed String?  @map("data_accessed") @db.VarChar(50)
+  patientId   String?   @map("patient_id")
   createdAt   DateTime  @default(now()) @map("created_at")
 
+  @@index([createdAt])
+  @@index([userId])
+  @@index([patientId])
   @@map("activity_logs")
 }
 

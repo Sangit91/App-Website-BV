@@ -2,6 +2,7 @@ import { Router } from "express";
 import { patientService, toPublicPatient } from "../services/patient.service";
 import { consentCheckMiddleware } from "../middleware/consent.middleware";
 import { requirePatientReadAccess } from "../middleware/patient-access.middleware";
+import { phiAccessLogger } from "../middleware/activity-log.middleware";
 
 const router = Router();
 
@@ -30,7 +31,7 @@ router.post("/lookup", async (req, res) => {
   }
 });
 
-router.get("/:patientId/medical-records", requirePatientReadAccess, consentCheckMiddleware, async (req, res) => {
+router.get("/:patientId/medical-records", requirePatientReadAccess, consentCheckMiddleware, phiAccessLogger({ action: "PHI_READ_MEDICAL_RECORDS", dataAccessed: "PHI" }), async (req, res) => {
   try {
     const { patientId } = req.params;
     const { startDate, endDate, clinicId } = req.query;
@@ -53,7 +54,7 @@ router.get("/:patientId/medical-records", requirePatientReadAccess, consentCheck
   }
 });
 
-router.get("/:patientId/clinical-tests", requirePatientReadAccess, consentCheckMiddleware, async (req, res) => {
+router.get("/:patientId/clinical-tests", requirePatientReadAccess, consentCheckMiddleware, phiAccessLogger({ action: "PHI_READ_CLINICAL_TESTS", dataAccessed: "PHI" }), async (req, res) => {
   try {
     const { patientId } = req.params;
     const { startDate, endDate, testType, status } = req.query;
@@ -77,7 +78,7 @@ router.get("/:patientId/clinical-tests", requirePatientReadAccess, consentCheckM
   }
 });
 
-router.get("/:patientId/treatment-histories", requirePatientReadAccess, consentCheckMiddleware, async (req, res) => {
+router.get("/:patientId/treatment-histories", requirePatientReadAccess, consentCheckMiddleware, phiAccessLogger({ action: "PHI_READ_TREATMENT_HISTORIES", dataAccessed: "PHI" }), async (req, res) => {
   try {
     const { patientId } = req.params;
 

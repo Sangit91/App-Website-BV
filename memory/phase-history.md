@@ -2368,3 +2368,33 @@ npx tsc --noEmit -p tsconfig.json   # chỉ còn lỗi framer-motion Variants pr
 - lookup POST /api/v1/patients/lookup (identifierType cccd, 001234567890) tra patient pat-001 BN-001.
 - encrypt/decrypt roundtrip: dec = 001234567890; hash = 9e763602...; mask = 0012****90.
 - DB: BN-001 cccd_hash khớp 9e763602e92e24e83bd29438ed5c223a68c91952b071e68e4127963d28cd316f, cccd_encrypted co du lieu.
+
+## PHASE 85 - Audit logging + RBAC + indexes (2026-07-31)
+
+### activity_logs enrichment
+
+- schema ActivityLog: them durationMs Int?, dataAccessed String? (PHI marker), patientId String? + @@index([createdAt]) @@index([userId]) @@index([patientId]).
+- Tao `server/services/activity-log.service.ts`: logActivity({ userId, userName, action, details, ipAddress, userAgent, durationMs, dataAccessed, patientId }) — write-only, catch loi silent.
+- Tao `server/middleware/activity-log.middleware.ts`: activityLogger({ action, dataAccessed, ... }) — do duration qua res.on("finish"), lay req.user/req.ip/user-agent; phiAccessLogger = alias.
+- Wire toan bo admin write routes: SPECIALTY_CREATE/UPDATE/DELETE, DOCTOR_CREATE/UPDATE/DELETE/SCHEDULE_UPDATE, NEWS_CREATE/UPDATE/DELETE, SERVICE_*/GROUP_*, TESTIMONIAL_*, FEEDBACK_UPDATE, RECORD_REQUEST_FILE_UPLOAD/DELETE, RECORD_REQUEST_UPDATE, ORG_DEPARTMENT_*.
+- Wire 3 PHI routes: PHI_READ_MEDICAL_RECORDS / PHI_READ_CLINICAL_TESTS / PHI_READ_TREATMENT_HISTORIES voi dataAccessed: "PHI" (patientId tu req.params.patientId).
+- Migration `20260731123000_activity_logs_enrichment` applied; prisma generate.
+
+### RBAC enforcement
+
+- requireSuperAdmin cho write cua specialties / doctors / organization / service / testimonial (theo matrix tab: nhung tab nay chi Super Admin CRUD).
+- requireAdmin + authorizeDepartmentAccess cho news / feedback / record-request write (Dept Admin xem + xu ly khoa minh).
+- requireAnyStaff (helper moi: Super + Dept + Receptionist + Doctor) cho bookings GET + appointment /search (theo matrix appointments:read).
+- Verify: receptionist login -> GET /bookings OK, POST /specialties 403.
+
+### Indexes
+
+- patients.phone + appointments.phone (@@index) trong cung migration activity_logs_enrichment.
+
+### Verify
+
+- tsc pass (server).
+- Admin tao specialty -> activity_logs ghi "admin | SPECIALTY_CREATE | admin-001 | duration 8ms | ip 172.18.0.1".
+- PHI read qua OTP readToken -> log "anonymous | PHI_READ_MEDICAL_RECORDS | PHI | pat-001 | 14ms".
+- reception doc bookings OK, POST specialties 403.
+- Xoa 2 specialty test da tao.

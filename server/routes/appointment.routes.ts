@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { appointmentService } from "../services/appointment.service";
-import { authenticate, requireAdmin } from "../middleware/auth.middleware";
+import { authenticate, requireAnyStaff } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -84,7 +84,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/search", authenticate, requireAdmin, async (req, res) => {
+router.get("/search", authenticate, requireAnyStaff, async (req, res) => {
   try {
     const { patientCode, phone } = req.query;
 
