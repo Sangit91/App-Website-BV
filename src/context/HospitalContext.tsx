@@ -109,6 +109,7 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     // Load news, schedules from PostgreSQL API (source of truth); bookings/patients/logs/activeUser from localStorage
     const init = async () => {
       // --- API data: specialties, doctors, news, schedules ---
+      let newsLoadedFromApi = false;
       try {
         const [specRes, docRes, newsRes, schedRes] = await Promise.all([
           fetch('/api/v1/specialties'),
@@ -148,13 +149,14 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
 
         if (newsRes.ok) {
           const dbNews = await newsRes.json();
-          const mappedNews: NewsItem[] = dbNews.map((n: { id: string; title: string; summary: string | null; category: string | null; content: string | null; image: string | null; publishedAt: string | null; isTender: boolean | null; tenderNumber: string | null; isFeatured: boolean | null; author: string | null; tenderStartDate: string | null; tenderEndDate: string | null; tenderMethod: string | null; tenderEstimate: string | null; tenderReceived: string | null; contactName: string | null; contactPhone: string | null; downloadCount: number | null }) => ({
+          const mappedNews: NewsItem[] = dbNews.map((n: { id: string; title: string; summary: string | null; category: string | null; content: string | null; image: string | null; publishedAt: string | null; isTender: boolean | null; tenderNumber: string | null; isFeatured: boolean | null; author: string | null; tenderStartDate: string | null; tenderEndDate: string | null; tenderMethod: string | null; tenderEstimate: string | null; tenderReceived: string | null; contactName: string | null; contactPhone: string | null; downloadCount: number | null; tenderDept: string | null; tenderFile: { name: string; url: string; size: string } | null }) => ({
             id: n.id,
             title: n.title,
             summary: n.summary || '',
             tag: n.category as NewsItem['tag'],
-            date: n.publishedAt ? new Date(n.publishedAt).toLocaleDateString('vi-VN') : '',
-            image: n.image || '/images/pages/hero-thongtin.jpeg',
+            date: n.publishedAt ? new Date(n.publishedAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '',
+            publishedAt: n.publishedAt || '',
+            image: n.image || '/images/pages/chiphi-1.jpeg',
             content: n.content,
             isTender: n.isTender || false,
             tenderNumber: n.tenderNumber,
@@ -170,6 +172,7 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
             tenderDownloadCount: n.downloadCount,
           }));
           setNews(mappedNews);
+          newsLoadedFromApi = true;
           localStorage.setItem('hosp_news', JSON.stringify(mappedNews));
         }
 
@@ -220,8 +223,8 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
         setSpecialties(SPECIALTIES);
       }
 
-      // News (fallback) — chỉ fallback khi state news vẫn rỗng (API lỗi/DB rỗng)
-      if (news.length === 0) {
+      // News (fallback) — chỉ fallback khi API lỗi
+      if (!newsLoadedFromApi) {
         const localNews = localStorage.getItem('hosp_news');
         if (localNews) {
           const parsed = JSON.parse(localNews);
@@ -565,7 +568,7 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
         tenderReceived: newsInput.tenderReceivedLocation,
         contactName: newsInput.tenderContact,
         contactPhone: newsInput.tenderContactPhone,
-        publishedAt: newsInput.date ? new Date(newsInput.date).toISOString() : new Date().toISOString(),
+        publishedAt: newsInput.publishedAt ? new Date(newsInput.publishedAt).toISOString() : new Date().toISOString(),
       }),
     }).catch(err => console.error("Error syncing news to API:", err));
 
@@ -594,7 +597,7 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
         tenderReceived: newsInput.tenderReceivedLocation,
         contactName: newsInput.tenderContact,
         contactPhone: newsInput.tenderContactPhone,
-        publishedAt: newsInput.date ? new Date(newsInput.date).toISOString() : new Date().toISOString(),
+        publishedAt: newsInput.publishedAt ? new Date(newsInput.publishedAt).toISOString() : new Date().toISOString(),
       }),
     }).catch(err => console.error("Error syncing news update to API:", err));
 

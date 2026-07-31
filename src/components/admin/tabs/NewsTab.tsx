@@ -16,9 +16,21 @@ interface NewsForm {
   content: string;
   isTender: boolean;
   tenderDept?: string;
+  publishDate?: string;
   tenderStartDate?: string;
   tenderEndDate?: string;
   tenderFile?: TenderFile;
+}
+
+function toDatetimeLocal(value?: string): string {
+  if (!value) return "";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "";
+  const h = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}T${h}:${min}`;
 }
 
 export default function NewsTab() {
@@ -34,6 +46,7 @@ export default function NewsTab() {
     content: "",
     isTender: false,
     tenderDept: "",
+    publishDate: "",
     tenderStartDate: "",
     tenderEndDate: "",
     tenderFile: undefined,
@@ -63,8 +76,9 @@ export default function NewsTab() {
         content: item.content || "",
         isTender: item.isTender || false,
         tenderDept: item.tenderDept || "",
-        tenderStartDate: item.tenderStartDate || "",
-        tenderEndDate: item.tenderEndDate || "",
+        publishDate: toDatetimeLocal(item.publishedAt || item.date),
+        tenderStartDate: toDatetimeLocal(item.tenderStartDate),
+        tenderEndDate: toDatetimeLocal(item.tenderEndDate),
         tenderFile: item.tenderFile,
       });
     } else {
@@ -77,6 +91,7 @@ export default function NewsTab() {
         content: "",
         isTender: isDeptAdmin,
         tenderDept: isDeptAdmin ? (activeUser?.department || "") : "",
+        publishDate: "",
         tenderStartDate: "",
         tenderEndDate: "",
         tenderFile: undefined,
@@ -121,21 +136,26 @@ export default function NewsTab() {
     if (!form.title.trim() || !form.summary.trim()) return;
 
     const finalImage = form.image.trim() || "/images/components/news-placeholder.jpeg";
-    const todayStr = new Date().toLocaleDateString("vi-VN");
+    const dateFmt = { day: '2-digit' as const, month: '2-digit' as const, year: 'numeric' as const, hour: '2-digit' as const, minute: '2-digit' as const };
+    const todayStr = new Date().toLocaleDateString("vi-VN", dateFmt);
+    const publishIso = form.publishDate ? new Date(form.publishDate).toISOString() : undefined;
+    const dateStr = form.publishDate ? new Date(form.publishDate).toLocaleDateString("vi-VN", dateFmt) : todayStr;
 
     if (editing) {
       updateNews({
         ...editing,
         ...form,
         image: finalImage,
-        date: todayStr,
+        date: dateStr,
+        publishedAt: publishIso,
         tag: form.tag as NewsTag,
       });
     } else {
       addNews({
         ...form,
         image: finalImage,
-        date: todayStr,
+        date: dateStr,
+        publishedAt: publishIso,
         tag: form.tag as NewsTag,
       });
     }
@@ -159,8 +179,9 @@ export default function NewsTab() {
       ...form,
       isTender: checked,
       tag: checked ? "Thông báo" : form.tag,
-      tenderStartDate: checked ? "08:00:00 ngày 15/07/2026" : "",
-      tenderEndDate: checked ? "17:00:00 ngày 25/07/2026" : "",
+      tenderStartDate: checked ? "2026-08-01T08:00" : "",
+      tenderEndDate: checked ? "2026-09-15T17:00" : "",
+      publishDate: checked ? toDatetimeLocal(new Date().toISOString()) : form.publishDate,
       tenderDept: isDeptAdmin ? (activeUser?.department || "") : form.tenderDept,
     });
   };
@@ -340,26 +361,36 @@ export default function NewsTab() {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                          <label className="block text-[10px] uppercase font-bold tracking-wider text-green-dark/70">Ngày đăng thầu</label>
+                          <input
+                            type="datetime-local"
+                            value={form.publishDate || ""}
+                            onChange={(e) => setForm({ ...form, publishDate: e.target.value })}
+                            className="w-full p-2 bg-white border border-green-800/10 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-green text-xs"
+                          />
+                          <p className="text-[9px] text-ink/40">Để trống sẽ dùng ngày tạo.</p>
+                        </div>
                         <div className="space-y-1">
                           <label className="block text-[10px] uppercase font-bold tracking-wider text-green-dark/70">Thời điểm mở thầu</label>
                           <input
-                            type="text"
+                            type="datetime-local"
                             value={form.tenderStartDate || ""}
                             onChange={(e) => setForm({ ...form, tenderStartDate: e.target.value })}
-                            placeholder="Ví dụ: 08:00:00 ngày 15/07/2026"
                             className="w-full p-2 bg-white border border-green-800/10 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-green text-xs"
                           />
+                          <p className="text-[9px] text-ink/40">Để trống sẽ dùng ngày đăng.</p>
                         </div>
                         <div className="space-y-1">
                           <label className="block text-[10px] uppercase font-bold tracking-wider text-green-dark/70">Thời điểm khóa thầu</label>
                           <input
-                            type="text"
+                            type="datetime-local"
                             value={form.tenderEndDate || ""}
                             onChange={(e) => setForm({ ...form, tenderEndDate: e.target.value })}
-                            placeholder="Ví dụ: 17:00:00 ngày 25/07/2026"
                             className="w-full p-2 bg-white border border-green-800/10 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-green text-xs"
                           />
+                          <p className="text-[9px] text-ink/40">Để trống sẽ dùng ngày đăng.</p>
                         </div>
                       </div>
 

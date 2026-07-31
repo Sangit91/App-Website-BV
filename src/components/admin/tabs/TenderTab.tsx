@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { motion } from "framer-motion";
-import { FileText, Building2, Calendar, Gavel, Server, Stethoscope, Microscope, Pill, Users, Edit, Trash2, LucideIcon } from "lucide-react";
+import { FileText, Building2, Calendar, Gavel, Server, Stethoscope, Microscope, Pill, Users, Edit, Trash2, LucideIcon, DollarSign, X, Clock, Phone, HelpCircle } from "lucide-react";
 import { SectionCard, AddCard, EditModal, ConfirmDialog } from "../ui";
-import { Button } from "../../ui";
+import { Button, Modal } from "../../ui";
 
 interface TenderDept {
   id: string;
@@ -32,6 +32,8 @@ interface TenderItem {
   tenderNumber: string;
   dept: string;
   estimateValue: string;
+  publishDate: string;
+  startDate: string;
   endDate: string;
   status: string;
   fileName?: string;
@@ -40,9 +42,9 @@ interface TenderItem {
 }
 
 const DEFAULT_TENDERS: TenderItem[] = [
-  { id: "1", title: "Mua sắm vật tư y tế năm 2026", tenderNumber: "BHYT-2026-001", dept: "PHÒNG VTTBYT", estimateValue: "500.000.000đ", endDate: "30/08/2026", status: "Đang mở" },
-  { id: "2", title: "Dịch vụ bảo trì thiết bị MRI", tenderNumber: "BHYT-2026-002", dept: "PHÒNG CNTT", estimateValue: "200.000.000đ", endDate: "15/08/2026", status: "Sắp đóng" },
-  { id: "3", title: "Cung cấp thuốc generic", tenderNumber: "BHYT-2026-003", dept: "DƯỢC", estimateValue: "800.000.000đ", endDate: "01/09/2026", status: "Đang mở" },
+  { id: "1", title: "Mua sắm vật tư y tế năm 2026", tenderNumber: "BHYT-2026-001", dept: "PHÒNG VTTBYT", estimateValue: "500.000.000đ", publishDate: "2026-07-25T08:00", startDate: "2026-08-01T08:00", endDate: "2026-08-30T17:00", status: "Đang mở", contact: "CN. Nguyễn Văn An", contactPhone: "0235.3862.888" },
+  { id: "2", title: "Dịch vụ bảo trì thiết bị MRI", tenderNumber: "BHYT-2026-002", dept: "PHÒNG CNTT", estimateValue: "200.000.000đ", publishDate: "2026-07-20T08:00", startDate: "2026-08-01T08:00", endDate: "2026-08-15T11:30", status: "Sắp đóng", contact: "KS. Trần Thị Bích", contactPhone: "0235.3862.889" },
+  { id: "3", title: "Cung cấp thuốc generic", tenderNumber: "BHYT-2026-003", dept: "DƯỢC", estimateValue: "800.000.000đ", publishDate: "2026-07-28T08:00", startDate: "2026-08-05T08:00", endDate: "2026-09-01T17:00", status: "Đang mở", contact: "DS. Lê Thị Mai", contactPhone: "0235.3862.890" },
 ];
 
 const STATUS_OPTIONS = [
@@ -52,6 +54,33 @@ const STATUS_OPTIONS = [
 ];
 
 const iconOptions = Object.keys(DEPT_ICONS).map(k => ({ value: k, label: k }));
+
+function toDatetimeLocal(value?: string): string {
+  if (!value) return "";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "";
+  const h = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}T${h}:${min}`;
+}
+
+function formatTenderDateTime(value?: string): string {
+  if (!value) return "";
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+  if (match) {
+    const [, y, m, d, h, min] = match;
+    return `${h}:${min} - ${d}/${m}/${y}`;
+  }
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return value;
+  const h = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  return `${h}:${min} - ${day}/${month}/${d.getFullYear()}`;
+}
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -253,7 +282,10 @@ function TenderNoticesSection() {
   const handleOpenEdit = (tender: TenderItem | null = null) => {
     setEditingTender(tender || {
       id: crypto.randomUUID(), title: "", tenderNumber: "",
-      dept: "PHÒNG VTTBYT", estimateValue: "", endDate: "", status: "Đang mở",
+      dept: "PHÒNG VTTBYT", estimateValue: "",
+      publishDate: toDatetimeLocal(new Date().toISOString()),
+      startDate: "", endDate: "", status: "Đang mở",
+      contact: "", contactPhone: "",
     });
     setIsEditOpen(true);
   };
@@ -313,7 +345,10 @@ function TenderNoticesSection() {
                         <div>
                           <span className="text-[11px] font-bold text-green-dark">{tender.estimateValue}</span>
                           <p className="text-[9px] text-ink/40 flex items-center gap-1 mt-0.5">
-                            <Calendar size={9} /> Hạn: {tender.endDate}
+                            <Calendar size={9} /> Mở: {formatTenderDateTime(tender.startDate) || "—"}
+                          </p>
+                          <p className="text-[9px] text-peach/80 flex items-center gap-1 mt-0.5">
+                            <Calendar size={9} /> Hạn: {formatTenderDateTime(tender.endDate) || "—"}
                           </p>
                         </div>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -335,21 +370,12 @@ function TenderNoticesSection() {
         </div>
       </SectionCard>
 
-      <EditModal
+      <TenderFormModal
         isOpen={isEditOpen}
         onClose={() => { setIsEditOpen(false); setEditingTender(null); }}
         onSubmit={handleSave}
-        title={editingTender && tenders.find(t => t.id === editingTender.id) ? "Chỉnh sửa thông báo" : "Thêm thông báo mới"}
-        size="lg"
-        fields={[
-          { name: "title", label: "Tiêu đề thông báo", required: true, description: "Tên gói thầu/mua sắm", hint: "VD: Mua sắm vật tư y tế năm 2026" },
-          { name: "tenderNumber", label: "Số hiệu thầu", hint: "VD: BHYT-2026-001" },
-          { name: "dept", label: "Phòng ban", type: "select", options: deptOptions },
-          { name: "estimateValue", label: "Giá trị dự toán", hint: "VD: 500.000.000đ" },
-          { name: "endDate", label: "Hạn nộp hồ sơ", hint: "VD: 30/08/2026" },
-          { name: "status", label: "Trạng thái", type: "select", options: STATUS_OPTIONS },
-        ]}
-        initialData={(editingTender || {}) as Record<string, string | number | boolean | File | null>}
+        initialTender={editingTender}
+        deptOptions={deptOptions}
       />
 
       <ConfirmDialog
@@ -362,5 +388,171 @@ function TenderNoticesSection() {
         variant="danger"
       />
     </>
+  );
+}
+
+interface TenderFormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: Record<string, string | number | boolean | File | null>) => void;
+  initialTender: TenderItem | null;
+  deptOptions: { value: string; label: string }[];
+}
+
+function TenderFormModal({ isOpen, onClose, onSubmit, initialTender, deptOptions }: TenderFormModalProps) {
+  const isEdit = !!initialTender && initialTender.title.trim() !== "";
+  const [form, setForm] = useState({
+    title: initialTender?.title || "",
+    tenderNumber: initialTender?.tenderNumber || "",
+    dept: initialTender?.dept || "PHÒNG VTTBYT",
+    estimateValue: initialTender?.estimateValue || "",
+    publishDate: initialTender?.publishDate || "",
+    startDate: initialTender?.startDate || "",
+    endDate: initialTender?.endDate || "",
+    status: initialTender?.status || "Đang mở",
+    contact: initialTender?.contact || "",
+    contactPhone: initialTender?.contactPhone || "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (isOpen) {
+      setForm({
+        title: initialTender?.title || "",
+        tenderNumber: initialTender?.tenderNumber || "",
+        dept: initialTender?.dept || "PHÒNG VTTBYT",
+        estimateValue: initialTender?.estimateValue || "",
+        publishDate: initialTender?.publishDate || toDatetimeLocal(new Date().toISOString()),
+        startDate: initialTender?.startDate || "",
+        endDate: initialTender?.endDate || "",
+        status: initialTender?.status || "Đang mở",
+        contact: initialTender?.contact || "",
+        contactPhone: initialTender?.contactPhone || "",
+      });
+      setErrors({});
+    }
+  }, [isOpen, initialTender]);
+
+  const set = (key: keyof typeof form) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setForm(prev => ({ ...prev, [key]: e.target.value }));
+    if (errors[key as string]) setErrors(prev => ({ ...prev, [key]: "" }));
+  };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!form.title.trim()) {
+      setErrors({ title: "Tiêu đề thông báo là bắt buộc" });
+      return;
+    }
+    onSubmit({ ...form });
+  };
+
+  const inputCls = (err?: string) => `w-full px-4 py-3 text-sm border rounded-xl transition-all focus:outline-none ${
+    err
+      ? "border-rose-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-100"
+      : "border-green-800/10 focus:border-brand-green focus:ring-2 focus:ring-brand-green/10"
+  }`;
+
+  const labelCls = "block text-xs font-bold text-green-dark mb-1.5";
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} size="xl" showCloseButton={false}>
+      <div className="-m-6 flex flex-col">
+        <div className="bg-gradient-to-r from-brand-green to-green-dark p-6 text-white shrink-0 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center shadow-lg">
+              <Gavel size={22} />
+            </div>
+            <div>
+              <h3 className="font-display font-bold text-xl">{isEdit ? "Chỉnh sửa thông báo thầu" : "Đăng thông báo thầu mới"}</h3>
+              <p className="text-xs text-mint/80 mt-0.5">Đặt các mốc thời gian để hiển thị chính xác trên website</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-white/15 text-mint transition-colors cursor-pointer" aria-label="Đóng">
+            <X size={20} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-brand-green/10 flex items-center justify-center">
+                <FileText size={13} className="text-brand-green" />
+              </div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-green-dark/70">Thông tin cơ bản</h4>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
+                <label className={labelCls}>Tiêu đề thông báo <span className="text-rose-500">*</span></label>
+                <input type="text" value={form.title} onChange={set("title")} placeholder="VD: Mua sắm vật tư y tế năm 2026" className={inputCls(errors.title)} />
+                {errors.title && <p className="text-xs text-rose-500 mt-1.5">{errors.title}</p>}
+              </div>
+              <div>
+                <label className={labelCls}>Số hiệu thầu</label>
+                <input type="text" value={form.tenderNumber} onChange={set("tenderNumber")} placeholder="VD: BHYT-2026-001" className={inputCls()} />
+              </div>
+              <div>
+                <label className={labelCls}>Phòng ban</label>
+                <select value={form.dept} onChange={set("dept")} className={`${inputCls()} appearance-none cursor-pointer`}>
+                  {deptOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={labelCls}>Giá trị dự toán</label>
+                <input type="text" value={form.estimateValue} onChange={set("estimateValue")} placeholder="VD: 500.000.000đ" className={inputCls()} />
+              </div>
+              <div>
+                <label className={labelCls}>Trạng thái</label>
+                <select value={form.status} onChange={set("status")} className={`${inputCls()} appearance-none cursor-pointer`}>
+                  {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-brand-green/15 bg-mint/10 p-4 space-y-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="w-6 h-6 rounded-lg bg-brand-green/15 flex items-center justify-center">
+                <Clock size={13} className="text-brand-green" />
+              </div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-green-dark/70">Mốc thời gian hiển thị</h4>
+              <span className="text-[10px] text-ink/40 italic ml-auto flex items-center gap-1">
+                <HelpCircle size={11} /> Bỏ trống sẽ dùng ngày tạo/ngày đăng
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className={`${labelCls} flex items-center gap-1.5`}><Calendar size={12} className="text-brand-green" /> Ngày đăng thầu</label>
+                <input type="datetime-local" value={form.publishDate} onChange={set("publishDate")} className={inputCls()} />
+              </div>
+              <div>
+                <label className={`${labelCls} flex items-center gap-1.5`}><Calendar size={12} className="text-brand-green" /> Thời điểm mở thầu</label>
+                <input type="datetime-local" value={form.startDate} onChange={set("startDate")} className={inputCls()} />
+              </div>
+              <div>
+                <label className={`${labelCls} flex items-center gap-1.5`}><Calendar size={12} className="text-brand-green" /> Thời điểm khóa thầu</label>
+                <input type="datetime-local" value={form.endDate} onChange={set("endDate")} className={inputCls()} />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={`${labelCls} flex items-center gap-1.5`}><Phone size={12} className="text-brand-green" /> Người liên hệ</label>
+              <input type="text" value={form.contact} onChange={set("contact")} placeholder="VD: CN. Nguyễn Văn An" className={inputCls()} />
+            </div>
+            <div>
+              <label className={`${labelCls} flex items-center gap-1.5`}><Phone size={12} className="text-brand-green" /> Số điện thoại</label>
+              <input type="text" value={form.contactPhone} onChange={set("contactPhone")} placeholder="VD: 0235.3862.888" className={inputCls()} />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-green-800/5">
+            <Button type="button" variant="ghost" size="md" onClick={onClose}>Hủy bỏ</Button>
+            <Button type="submit" variant="primary" size="md">Lưu thay đổi</Button>
+          </div>
+        </form>
+      </div>
+    </Modal>
   );
 }

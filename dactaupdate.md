@@ -238,6 +238,8 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 18. **KHỐI 5.4.x (Soft delete)** — Prisma `$extends` middleware auto-filter `deletedAt: null` cho Patient + AdminUser trên `findMany`/`findFirst`/`count`. Không cần `WHERE deletedAt IS NULL` trong service code.
 19. **KHỐI 6.x (Consent enforcer)** — `consentCheckMiddleware` đã wire vào patient PHI routes (`GET /:patientId/medical-records`, `clinical-tests`, `treatment-histories`). Trả 403 nếu chưa consent.
 20. **KHỐI 3.6.3 (Admin Navigation)** — Rename `PatientTab` → `PatientGuideTab` để phân biệt với `PatientsTab` (quản lý BN). Cập nhật import trong `AdminPage.tsx`.
+21. **KHỐI 2.6 (Tin tức — thông báo thầu)** — Cơ chế mốc thời gian cho thầu (Phase 80): `news.tender_start_date`/`tender_end_date` dùng `@db.Timestamp(3)` (lưu giờ chính xác, không phải `@db.Date` chỉ lưu ngày). Admin đăng/sửa thầu đặt **3 mốc** qua `datetime-local`: Ngày đăng thầu (`publishedAt`) / Thời điểm mở thầu / Thời điểm khóa thầu. Web hiển thị đúng các mốc admin điền; **không** hiển thị ngày tạo làm mặc định — chỉ fallback ngày tạo khi mốc đó bỏ trống. Spec cần ghi rõ quy ước này.
+22. **KHỐI 3.6.3 / 3.6.4 (Admin — Tender tab)** — `TenderTab` dùng `TenderFormModal` chuyên dụng (thay `EditModal` chung): header gradient full-bleed, 3 phân vùng (Thông tin cơ bản / Mốc thời gian hiển thị / Liên hệ), 3 input `datetime-local`. `TenderItem` gồm `publishDate`/`startDate`/`endDate`/`contact`/`contactPhone`. Ghi chú: section này hiện dùng state local, chưa nối DB news — spec nên quyết định nguồn dữ liệu thầu admin (DB hay local).
 
 **Quy ước:**
 - Đánh version v3.1

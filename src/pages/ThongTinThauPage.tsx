@@ -24,12 +24,21 @@ const stats = [
   { value: 2, label: "Tỷ đồng", suffix: "" }
 ];
 
+function parseTenderDate(dateStr: string): Date | null {
+  if (!dateStr) return null;
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (match) {
+    const [, y, m, d, h, min, s] = match;
+    const date = new Date(+y, +m - 1, +d, +h, +min, +(s || 0));
+    return isNaN(date.getTime()) ? null : date;
+  }
+  const date = new Date(dateStr);
+  return isNaN(date.getTime()) ? null : date;
+}
+
 function getTenderStatus(item: NewsItem): TenderStatus {
-  if (!item.tenderEndDate) return "Đang mở";
-  const parts = item.tenderEndDate.match(/(\d{2}):(\d{2}):(\d{2}) ngày (\d{2})\/(\d{2})\/(\d{4})/);
-  if (!parts) return "Đang mở";
-  const [, hours, minutes, seconds, day, month, year] = parts;
-  const endDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes), parseInt(seconds));
+  const endDate = parseTenderDate(item.tenderEndDate || "");
+  if (!endDate) return "Đang mở";
   const now = new Date();
   if (endDate < now) return "Đã đóng";
   const daysUntil = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -48,10 +57,13 @@ function getStatusBadge(status: string) {
 
 function formatDateShort(dateStr: string): string {
   if (!dateStr) return "";
-  const parts = dateStr.match(/(\d{2}):(\d{2}):(\d{2}) ngày (\d{2})\/(\d{2})\/(\d{4})/);
-  if (!parts) return dateStr.split(" ").pop() || dateStr;
-  const [, hours, minutes, seconds, day, month, year] = parts;
-  return `${hours}:${minutes} ${day}/${month}/${year}`;
+  const d = parseTenderDate(dateStr);
+  if (!d) return dateStr;
+  const h = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  return `${h}:${min} - ${day}/${month}/${d.getFullYear()}`;
 }
 
 interface TenderCardProps {
@@ -330,14 +342,18 @@ export default function ThongTinThauPage() {
                   <div className="bg-cream-white rounded-xl p-4">
                     <p className="text-ink/80 text-sm leading-relaxed">{selectedTender.summary}</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="bg-mint/30 rounded-xl p-4">
                       <div className="flex items-center gap-2 text-brand-green text-xs font-bold mb-1"><Clock size={12} /> Ngày đăng</div>
                       <p className="text-sm font-semibold text-green-dark">{selectedTender.date}</p>
                     </div>
+                    <div className="bg-mint/30 rounded-xl p-4">
+                      <div className="flex items-center gap-2 text-brand-green text-xs font-bold mb-1"><Calendar size={12} /> Mở thầu</div>
+                      <p className="text-sm font-semibold text-green-dark">{selectedTender.tenderStartDate ? formatDateShort(selectedTender.tenderStartDate) : (selectedTender.date || "Liên hệ bệnh viện")}</p>
+                    </div>
                     <div className="bg-peach/10 rounded-xl p-4">
                       <div className="flex items-center gap-2 text-peach text-xs font-bold mb-1"><Calendar size={12} /> Hạn nộp</div>
-                      <p className="text-sm font-semibold text-green-dark">{selectedTender.tenderEndDate ? formatDateShort(selectedTender.tenderEndDate) : "Liên hệ bệnh viện"}</p>
+                      <p className="text-sm font-semibold text-green-dark">{selectedTender.tenderEndDate ? formatDateShort(selectedTender.tenderEndDate) : (selectedTender.date || "Liên hệ bệnh viện")}</p>
                     </div>
                   </div>
                   {selectedTender.tenderEstimateValue && (

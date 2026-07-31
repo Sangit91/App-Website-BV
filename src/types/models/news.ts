@@ -17,6 +17,7 @@ export interface NewsItem {
   summary: string;
   tag: NewsTag;
   date: string;
+  publishedAt?: string;
   image: string;
   content?: string;
   isTender?: boolean;

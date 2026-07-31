@@ -5,13 +5,21 @@ import { useHospital } from "../../context/HospitalContext";
 import { NewsItem, TenderStatus } from "../../types";
 import { DEPARTMENTS } from "../../data";
 
+function parseTenderDate(dateStr: string): Date | null {
+  if (!dateStr) return null;
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (match) {
+    const [, y, m, d, h, min, s] = match;
+    const date = new Date(+y, +m - 1, +d, +h, +min, +(s || 0));
+    return isNaN(date.getTime()) ? null : date;
+  }
+  const date = new Date(dateStr);
+  return isNaN(date.getTime()) ? null : date;
+}
+
 function getTenderStatus(item: NewsItem): TenderStatus {
-  if (!item.tenderEndDate) return "Đang mở";
-  const endDateStr = item.tenderEndDate.replace(" ngày ", "/").replace(/\//g, "-");
-  const parts = item.tenderEndDate.match(/(\d{2}):(\d{2}):(\d{2}) ngày (\d{2})\/(\d{2})\/(\d{4})/);
-  if (!parts) return "Đang mở";
-  const [, hours, minutes, seconds, day, month, year] = parts;
-  const endDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes), parseInt(seconds));
+  const endDate = parseTenderDate(item.tenderEndDate || "");
+  if (!endDate) return "Đang mở";
   const now = new Date();
   if (endDate < now) return "Đã đóng";
   const daysUntil = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -19,16 +27,19 @@ function getTenderStatus(item: NewsItem): TenderStatus {
   return "Đang mở";
 }
 
-function parseEndDate(dateStr: string): Date | null {
-  if (!dateStr) return null;
-  const parts = dateStr.match(/(\d{2}):(\d{2}):(\d{2}) ngày (\d{2})\/(\d{2})\/(\d{4})/);
-  if (!parts) return null;
-  const [, hours, minutes, seconds, day, month, year] = parts;
-  return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes), parseInt(seconds));
+function formatTenderDate(dateStr: string): string {
+  if (!dateStr) return "";
+  const d = parseTenderDate(dateStr);
+  if (!d) return dateStr;
+  const h = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  return `${h}:${min} - ${day}/${month}/${d.getFullYear()}`;
 }
 
 function getTimeLeft(endDateStr: string): { days: number; hours: number; minutes: number; seconds: number; expired: boolean } {
-  const endDate = parseEndDate(endDateStr);
+  const endDate = parseTenderDate(endDateStr);
   if (!endDate) return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: false };
   const now = new Date();
   const diff = endDate.getTime() - now.getTime();
@@ -534,13 +545,13 @@ export default function News() {
                       <div>
                         <p className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Thời điểm mở thầu chính thức</p>
                         <p className="text-green-dark font-mono font-bold mt-0.5">
-                          {selectedNews.tenderStartDate || "Liên hệ bệnh viện"}
+                          {formatTenderDate(selectedNews.tenderStartDate || "") || selectedNews.date || "Liên hệ bệnh viện"}
                         </p>
                       </div>
                       <div>
                         <p className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Thời điểm khóa thầu hồ sơ</p>
                         <p className="text-red-700 font-mono font-bold mt-0.5">
-                          {selectedNews.tenderEndDate || "Liên hệ bệnh viện"}
+                          {formatTenderDate(selectedNews.tenderEndDate || "") || selectedNews.date || "Liên hệ bệnh viện"}
                         </p>
                       </div>
                     </div>

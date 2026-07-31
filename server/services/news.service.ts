@@ -16,6 +16,7 @@ export interface NewsInput {
   tenderMethod?: string;
   tenderEstimate?: string;
   tenderReceived?: string;
+  tenderDept?: string;
   contactName?: string;
   contactPhone?: string;
   contactEmail?: string;
@@ -40,6 +41,7 @@ export interface NewsUpdateInput {
   tenderMethod?: string;
   tenderEstimate?: string;
   tenderReceived?: string;
+  tenderDept?: string;
   contactName?: string;
   contactPhone?: string;
   contactEmail?: string;
@@ -88,6 +90,7 @@ export async function createNews(data: NewsInput) {
       tenderMethod: data.tenderMethod,
       tenderEstimate: data.tenderEstimate,
       tenderReceived: data.tenderReceived,
+      tenderDept: data.tenderDept,
       tenderStartDate: data.tenderStartDate ? new Date(data.tenderStartDate) : null,
       tenderEndDate: data.tenderEndDate ? new Date(data.tenderEndDate) : null,
       contactName: data.contactName,
@@ -103,7 +106,7 @@ export async function createNews(data: NewsInput) {
 export async function updateNews(id: string, data: NewsUpdateInput) {
   const prisma = getPrisma();
   const updateData: Record<string, unknown> = {};
-  const stringFields = ["title", "slug", "summary", "category", "content", "image", "author", "tenderNumber", "tenderMethod", "tenderEstimate", "tenderReceived", "contactName", "contactPhone", "contactEmail"] as const;
+  const stringFields = ["title", "slug", "summary", "category", "content", "image", "author", "tenderNumber", "tenderMethod", "tenderEstimate", "tenderReceived", "tenderDept", "contactName", "contactPhone", "contactEmail"] as const;
   for (const field of stringFields) {
     if (data[field as keyof NewsUpdateInput] !== undefined) {
       updateData[field] = data[field as keyof NewsUpdateInput];
@@ -116,9 +119,9 @@ export async function updateNews(id: string, data: NewsUpdateInput) {
   if (data.title && !data.slug) {
     updateData.slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   }
-  if (data.tenderStartDate) updateData.tenderStartDate = new Date(data.tenderStartDate);
-  if (data.tenderEndDate) updateData.tenderEndDate = new Date(data.tenderEndDate);
-  if (data.publishedAt) updateData.publishedAt = new Date(data.publishedAt);
+  if (data.tenderStartDate !== undefined) updateData.tenderStartDate = data.tenderStartDate ? new Date(data.tenderStartDate) : null;
+  if (data.tenderEndDate !== undefined) updateData.tenderEndDate = data.tenderEndDate ? new Date(data.tenderEndDate) : null;
+  if (data.publishedAt !== undefined) updateData.publishedAt = data.publishedAt ? new Date(data.publishedAt) : null;
   return prisma.news.update({ where: { id }, data: updateData });
 }
 

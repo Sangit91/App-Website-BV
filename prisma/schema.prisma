@@ -189,11 +189,12 @@ model News {
   isFeatured      Boolean   @default(false) @map("is_featured")
   isTender        Boolean   @default(false) @map("is_tender")
   tenderNumber    String?   @map("tender_number") @db.VarChar(50)
-  tenderStartDate DateTime? @map("tender_start_date") @db.Date
-  tenderEndDate   DateTime? @map("tender_end_date") @db.Date
+  tenderStartDate DateTime? @map("tender_start_date") @db.Timestamp(3)
+  tenderEndDate   DateTime? @map("tender_end_date") @db.Timestamp(3)
   tenderMethod    String?   @map("tender_method") @db.VarChar(100)
   tenderEstimate  String?   @map("tender_estimate") @db.VarChar(100)
   tenderReceived  String?   @map("tender_received_location") @db.Text
+  tenderDept      String?   @map("tender_dept") @db.VarChar(50)
   contactName     String?   @map("contact_name") @db.VarChar(100)
   contactPhone    String?   @map("contact_phone") @db.VarChar(20)
   contactEmail    String?   @map("contact_email") @db.VarChar(255)

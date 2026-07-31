@@ -2214,6 +2214,69 @@ Verify 6 file service/routes mới đã có trong working tree (untracked, chưa
 
 ### Ghi chú
 
-- **Không tạo file mới thêm** trừ khi có task tách lại — nếu cần thêm nhóm quy tắc, mở rộng file gents/0X-*.md hiện có tương ứng trước.
-- **Đồng bộ chéo:** khi sửa 1 file gents/0X-*.md, kiểm tra các file khác không bị lệch (đặc biệt Port Policy ở 02, Memory Safety ở 08, Design Token ở 03).
+- **Không tạo file mới thêm** trừ khi có task tách lại — nếu cần thêm nhóm quy tắc, mở rộng file `agents/0X-*.md` hiện có tương ứng trước.
+- **Đồng bộ chéo:** khi sửa 1 file `agents/0X-*.md`, kiểm tra các file khác không bị lệch (đặc biệt Port Policy ở 02, Memory Safety ở 08, Design Token ở 03).
 - Working tree trước Phase 79 đã commit tại 43ec915 (chore: snapshot working tree before AGENTS.md split). Các file service/routes/middleware mới vẫn untracked — sẽ commit cùng Phase 79 hoặc Phase kế tiếp theo quyết định user.
+
+## PHASE 80 — Cơ chế thời gian chính xác cho thầu + TenderFormModal chuyên dụng (2026-07-31)
+
+### Cơ chế đặc biệt cho thầu — mốc thời gian hiển thị trên web
+
+Yêu cầu: khi đăng/sửa thông báo thầu, admin chủ động đặt **các mốc thời gian** hiển thị trên web; web **không** hiển thị ngày tạo làm mặc định, chỉ fallback về ngày tạo khi admin bỏ trống các trường mốc.
+
+- **Schema:** `News.tenderStartDate`/`tenderEndDate` đổi `@db.Date` → `@db.Timestamp(3)`. Trước đây cột `DATE` chỉ lưu ngày, mất giờ → web không thể hiển thị giờ chính xác.
+- **Script `scripts/update-tender-times.ts`:** set mốc thời gian cụ thể (mở 08:00, khóa 17:00) cho 12 thầu seed.
+- **Admin form (NewsTab):** 3 ô `datetime-local`: **Ngày đăng thầu** (mới, map `publishedAt`) / **Thời điểm mở thầu** / **Thời điểm khóa thầu**. Không còn ép `date = todayStr` vô điều kiện trong handleSubmit; chỉ mặc định ngày tạo khi ô đó bỏ trống.
+- **`NewsItem` thêm `publishedAt?: string`** (ISO riêng). Trước đây context dùng `new Date(newsInput.date).toISOString()` với `date` là chuỗi hiển thị vi-VN (`dd/mm/yyyy HH:MM`) → luôn `Invalid Date` → sync `publishedAt` lên DB fail ngầm.
+- **Backend `news.service.ts`:** cho phép **xoá** mốc thời gian (chuỗi rỗng → `null`, trước chỉ update khi có giá trị — không xoá được); khôi phục `contactName` bị mất trong `NewsUpdateInput` (session trước vô tình thay bằng `tenderDept`).
+- **Web display:** mốc nào bỏ trống → fallback ngày đăng/ngày tạo (thay vì "Liên hệ bệnh viện"). Parser ISO mới `parseTenderDate` trong `ThongTinThauPage.tsx` + `News.tsx` (trước parse format cũ `"HH:mm:ss ngày DD/MM/YYYY"` không khớp ISO string API trả về).
+
+### TenderTab — TenderFormModal chuyên dụng (hết đơn điệu)
+
+- Bỏ dùng `EditModal` chung cho `TenderNoticesSection`; xây **`TenderFormModal`** riêng: header gradient full-bleed (icon Gavel) + 3 phân vùng rõ ràng — "Thông tin cơ bản" / "Mốc thời gian hiển thị" (hộp nổi bật bg-mint, 3 input `datetime-local`, hint "Bỏ trống sẽ dùng ngày tạo/ngày đăng") / "Liên hệ".
+- **`TenderItem` mở rộng:** `publishDate`, `startDate`, `endDate`, `contact`, `contactPhone`. Card hiển thị **Mở: `HH:mm - dd/mm/yyyy` • Hạn: `HH:mm - dd/mm/yyyy`**.
+- Fix lỗi runtime: thiếu import `DollarSign` trong lucide-react import (ReferenceError khi render card).
+
+### Seed thầu + hình ảnh (cùng session)
+
+- `scripts/seed-tenders.ts`: 12 thông báo thầu (CNTT/VTTBYT/XN/DUOC/HCQT/KT, mỗi phòng 2) với `tenderDept` — chạy trong container backend.
+- Download **11 ảnh Pexels** vào `public/images/tenders/` (server-room, surgery, lab-microscope, pharmacy, office-cleaning, accounting, medical-equipment, network-cables, hospital-bed, documents, blood-test).
+- `scripts/update-tender-images.ts`: xoá 12 duplicate (seed chạy 2 lần) + gán ảnh unique theo map `TENDER_IMAGES`. DB còn 16 thầu (12 seed + 4 legacy `TB-2026-*`).
+- **Fix `HospitalContext`:** fallback chỉ khi API lỗi — flag `newsLoadedFromApi` (thay `newsRes` bị dùng ngoài scope `try` → lỗi TS2304); fallback ảnh mặc định `chiphi-1.jpeg`; thêm `tenderDept`/`tenderFile` vào type annotation của `dbNews.map`.
+
+### Files affected
+
+- `prisma/schema.prisma` — 2 cột `@db.Date` → `@db.Timestamp(3)`
+- `server/services/news.service.ts` — update cho phép clear mốc thời gian + khôi phục contactName
+- `src/types/models/news.ts` — thêm `publishedAt?: string`
+- `src/context/HospitalContext.tsx` — `newsLoadedFromApi` flag, publishedAt map, type annotation tender fields
+- `src/pages/ThongTinThauPage.tsx` — parser ISO, 3 mốc trong modal, fallback ngày tạo
+- `src/components/public/News.tsx` — parser ISO + fallback ngày tạo
+- `src/components/admin/tabs/NewsTab.tsx` — 3 input datetime-local, handleSubmit dùng publishDate
+- `src/components/admin/tabs/TenderTab.tsx` — TenderFormModal + TenderItem mở rộng + fix DollarSign
+- `scripts/seed-tenders.ts` (mới), `scripts/update-tender-images.ts` (mới), `scripts/update-tender-times.ts` (mới), `scripts/check-tender.ts` (mới)
+- `public/images/tenders/` (11 ảnh mới)
+- `memory.md`, `memory/phase-history.md`, `dactaupdate.md`
+
+### Commands
+
+```bash
+docker exec bvdh-backend npx prisma db push
+docker exec bvdh-backend npx prisma generate
+docker cp scripts/update-tender-times.ts bvdh-backend:/app/scripts/
+docker exec bvdh-backend npx tsx /app/scripts/update-tender-times.ts
+docker restart bvdh-backend bvdh-frontend bvdh-nginx
+npx tsc --noEmit -p tsconfig.json   # chỉ còn lỗi framer-motion Variants pre-existing
+```
+
+### Verify
+
+- API `GET /api/v1/news/tenders` trả `start: 2026-08-01T08:00:00.000Z`, `end: 2026-09-15T17:00:00.000Z`.
+- Trang `/thong-tin-thau`: 16 thầu hiển thị đủ ảnh + mốc thời gian có giờ phút; modal chi tiết có 3 mốc (Ngày đăng / Mở thầu / Hạn nộp).
+- Admin TenderTab: modal mới có 3 ô datetime-local, lưu/xoá mốc thời gian hoạt động.
+- tsc pass trên các file đã sửa (chỉ còn lỗi framer-motion `Variants` pre-existing ở BookingsTab/ContactTab/TenderTab... toàn codebase).
+
+### Ghi chú
+
+- **TenderTab `TenderNoticesSection` dùng state local** (`useState(DEFAULT_TENDERS)`), chưa nối DB — đây là admin demo section riêng, tách biệt với NewsTab (thầu real từ DB `/api/v1/news`). Nếu cần đồng bộ 2 nơi, cần Phase riêng kết nối TenderTab → API news.
+- Nếu user muốn thay ảnh `pharmacy.jpg` trùng ở DUOC-2026-001 & DUOC-2026-002 → download 1 ảnh khác + thêm mapping trong `update-tender-images.ts`.
