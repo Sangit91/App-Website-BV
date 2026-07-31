@@ -87,6 +87,7 @@ agents/                    # (Phase 79) 9 file tách từ AGENTS.md theo nhóm �
 - `D:\Coding\code backup\App Website BV_20260727_133642` (trước Phase 72 — đồng bộ layout "Cổng thông tin"). Backup sau Phase 74 chưa tạo (Phase 74 chỉ xoá 2 class thừa, không phải refactor lớn — không đủ ngưỡng backup policy).
 - `D:\Coding\code backup\App Website BV_20260727_072435` (trước Phase 69 — fix lỗi 500 upload Record Request)
 - `D:\Coding\code backup\App Website BV_20260719_160404` (sau Local Images Migration)
+- **Lưu ý Wave A (Ph 81-83):** thay đổi security lớn (auth/PHI/CSP) — nên tạo backup trước khi deploy production.
 
 ---
 
@@ -215,11 +216,17 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 |-----|-------------|---------|
 | Public form rate limit (5/IP/15ph) | ✅ Đã có | AGENTS.md Public Form API + Phase 49 |
 | JWT access/refresh + httpOnly cookie | ✅ Phase 68+ | Admin Login redesign |
-| Audit logging `activity_logs` | ⚠️ Partial | Bảng hiện chỉ có `(id, user_name, action, created_at)` — thiếu `userId`, `IP`, `duration`, `dataAccessed` cho PHI. Cần Phase mở rộng schema. |
-| RBAC enforcement backend | ⚠️ Partial | Có role check cơ bản, chưa enforce matrix chi tiết + department ownership |
-| Password hash | ⚠️ PBKDF2-SHA512 100k iterations | `server/services/auth.service.ts:34`. Tương đương bcrypt cost 12. Không theo dactaupdate.md đề xuất bcrypt nhưng chấp nhận được về mặt OWASP. |
-| Security headers | ✅ Qua nginx | nginx.conf đã set CSP/HSTS/X-Frame-Options |
-| Rate limit admin auth/login lockout | ❌ Chưa có | Phase tương lai |
+| Refresh token rotation + reuse detection + logout | ✅ Phase 82 | `bvdh_refresh` httpOnly cookie path `/api/v1/auth`, `jti` + in-memory store, revoke cũ khi rotate, replay bị 401 |
+| Token minting (tạo access token chỉ bằng patientCode/phone) | ✅ Đã đóng | Phase 81 gỡ `/token/access` + `/token/refresh`, thay bằng OTP flow (`/otp/send` + `/otp/verify` → `readToken`) |
+| PHI routes auth + consent | ✅ Phase 81 | 3 PHI routes gắn `requirePatientReadAccess + consentCheckMiddleware`; lookup mask qua `toPublicPatient` |
+| Admin CRUD routes auth | ✅ Phase 81 | Org/appointment/feedback/consent/testimonial/service write routes gắn `authenticate` (+ `requireAdmin`/`requireSuperAdmin`) |
+| Audit logging `activity_logs` | ⚠️ Partial | Bảng hiện chỉ có `(id, user_name, action, created_at)` — thiếu `userId`, `IP`, `duration`, `dataAccessed` cho PHI. Phase 85 mở rộng schema + ghi log. |
+| RBAC enforcement backend | ⚠️ Partial | Có role check cơ bản, chưa enforce matrix chi tiết + department ownership. Phase 85. |
+| Password hash | ✅ PBKDF2-SHA512 100k iterations | `server/services/auth.service.ts:34` + `seed.ts` chuẩn. Tương đương bcrypt cost 12. |
+| Security headers | ✅ Qua nginx + helmet | Phase 83: nginx server-level CSP/Permissions-Policy/HSTS + bỏ CORS reflect-any; helmet CSP env-aware (dev lax / prod strict `script-src 'self'`). Có 2 CSP (nginx + helmet) cùng áp dụng — browser lấy intersection. |
+| Rate limit admin auth/login lockout | ✅ Đã có | Phase 83: express-rate-limit 10 req/15ph trên `/auth/admin/*` + `/otp/*`; nginx `admin_auth` zone 50r/m. Lockout 30ph sau 5 lần chưa enforce (Phase 86). |
+| Input validation (Zod) | ❌ Chưa có | Phase 86 (Wave C) |
+| CCCD encrypt | ❌ Chưa có | Phase 84 (Wave B) |
 
 ---
 
@@ -254,6 +261,10 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 | Redesign UX Modal chi tiết Yêu cầu trích sao (Phase 78): header gradient `from-green-dark via-green-900 to-brand-green` + status badge lớn; body grid `lg:grid-cols-12` (trái 5 cols: glass card "Thông tin đối tượng" + "Đặc tả hồ sơ đề nghị"; phải 7 cols: Visual Progress Timeline 3 bước + File grid + Phản hồi & Xử lý); thumbnail có `hover:-translate-y-1` + overlay `ZoomIn`; modal preview riêng (`bg-zinc-900`, `<img>` cho ảnh / `<iframe>` cho PDF) dùng lại `previewUrls` cache | ✅ Hoàn thành (2026-07-28) |
 | AGENTS.md split + RBAC scaffold + service/testimonial routes (Phase 79): AGENTS.md tách thành 9 file theo nhóm trong `agents/` + AGENTS.md làm index (33758→3437 bytes, giảm 90%). Fix lệch Docker Dev Workflow trong AGENTS.md (HMR đang BẬT, Phase 75) trước khi tách. Verify 6 file RBAC scaffold mới (`server/middleware/auth.middleware.ts`, `server/services/auth.service.ts`, `server/services/service.service.ts`, `server/services/testimonial.service.ts`, `server/routes/service.routes.ts`, `server/routes/testimonial.routes.ts`) khớp memory.md Security & RBAC Standards. RBAC scaffold sẵn sàng, route admin hiện có chưa tất cả gắn middleware — Phase kế tiếp cần audit toàn bộ route admin | ✅ Hoàn thành (2026-07-29) |
 | Cơ chế thời gian chính xác cho thầu + TenderFormModal (Phase 80): `tender_start_date`/`tender_end_date` đổi `@db.Date` → `@db.Timestamp(3)` (giữ giờ); seed 12 thầu + 11 ảnh Pexels `public/images/tenders/`; `NewsItem` thêm `publishedAt` ISO; admin form 3 ô datetime-local (Ngày đăng/Mở/Khóa) — không ép ngày tạo, fallback ngày tạo chỉ khi mốc bỏ trống; TenderTab dùng `TenderFormModal` chuyên dụng (header gradient + 3 phân vùng); fix `newsLoadedFromApi` flag + khôi phục `contactName` trong `NewsUpdateInput`; fix thiếu import `DollarSign` | ✅ Hoàn thành (2026-07-31) |
+| Production Audit + plan 6 waves (2026-07-31): audit 4 bề mặt (backend/security, Docker/nginx/ops, frontend, DB/tests) → `plan-production.md` — score 45/100 BLOCKED, 15 blockers P1-P15. Kế hoạch: Wave A (Ph 81-83 security), Wave B (Ph 84-85 data), Wave C (Ph 86 API), Wave D (Ph 87-88 frontend), Wave E (Ph 89-90 ops), Wave F (Ph 91 tests) | ✅ plan đã viết |
+| Đóng token minting + PHI routes auth (Phase 81): gỡ `/token/access` + `/token/refresh` (không frontend dùng), thay bằng OTP flow — `server/services/otp.service.ts` (OTP session store, MAX_OTP_ATTEMPTS=5, TTL 5min, issueReadToken/verifyReadToken) + `/otp/send` (dev trả `devOtp`) + `/otp/verify` (trả `readToken`). Tạo `server/middleware/patient-access.middleware.ts` (`requirePatientReadAccess`: readToken OTP hoặc JWT admin, verify patientId khớp). 3 PHI routes gắn `requirePatientReadAccess + consentCheckMiddleware`; `/lookup` mask qua `toPublicPatient` (không lộ cccd/address). Org write routes + appointment `/search` + feedback GET `/:id` + consent `/check` gắn auth | ✅ Hoàn thành (2026-07-31) |
+| Session hardening + fail-fast secrets (Phase 82): refresh token có `jti` + in-memory store trong `auth.service.ts` (rotation: revoke cũ + cấp mới, reuse detection → revokeAllForUser). Cookie `bvdh_refresh` httpOnly + secure=IS_PROD + sameSite lax + path `/api/v1/auth`. Thêm `/admin/logout`. `CONSENT_SECRET` fail-fast (throw khi thiếu + production). `seed.ts` PBKDF2 chuẩn + `ADMIN_DEFAULT_PASSWORD` env (fallback "Admin@123") + ON CONFLICT DO NOTHING | ✅ Hoàn thành (2026-07-31) |
+| Edge hardening + CSP (Phase 83): cài `cookie-parser`; `app.ts` trust proxy + helmet CSP env-aware (dev: unsafe-inline/eval + ws://localhost:3000; prod: strict `script-src 'self'`). nginx: bỏ CORS reflect-any, thêm CSP/Permissions-Policy/client_max_body_size 25m server-level. `package.json` build → `dist-server/server.cjs` + start → `node dist-server/server.cjs`; `server.ts` static options; `.dockerignore` thêm dist-server/env. LƯU Ý OPS: frontend container chạy `server.ts` nên mọi edit app.ts cũng cần restart/rebuild bvdh-frontend | ✅ Hoàn thành (2026-07-31) |
 | Spec v2.9 review + Database gap analysis | ✅ Hoàn thành (2026-07-22) |
 | dactaupdate.md updated with DB gaps | ✅ Hoàn thành |
 | Expert System Review Report (report-review.md) | ✅ Hoàn thành |
@@ -303,7 +314,6 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
 | C5 | Không rate limiting trên login/OTP — brute-force dễ dàng | `auth.routes.ts` | ✅ Đã thêm rate limit 10 req/15ph |
 | C6 | Unhandled promise rejection trong consent middleware | `consent.middleware.ts:51-67` | ✅ Đã chuyển sang async/await |
 | C7 | JWT secret fallback cứng — nếu thiếu `.env` vẫn chạy, ai đọc source cũng forge token được | `auth.service.ts:4-5` | ✅ Crash hard nếu thiếu trong production |
-| C8 | Mock data trong production routes — `patient.routes.ts` và `appointment.routes.ts` toàn bộ là mock array, restart mất hết | `patient.routes.ts`, `appointment.routes.ts` | ✅ Đã chuyển sang Prisma + tạo service |
 | C9 | ErrorBoundary có nhưng không dùng — component throw error → crash trắng trang | `src/components/ui/ErrorBoundary.tsx` | ✅ Đã wrap App.tsx |
 
 ### 🟠 HIGH
@@ -314,7 +324,7 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
 | H2 | Không Prisma transaction — multi-step operation dễ mất đồng bộ (upload file + DB insert, xoá policy cũ + tạo mới...) | `server/services/*.ts` | ❌ |
 | H3 | Không pagination API — list endpoint sẽ trả hàng ngàn records | `booking/feedback/news/doctor.service.ts` | ❌ |
 | H4 | Custom JWT — không theo RFC 7519 (thiếu `iat`, `exp` sai format) | `auth.service.ts:43-56` | ❌ |
-| H5 | Không helmet/CORS — thiếu security headers, CORS mở trắng | `server/app.ts` | ❌ |
+| H5 | Không helmet/CORS — thiếu security headers, CORS mở trắng | `server/app.ts` | ✅ Phase 83: helmet CSP env-aware + CORS chỉ allow `CORS_ORIGIN` (mặc định localhost:3000), nginx bỏ reflect-any |
 | H6 | Path traversal protection cần hardening — `resolveSafePhysicalPath` có thể bypass | `record-request.service.ts:46-55` | ❌ |
 | H7 | In-memory login attempt tracker — mất khi restart server, không scale được | `auth.service.ts:17` | ❌ |
 | H8 | **~30+ `any` types** trong frontend — `Record<string, any>` khắp admin tabs | `HospitalContext.tsx`, `PatientTab.tsx`, `HomeTab/index.tsx`, các admin tabs | ❌ |

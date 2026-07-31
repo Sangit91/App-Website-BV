@@ -21,7 +21,14 @@ interface LoginAttempt {
   lockedUntil: number;
 }
 
+interface StoredRefreshToken {
+  userId: string;
+  jti: string;
+  expiresAt: number;
+}
+
 const loginAttempts = new Map<string, LoginAttempt>();
+const refreshTokenStore = new Map<string, StoredRefreshToken>();
 
 export interface TokenPayload {
   userId: string;
@@ -55,8 +62,9 @@ function generateAccessToken(payload: TokenPayload): string {
 }
 
 function generateRefreshToken(payload: TokenPayload): string {
+  const jti = crypto.randomUUID();
   const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
-  const body = Buffer.from(JSON.stringify({ ...payload, exp: Date.now() + REFRESH_TOKEN_EXPIRY })).toString("base64url");
+  const body = Buffer.from(JSON.stringify({ ...payload, jti, exp: Date.now() + REFRESH_TOKEN_EXPIRY })).toString("base64url");
   const signature = crypto.createHmac("sha256", JWT_REFRESH_SECRET).update(`${header}.${body}`).digest("base64url");
   return `${header}.${body}.${signature}`;
 }
@@ -89,6 +97,29 @@ export function verifyRefreshToken(token: string): TokenPayload | null {
 
 function clearLoginAttempts(username: string): void {
   loginAttempts.delete(username.toLowerCase());
+}
+
+function storeRefreshToken(token: string, userId: string): void {
+  const payload = verifyRefreshToken(token);
+  if (!payload) return;
+  const jti = (payload as TokenPayload & { jti?: string }).jti || "";
+  refreshTokenStore.set(token, { userId, jti, expiresAt: Date.now() + REFRESH_TOKEN_EXPIRY });
+}
+
+function revokeRefreshToken(token: string): void {
+  refreshTokenStore.delete(token);
+}
+
+function revokeAllForUser(userId: string): void {
+  for (const [token, stored] of refreshTokenStore.entries()) {
+    if (stored.userId === userId) {
+      refreshTokenStore.delete(token);
+    }
+  }
+}
+
+function isRefreshTokenStored(token: string): boolean {
+  return refreshTokenStore.has(token);
 }
 
 function recordLoginFailure(username: string): { locked: boolean; remainingAttempts: number } {
@@ -175,14 +206,18 @@ export async function adminLogin(username: string, password: string): Promise<Au
     departmentId: admin.departmentId || undefined
   };
 
+  const accessToken = generateAccessToken(payload);
+  const refreshToken = generateRefreshToken(payload);
+  storeRefreshToken(refreshToken, admin.id);
+
   return {
-    accessToken: generateAccessToken(payload),
-    refreshToken: generateRefreshToken(payload),
+    accessToken,
+    refreshToken,
     expiresIn: ACCESS_TOKEN_EXPIRY / 1000
   };
 }
 
-export async function refreshTokens(refreshToken: string): Promise<{ accessToken: string; expiresIn: number } | { error: string; code: string }> {
+export async function refreshTokens(refreshToken: string): Promise<{ accessToken: string; refreshToken: string; expiresIn: number } | { error: string; code: string }> {
   const payload = verifyRefreshToken(refreshToken);
   if (!payload) {
     return { error: "Refresh token không hợp lệ hoặc đã hết hạn", code: "INVALID_REFRESH_TOKEN" };
@@ -197,15 +232,35 @@ export async function refreshTokens(refreshToken: string): Promise<{ accessToken
     return { error: "Tài khoản không hợp lệ", code: "ACCOUNT_INVALID" };
   }
 
+  // Rotation: refresh token chỉ dùng 1 lần. Nếu token không còn trong store
+  // nghĩa là đã bị rotate hoặc bị đánh cắp — thu hồi toàn bộ phiên của user.
+  if (!isRefreshTokenStored(refreshToken)) {
+    revokeAllForUser(admin.id);
+    return { error: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại", code: "INVALID_REFRESH_TOKEN" };
+  }
+
+  revokeRefreshToken(refreshToken);
+
+  const newPayload: TokenPayload = {
+    userId: admin.id,
+    username: admin.username,
+    role: admin.role,
+    departmentId: admin.departmentId || undefined
+  };
+
+  const newAccessToken = generateAccessToken(newPayload);
+  const newRefreshToken = generateRefreshToken(newPayload);
+  storeRefreshToken(newRefreshToken, admin.id);
+
   return {
-    accessToken: generateAccessToken({
-      userId: admin.id,
-      username: admin.username,
-      role: admin.role,
-      departmentId: admin.departmentId || undefined
-    }),
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
     expiresIn: ACCESS_TOKEN_EXPIRY / 1000
   };
+}
+
+export function revokeSession(refreshToken: string): void {
+  revokeRefreshToken(refreshToken);
 }
 
 export async function hashNewPassword(password: string): Promise<string> {

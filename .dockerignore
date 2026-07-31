@@ -4,6 +4,7 @@ npm-debug.log
 
 # Build outputs
 dist
+dist-server
 build
 *.cjs
 *.js.map
@@ -12,6 +13,8 @@ build
 .env
 .env.local
 .env.*.local
+.env.production
+.env.docker
 
 # IDE
 .vscode

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { consentService } from "../services/consent.service";
+import { requirePatientReadAccess } from "../middleware/patient-access.middleware";
 
 const router = Router();
 
@@ -21,7 +22,7 @@ router.get("/policy/active", async (req, res) => {
   }
 });
 
-router.get("/check/:patientId", async (req, res) => {
+router.get("/check/:patientId", requirePatientReadAccess, async (req, res) => {
   try {
     const { patientId } = req.params;
     const hasConsent = await consentService.hasValidConsent(patientId);

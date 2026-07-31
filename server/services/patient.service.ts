@@ -1,7 +1,19 @@
 import { getPrisma } from "../db/prisma";
 
-export const patientService = {
-  async lookup(identifier: string, identifierType: string) {
+export function toPublicPatient(patient: Record<string, unknown>) {
+  return {
+    id: patient.id,
+    patientCode: patient.patientCode,
+    name: patient.name,
+    gender: patient.gender,
+    birthDate: patient.birthDate,
+    phone: patient.phone,
+    visitCount: patient.visitCount,
+    registeredDate: patient.registeredDate,
+  };
+}
+
+export const patientService = {  async lookup(identifier: string, identifierType: string) {
     const prisma = getPrisma();
     let patient;
 

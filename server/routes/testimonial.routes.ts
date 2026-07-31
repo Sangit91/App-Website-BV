@@ -1,13 +1,16 @@
 import { Router } from "express";
 import * as testimonialService from "../services/testimonial.service";
-import { requireSuperAdmin } from "../middleware/auth.middleware.js";
+import { authenticate, requireAdmin, requireSuperAdmin } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
 router.get("/", async (req, res) => {
   try {
     const includeUnapproved = req.query.includeUnapproved === "true";
-    const testimonials = await testimonialService.getTestimonials(includeUnapproved);
+    if (includeUnapproved) {
+      return res.status(403).json({ error: "Chỉ quản trị viên mới xem được cảm nhận chưa duyệt" });
+    }
+    const testimonials = await testimonialService.getTestimonials(false);
     res.json(testimonials);
   } catch (err) {
     console.error("Error fetching testimonials:", err);
@@ -36,7 +39,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.put("/:id", requireSuperAdmin, async (req, res) => {
+router.put("/:id", authenticate, requireSuperAdmin, async (req, res) => {
   try {
     const testimonial = await testimonialService.updateTestimonial(req.params.id, req.body);
     res.json(testimonial);
@@ -46,7 +49,7 @@ router.put("/:id", requireSuperAdmin, async (req, res) => {
   }
 });
 
-router.delete("/:id", requireSuperAdmin, async (req, res) => {
+router.delete("/:id", authenticate, requireSuperAdmin, async (req, res) => {
   try {
     await testimonialService.deleteTestimonial(req.params.id);
     res.json({ success: true });
@@ -56,7 +59,7 @@ router.delete("/:id", requireSuperAdmin, async (req, res) => {
   }
 });
 
-router.patch("/:id/approve", requireSuperAdmin, async (req, res) => {
+router.patch("/:id/approve", authenticate, requireSuperAdmin, async (req, res) => {
   try {
     const testimonial = await testimonialService.approveTestimonial(req.params.id);
     res.json(testimonial);

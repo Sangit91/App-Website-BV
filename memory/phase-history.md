@@ -2280,3 +2280,56 @@ npx tsc --noEmit -p tsconfig.json   # chỉ còn lỗi framer-motion Variants pr
 
 - **TenderTab `TenderNoticesSection` dùng state local** (`useState(DEFAULT_TENDERS)`), chưa nối DB — đây là admin demo section riêng, tách biệt với NewsTab (thầu real từ DB `/api/v1/news`). Nếu cần đồng bộ 2 nơi, cần Phase riêng kết nối TenderTab → API news.
 - Nếu user muốn thay ảnh `pharmacy.jpg` trùng ở DUOC-2026-001 & DUOC-2026-002 → download 1 ảnh khác + thêm mapping trong `update-tender-images.ts`.
+
+---
+
+## PHASE 81 - Dóng token minting + PHI routes auth (2026-07-31)
+
+### Muc tieu
+
+- Go /token/access + /token/refresh (token minting chi bang patientCode/phone) - khong frontend nao dung.
+- Thay bang OTP flow: /otp/send + /otp/verify -> readToken.
+- Gan auth + consent cho 3 PHI routes + mask lookup.
+
+### Changes
+
+- Tao server/services/otp.service.ts: OTP session store (sessionId, MAX_OTP_ATTEMPTS=5, TTL 5min, issueReadToken/verifyReadToken).
+- Viet lai server/routes/auth.routes.ts: go token minting, them /otp/send (dev tra devOtp) + /otp/verify (tra readToken).
+- Tao server/middleware/patient-access.middleware.ts: requirePatientReadAccess (readToken OTP hoac JWT admin, verify patientId khop).
+- patient.routes.ts: 3 PHI routes gan requirePatientReadAccess + consentCheckMiddleware; /lookup mask qua toPublicPatient.
+- Gan auth: org write routes, appointment /search, feedback GET /:id, consent /check, testimonial/service write routes.
+
+### Verify
+
+- OTP send -> verify -> readToken OK.
+- PHI co readToken -> 200; wrong patient -> 403; no auth -> 401.
+- Lookup chi tra public fields (khong cccd/address).
+
+## PHASE 82 - Session hardening + fail-fast secrets (2026-07-31)
+
+### Changes
+
+- uth.service.ts: refresh token co jti + in-memory store; rotation (revoke cu + cap moi), reuse detection -> revokeAllForUser.
+- Cookie vdh_refresh: httpOnly + secure=IS_PROD + sameSite lax + path /api/v1/auth.
+- Them /admin/logout.
+- CONSENT_SECRET fail-fast (throw khi thieu + production).
+- seed.ts PBKDF2 chuan + ADMIN_DEFAULT_PASSWORD env (fallback Admin@123) + ON CONFLICT DO NOTHING.
+
+### Verify
+
+- Login -> cookie set (jti); refresh -> rotated jti moi; logout -> xoa cookie; replay token da rotate -> 401.
+
+## PHASE 83 - Edge hardening + CSP (2026-07-31)
+
+### Changes
+
+- Cai cookie-parser + @types/cookie-parser (truoc do MISSING -> container build loi).
+- app.ts: trust proxy + cookieParser + helmet CSP env-aware (dev: unsafe-inline/eval + ws://localhost:3000; prod: strict script-src self).
+- nginx: bo CORS reflect-any, them CSP + Permissions-Policy + client_max_body_size 25m server-level.
+- package.json: build -> dist-server/server.cjs + start -> node dist-server/server.cjs.
+- server.ts: static options (index/dotfiles/extensions); .dockerignore them dist-server/env.
+
+### Lưu ý ops
+
+- Frontend container chay server.ts -> moi edit app.ts cung can restart/rebuild bvdh-frontend.
+- Rebuild image (khong chi restart) khi them dependency moi (npm install trong container).

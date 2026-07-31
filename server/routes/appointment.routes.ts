@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { appointmentService } from "../services/appointment.service";
+import { authenticate, requireAdmin } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -83,7 +84,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/search", async (req, res) => {
+router.get("/search", authenticate, requireAdmin, async (req, res) => {
   try {
     const { patientCode, phone } = req.query;
 
@@ -106,10 +107,15 @@ router.get("/search", async (req, res) => {
 
 router.get("/:bookingCode", async (req, res) => {
   try {
+    const phone = req.query.phone as string | undefined;
     const appointment = await appointmentService.findByBookingCode(req.params.bookingCode);
 
     if (!appointment) {
       return res.status(404).json({ error: "Không tìm thấy lịch hẹn" });
+    }
+
+    if (!phone || appointment.phone !== phone) {
+      return res.status(403).json({ error: "Số điện thoại không khớp với lịch hẹn" });
     }
 
     res.json({ appointment });
@@ -122,6 +128,17 @@ router.get("/:bookingCode", async (req, res) => {
 
 router.patch("/:bookingCode/cancel", async (req, res) => {
   try {
+    const phone = (req.body?.phone || "") as string;
+
+    const appointment = await appointmentService.findByBookingCode(req.params.bookingCode);
+    if (!appointment) {
+      return res.status(404).json({ error: "Không tìm thấy lịch hẹn" });
+    }
+
+    if (!phone || appointment.phone !== phone) {
+      return res.status(403).json({ error: "Số điện thoại không khớp với lịch hẹn" });
+    }
+
     const result = await appointmentService.cancelAppointment(req.params.bookingCode);
 
     if (!result) {

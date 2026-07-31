@@ -1,53 +1,31 @@
 import { Router } from "express";
-import { adminLogin, refreshTokens, hashNewPassword } from "../services/auth.service.js";
+import { adminLogin, refreshTokens, revokeSession } from "../services/auth.service.js";
 import { getPrisma } from "../db/prisma.js";
+import { otpService } from "../services/otp.service";
 
 const router = Router();
 
-interface OTPSession {
-  sessionId: string;
-  patientCode: string;
-  phone: string;
-  otpCode: string;
-  expiresAt: number;
-  verified: boolean;
+const REFRESH_COOKIE_NAME = "bvdh_refresh";
+const IS_PROD = process.env.NODE_ENV === "production";
+
+function setRefreshCookie(res: import("express").Response, token: string): void {
+  res.cookie(REFRESH_COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: IS_PROD,
+    sameSite: "lax",
+    path: "/api/v1/auth",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
 }
 
-interface RefreshToken {
-  token: string;
-  expiresAt: number;
+function clearRefreshCookie(res: import("express").Response): void {
+  res.clearCookie(REFRESH_COOKIE_NAME, { path: "/api/v1/auth" });
 }
 
-const otpSessions = new Map<string, OTPSession>();
-const refreshTokensStore = new Map<string, RefreshToken>();
-
-function generateSessionId(): string {
-  return `sess_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-}
-
-function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-function generateReadToken(): string {
-  return `rt_${Date.now()}_${Math.random().toString(36).substring(2, 21)}`;
-}
-
-function generateAccessToken(): string {
-  return `at_${Date.now()}_${Math.random().toString(36).substring(2, 21)}`;
-}
-
-function generateRefreshToken(): string {
-  return `rf_${Date.now()}_${Math.random().toString(36).substring(2, 21)}`;
-}
-
-function cleanExpiredSessions() {
-  const now = Date.now();
-  for (const [key, session] of otpSessions.entries()) {
-    if (session.expiresAt < now) {
-      otpSessions.delete(key);
-    }
-  }
+function getRefreshToken(req: import("express").Request): string | null {
+  const fromCookie = (req.cookies as Record<string, string> | undefined)?.[REFRESH_COOKIE_NAME];
+  const fromBody = (req.body as Record<string, unknown> | undefined)?.refreshToken;
+  return (typeof fromCookie === "string" && fromCookie) || (typeof fromBody === "string" && fromBody) || null;
 }
 
 router.post("/otp/send", async (req, res) => {
@@ -72,26 +50,25 @@ router.post("/otp/send", async (req, res) => {
       });
     }
 
-    cleanExpiredSessions();
+    const { sessionId, otpCode, expiresIn } = otpService.createSession(patientCode, phone);
 
-    const sessionId = generateSessionId();
-    const otpCode = generateOTP();
-    const expiresAt = Date.now() + 5 * 60 * 1000;
-
-    otpSessions.set(sessionId, {
-      sessionId,
-      patientCode,
-      phone,
-      otpCode,
-      expiresAt,
-      verified: false
-    });
+    // TODO(Phase 52 / HIS): gửi OTP qua SMS gateway thật.
+    // Dev mode: trả về mã trong response để test (không được làm vậy ở production).
+    if (process.env.NODE_ENV !== "production") {
+      return res.json({
+        success: true,
+        sessionId,
+        devOtp: otpCode,
+        message: "Mã OTP đã được gửi đến số điện thoại đăng ký",
+        expiresIn
+      });
+    }
 
     res.json({
       success: true,
       sessionId,
       message: "Mã OTP đã được gửi đến số điện thoại đăng ký",
-      expiresIn: 300
+      expiresIn
     });
   } catch (error) {
     console.error("[auth] otp/send error:", error);
@@ -112,101 +89,22 @@ router.post("/otp/verify", (req, res) => {
     });
   }
 
-  const session = otpSessions.get(sessionId);
+  const result = otpService.verifyOtp(sessionId, otpCode);
 
-  if (!session) {
-    return res.status(404).json({
+  if (!result.ok) {
+    return res.status(result.status).json({
       success: false,
-      message: "Phiên OTP không tồn tại hoặc đã hết hạn"
+      message: result.message
     });
   }
 
-  if (session.expiresAt < Date.now()) {
-    otpSessions.delete(sessionId);
-    return res.status(410).json({
-      success: false,
-      message: "Mã OTP đã hết hạn, vui lòng yêu cầu mã mới"
-    });
-  }
-
-  if (session.otpCode !== otpCode) {
-    return res.status(401).json({
-      success: false,
-      message: "Mã OTP không chính xác"
-    });
-  }
-
-  session.verified = true;
-
-  const readToken = generateReadToken();
-  const expiresAt = Date.now() + 5 * 60 * 1000;
-
-  otpSessions.set(`read_${readToken}`, {
-    ...session,
-    sessionId: `read_${readToken}`,
-    expiresAt
-  });
+  const { readToken, expiresIn } = otpService.issueReadToken(result.session);
 
   res.json({
     success: true,
     readToken,
-    expiresIn: 300,
+    expiresIn,
     message: "Xác thực thành công"
-  });
-});
-
-router.post("/token/refresh", (req, res) => {
-  const { refreshToken } = req.body;
-
-  if (!refreshToken) {
-    return res.status(400).json({ error: "Thiếu refresh token" });
-  }
-
-  const stored = refreshTokensStore.get(refreshToken);
-
-  if (!stored || stored.expiresAt < Date.now()) {
-    refreshTokensStore.delete(refreshToken);
-    return res.status(401).json({ error: "Refresh token không hợp lệ hoặc đã hết hạn" });
-  }
-
-  const accessToken = generateAccessToken();
-  const expiresAt = Date.now() + 30 * 60 * 1000;
-
-  refreshTokensStore.set(refreshToken, { token: refreshToken, expiresAt });
-
-  res.json({
-    accessToken,
-    expiresIn: 1800
-  });
-});
-
-router.post("/token/access", async (req, res) => {
-  const { patientCode } = req.body;
-
-  if (!patientCode) {
-    return res.status(400).json({ error: "Thiếu mã bệnh nhân" });
-  }
-
-  const patient = await getPrisma().patient.findFirst({
-    where: { patientCode, isActive: true, deletedAt: null },
-  });
-
-  if (!patient) {
-    return res.status(404).json({ error: "Không tìm thấy bệnh nhân" });
-  }
-
-  const accessToken = generateAccessToken();
-  const refreshToken = generateRefreshToken();
-  const accessExpiresAt = Date.now() + 30 * 60 * 1000;
-  const refreshExpiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
-
-  refreshTokensStore.set(refreshToken, { token: refreshToken, expiresAt: refreshExpiresAt });
-
-  res.json({
-    accessToken,
-    refreshToken,
-    tokenType: "Bearer",
-    expiresIn: 1800
   });
 });
 
@@ -232,6 +130,8 @@ router.post("/admin/login", async (req, res) => {
     });
   }
 
+  setRefreshCookie(res, result.refreshToken);
+
   return res.json({
     success: true,
     accessToken: result.accessToken,
@@ -242,7 +142,7 @@ router.post("/admin/login", async (req, res) => {
 });
 
 router.post("/admin/refresh", async (req, res) => {
-  const { refreshToken } = req.body;
+  const refreshToken = getRefreshToken(req);
 
   if (!refreshToken) {
     return res.status(400).json({
@@ -255,6 +155,7 @@ router.post("/admin/refresh", async (req, res) => {
   const result = await refreshTokens(refreshToken);
 
   if ("error" in result) {
+    clearRefreshCookie(res);
     return res.status(401).json({
       success: false,
       error: result.error,
@@ -262,11 +163,23 @@ router.post("/admin/refresh", async (req, res) => {
     });
   }
 
+  setRefreshCookie(res, result.refreshToken);
+
   return res.json({
     success: true,
     accessToken: result.accessToken,
+    refreshToken: result.refreshToken,
     expiresIn: result.expiresIn
   });
+});
+
+router.post("/admin/logout", (req, res) => {
+  const refreshToken = getRefreshToken(req);
+  if (refreshToken) {
+    revokeSession(refreshToken);
+  }
+  clearRefreshCookie(res);
+  res.json({ success: true, message: "Đã đăng xuất" });
 });
 
 export default router;

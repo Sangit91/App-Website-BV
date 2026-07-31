@@ -19,7 +19,11 @@ export interface WithdrawConsentInput {
   reason?: string;
 }
 
-const CONSENT_SECRET = process.env.CONSENT_SECRET || "bvdh-consent-secret-key-2026";
+const CONSENT_SECRET = process.env.CONSENT_SECRET || "";
+
+if (!CONSENT_SECRET && process.env.NODE_ENV === "production") {
+  throw new Error("CONSENT_SECRET is required in production");
+}
 
 export const consentService = {
   async getActivePolicy() {

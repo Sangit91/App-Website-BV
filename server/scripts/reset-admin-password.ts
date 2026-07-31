@@ -11,7 +11,13 @@ function hashPassword(password: string, salt?: string): { hash: string; salt: st
 }
 
 async function main() {
-  const password = "Admin@123";
+  // Không hardcode password — dùng ADMIN_DEFAULT_PASSWORD từ env (bắt buộc).
+  const password = process.env["ADMIN_DEFAULT_PASSWORD"];
+  if (!password) {
+    console.error("ADMIN_DEFAULT_PASSWORD env var is required. Đặt biến môi trường trước khi chạy script.");
+    process.exit(1);
+  }
+
   const { hash, salt } = hashPassword(password);
   const passwordHash = `${hash}:${salt}`;
 
@@ -22,7 +28,7 @@ async function main() {
     [passwordHash]
   );
 
-  console.log(`Updated ${rowCount} admin users with password: ${password}`);
+  console.log(`Đã cập nhật mật khẩu cho ${rowCount} tài khoản admin (mật khẩu lấy từ env, không in ra log).`);
   await pool.end();
 }
 

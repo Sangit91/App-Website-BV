@@ -40,7 +40,7 @@ router.get("/", authenticate, requireAdmin, async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", authenticate, requireAdmin, async (req, res) => {
   try {
     const feedback = await feedbackService.getById(req.params.id);
     if (!feedback) {

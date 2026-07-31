@@ -43,7 +43,7 @@ export async function consentCheckMiddleware(req: ConsentCheckRequest, res: Resp
     return next();
   }
 
-  const patientId = req.patientId || (req.query.patientId as string);
+  const patientId = req.patientId || req.params.patientId || (req.query.patientId as string);
   if (!patientId) {
     return next();
   }

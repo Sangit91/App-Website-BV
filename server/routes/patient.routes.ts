@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { patientService } from "../services/patient.service";
+import { patientService, toPublicPatient } from "../services/patient.service";
 import { consentCheckMiddleware } from "../middleware/consent.middleware";
+import { requirePatientReadAccess } from "../middleware/patient-access.middleware";
 
 const router = Router();
 
@@ -22,14 +23,14 @@ router.post("/lookup", async (req, res) => {
       return res.status(404).json({ error: "Không tìm thấy bệnh nhân" });
     }
 
-    res.json({ patient, message: "Tìm thấy bệnh nhân" });
+    res.json({ patient: toPublicPatient(patient), message: "Tìm thấy bệnh nhân" });
   } catch (error) {
     console.error("[patient] lookup error:", error);
     res.status(500).json({ error: "Lỗi máy chủ" });
   }
 });
 
-router.get("/:patientId/medical-records", consentCheckMiddleware, async (req, res) => {
+router.get("/:patientId/medical-records", requirePatientReadAccess, consentCheckMiddleware, async (req, res) => {
   try {
     const { patientId } = req.params;
     const { startDate, endDate, clinicId } = req.query;
@@ -52,7 +53,7 @@ router.get("/:patientId/medical-records", consentCheckMiddleware, async (req, re
   }
 });
 
-router.get("/:patientId/clinical-tests", consentCheckMiddleware, async (req, res) => {
+router.get("/:patientId/clinical-tests", requirePatientReadAccess, consentCheckMiddleware, async (req, res) => {
   try {
     const { patientId } = req.params;
     const { startDate, endDate, testType, status } = req.query;
@@ -76,7 +77,7 @@ router.get("/:patientId/clinical-tests", consentCheckMiddleware, async (req, res
   }
 });
 
-router.get("/:patientId/treatment-histories", consentCheckMiddleware, async (req, res) => {
+router.get("/:patientId/treatment-histories", requirePatientReadAccess, consentCheckMiddleware, async (req, res) => {
   try {
     const { patientId } = req.params;
 

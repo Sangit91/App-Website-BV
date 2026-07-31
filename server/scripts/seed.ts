@@ -1,4 +1,5 @@
 import "dotenv/config";
+import crypto from "crypto";
 import { Pool } from "pg";
 import { SPECIALTIES, DOCTORS, TESTIMONIALS, NEWS } from "../../src/data";
 
@@ -8,6 +9,12 @@ if (!connectionString) {
   process.exit(1);
 }
 const pool = new Pool({ connectionString });
+
+function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
+  return `${hash}:${salt}`;
+}
 
 async function seed() {
   console.log("🌱 Starting seed...\n");
@@ -44,14 +51,16 @@ async function seed() {
   // ADMIN USERS
   // ============================================================
   console.log("Creating admin_users...");
+  const adminPassword = process.env.ADMIN_DEFAULT_PASSWORD || "Admin@123";
+  const adminHash = hashPassword(adminPassword);
   await pool.query(`
     INSERT INTO admin_users (id, username, password_hash, full_name, role, is_active, created_at, updated_at)
     VALUES
-      ('admin-001', 'admin', '$2b$10$dummy', 'Quản trị viên', 'Super Admin', true, NOW(), NOW()),
-      ('admin-002', 'reception', '$2b$10$dummy', 'Lễ Tân Hoa', 'Receptionist', true, NOW(), NOW()),
-      ('admin-003', 'bacsi', '$2b$10$dummy', 'BS. Nguyễn Văn Trung', 'Doctor', true, NOW(), NOW())
+      ('admin-001', 'admin', $1, 'Quản trị viên', 'Super Admin', true, NOW(), NOW()),
+      ('admin-002', 'reception', $1, 'Lễ Tân Hoa', 'Receptionist', true, NOW(), NOW()),
+      ('admin-003', 'bacsi', $1, 'BS. Nguyễn Văn Trung', 'Doctor', true, NOW(), NOW())
     ON CONFLICT (id) DO NOTHING
-  `);
+  `, [adminHash]);
 
   // ============================================================
   // SPECIALTIES

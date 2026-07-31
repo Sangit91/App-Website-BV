@@ -27,7 +27,7 @@ async function main() {
     console.log("BAD_FORMAT:", pwHash);
     return;
   }
-  const valid = verifyPassword("Admin@123", parts[0], parts[1]);
+  const valid = verifyPassword(process.env.ADMIN_DEFAULT_PASSWORD || "Admin@123", parts[0], parts[1]);
   console.log("Username:", row.username);
   console.log("Role:", row.role);
   console.log("Password valid:", valid);

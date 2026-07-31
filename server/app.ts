@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import helmet from "helmet";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 import bookingRoutes from "./routes/booking.routes";
 import testResultRoutes from "./routes/test-result.routes";
@@ -18,22 +19,29 @@ import newsRoutes from "./routes/news.routes";
 import consentRoutes from "./routes/consent.routes";
 const app = express();
 
+// Behind nginx reverse proxy — trust proxy so req.ip + rate limiter per-IP work correctly.
+app.set("trust proxy", 1);
+
+app.use(cookieParser());
+
+const IS_PROD = process.env.NODE_ENV === "production";
+
 app.use(helmet({
-  contentSecurityPolicy: process.env.NODE_ENV === "production"
-    ? undefined
-    : {
-        directives: {
-          defaultSrc: ["'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-          connectSrc: ["'self'", "ws://localhost:3000", "ws://host:3000"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          imgSrc: ["'self'", "data:", "blob:"],
-          fontSrc: ["'self'", "data:"],
-          objectSrc: ["'none'"],
-          baseUri: ["'self'"],
-          formAction: ["'self'"],
-        },
-      },
+  contentSecurityPolicy: {
+    useDefaults: false,
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: IS_PROD ? ["'self'"] : ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      connectSrc: IS_PROD ? ["'self'", "ws:", "wss:"] : ["'self'", "ws:", "wss:", "ws://localhost:3000", "ws://host:3000"],
+      imgSrc: ["'self'", "data:", "blob:", "https:"],
+      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'self'"],
+    },
+  },
 }));
 app.use(cors({
   origin: process.env.CORS_ORIGIN || "http://localhost:3000",

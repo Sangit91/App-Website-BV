@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { organizationService } from "../db/organization";
+import { authenticate, requireAdmin } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -26,7 +27,7 @@ router.get("/:divisionId/departments/:deptId", (req, res) => {
   res.json(dept);
 });
 
-router.post("/:divisionId/departments", (req, res) => {
+router.post("/:divisionId/departments", authenticate, requireAdmin, (req, res) => {
   try {
     const { divisionId } = req.params;
     const { name, leader, phone, staffCount, description, details } = req.body;
@@ -55,7 +56,7 @@ router.post("/:divisionId/departments", (req, res) => {
   }
 });
 
-router.put("/:divisionId/departments/:deptId", (req, res) => {
+router.put("/:divisionId/departments/:deptId", authenticate, requireAdmin, (req, res) => {
   try {
     const { divisionId, deptId } = req.params;
     const updates = req.body;
@@ -72,7 +73,7 @@ router.put("/:divisionId/departments/:deptId", (req, res) => {
   }
 });
 
-router.delete("/:divisionId/departments/:deptId", (req, res) => {
+router.delete("/:divisionId/departments/:deptId", authenticate, requireAdmin, (req, res) => {
   try {
     const { divisionId, deptId } = req.params;
     const deleted = organizationService.deleteDepartment(divisionId, deptId);

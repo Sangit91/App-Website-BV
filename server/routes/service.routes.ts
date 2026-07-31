@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as serviceService from "../services/service.service";
-import { requireSuperAdmin } from "../middleware/auth.middleware.js";
+import { authenticate, requireSuperAdmin } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
@@ -51,7 +51,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/groups", requireSuperAdmin, async (req, res) => {
+router.post("/groups", authenticate, requireSuperAdmin, async (req, res) => {
   try {
     const group = await serviceService.createServiceGroup(req.body);
     res.status(201).json(group);
@@ -61,7 +61,7 @@ router.post("/groups", requireSuperAdmin, async (req, res) => {
   }
 });
 
-router.post("/", requireSuperAdmin, async (req, res) => {
+router.post("/", authenticate, requireSuperAdmin, async (req, res) => {
   try {
     const service = await serviceService.createService(req.body);
     res.status(201).json(service);
@@ -71,7 +71,7 @@ router.post("/", requireSuperAdmin, async (req, res) => {
   }
 });
 
-router.put("/groups/:id", requireSuperAdmin, async (req, res) => {
+router.put("/groups/:id", authenticate, requireSuperAdmin, async (req, res) => {
   try {
     const group = await serviceService.updateServiceGroup(req.params.id, req.body);
     res.json(group);
@@ -81,7 +81,7 @@ router.put("/groups/:id", requireSuperAdmin, async (req, res) => {
   }
 });
 
-router.put("/:id", requireSuperAdmin, async (req, res) => {
+router.put("/:id", authenticate, requireSuperAdmin, async (req, res) => {
   try {
     const service = await serviceService.updateService(req.params.id, req.body);
     res.json(service);
@@ -91,7 +91,7 @@ router.put("/:id", requireSuperAdmin, async (req, res) => {
   }
 });
 
-router.delete("/groups/:id", requireSuperAdmin, async (req, res) => {
+router.delete("/groups/:id", authenticate, requireSuperAdmin, async (req, res) => {
   try {
     await serviceService.deleteServiceGroup(req.params.id);
     res.json({ success: true });
@@ -101,7 +101,7 @@ router.delete("/groups/:id", requireSuperAdmin, async (req, res) => {
   }
 });
 
-router.delete("/:id", requireSuperAdmin, async (req, res) => {
+router.delete("/:id", authenticate, requireSuperAdmin, async (req, res) => {
   try {
     await serviceService.deleteService(req.params.id);
     res.json({ success: true });

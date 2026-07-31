@@ -20,7 +20,12 @@ const startServer = async () => {
   } else {
     const path = await import("path");
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
+    // Frontend bundle served from dist/ — backend bundle lives in dist-server/ (outside static root).
+    app.use(express.static(distPath, {
+      index: "index.html",
+      dotfiles: "ignore",
+      extensions: ["html"],
+    }));
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
