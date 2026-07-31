@@ -2398,3 +2398,52 @@ npx tsc --noEmit -p tsconfig.json   # chỉ còn lỗi framer-motion Variants pr
 - PHI read qua OTP readToken -> log "anonymous | PHI_READ_MEDICAL_RECORDS | PHI | pat-001 | 14ms".
 - reception doc bookings OK, POST specialties 403.
 - Xoa 2 specialty test da tao.
+
+## PHASE 86 - API hardening - Wave C (2026-07-31)
+
+### Zod validation
+
+- Cai zod@^4.4.3 vao dependencies.
+- Tao server/validators/schemas.ts: toan bo schemas tieng Viet - phoneSchema (regex 10-11 so), cccdSchema (9/12 so), optionalPhone/optionalEmail (cho phep ""/null); bookingCreateSchema (camelCase: patientName/phone/specialty/date/timeSlot/symptoms khop BookingForm); feedbackCreateSchema (rating coerce 1-5, refine bat buoc contact hoac patient_id) + feedbackUpdateSchema (refine Object.keys>0); recordRequestCreateSchema (superRefine date_from <= date_to) + update; specialty/doctor(+schedule ca_sang/ca_chieu/nghi)/news/service+group/orgDept/testimonial create+update; patientLookupSchema (enum patientCode/cccd/phone); aiConsultSchema (message trim 1-5000, history max 50); appointmentCheckPatient/Create/Cancel; consentSubmit (is_agreed boolean)/Withdraw; otpSend (patientCode+phone)/otpVerify (sessionId+otpCode).
+- Tao server/validators/middleware.ts: validate(schema) - Zod v4 KHONG expose eceived tren issue nen phat hien thieu truong qua getPathValue(req.body, issue.path) === undefined -> "Thieu thong tin bat buoc: <field>"; ghep loi kieu/format thanh "<field>: <message>" dua theo issue.path.
+- Wire validate vao toan bo route public + admin write (booking/feedback/record-request/consent/appointment/ai/patient-lookup/otp/specialty/doctor/news/service/org/testimonial). Xoa dead code validateInput (booking/feedback/record-request service) + validateSubmitInput (consent.service) + check thuc cong cua organization dept.
+
+### Rate limit per-endpoint
+
+- Tao server/middleware/rate-limit.middleware.ts: moi form 1 bucket rieng 5 req/IP/15ph (theo agents/06-server-api.md) - bookingFormLimiter / feedbackFormLimiter / recordRequestFormLimiter / consentFormLimiter / appointmentFormLimiter (duoc tao qua factory makePublicFormLimiter). lookupLimiter 30/15ph (patient lookup, booking search, appointment GET code), aiLimiter 20/15ph, otpVerifyLimiter 10/15ph. Tat ca standardHeaders:true, legacyHeaders:false, message JSON tieng Viet.
+- Form nay khong chan form kia (bucket rieng). Verify: burst 7x feedback -> 5x 400 + 2x 429, booking van 400 (khong bi lan).
+
+### Pagination that
+
+- Tao server/utils/pagination.ts: getPagination(query, defaultLimit=50, maxLimit=100) -> {page, limit, skip}.
+- booking.getAll(page,limit), feedback.getAll(filters,page,limit), recordRequestService.getAll(filters,page,limit), doctorService.getDoctors(page,limit), newsService.getNews(page,limit) -> tra {data, total} + prisma.count.
+- Route tra X-Total-Count header, body giu shape MANG (frontend FeedbackTab/RecordRequestsTab check Array.isArray, HospitalContext .map -> khong break). 3 route PHI (medical-records/clinical-tests/treatment-histories) tra {records|tests|histories, total, page, pageSize} giu key cu cho PatientPortalSection.
+
+### Health check + graceful shutdown
+
+- server/app.ts: GET /api/health check SELECT 1 qua Prisma -> {status:"ok",db:"ok"} hoac 503 {status:"degraded",db:"error"}; pp.use("/api", notFoundHandler) TRUOC export -> API 404 JSON "API endpoint khong ton tai", SPA fallback chi cho non-/api.
+- server.ts: cleanupOrphanTempFiles() don uploads/temp luc khoi dong; SIGTERM/SIGINT graceful shutdown (server.close -> prisma. -> exit 0, force exit 10s .unref()); process.on unhandledRejection/uncaughtException log.
+- server/middleware/error.middleware.ts: branch err instanceof multer.MulterError -> 400 (LIMIT_FILE_SIZE: "File vuot qua kich thuoc toi da cho phep (10MB)").
+
+### Verify E2E (https://localhost:8443)
+
+- Booking valid -> 201 LH-663636; invalid phone -> 400 "phone: So dien thoai khong hop le"; missing field -> 400 "Thieu thong tin bat buoc: phone".
+- Feedback rating 9 -> 400 "rating: Vui long chon danh gia tu 1-5 sao"; thieu contact -> 400 refine.
+- Record request date_to<date_from -> 400 "date_from: Ngay bat dau khong duoc sau ngay ket thuc".
+- Specialty create 201 / missing name 400 / sortOrder "abc" 400 (NaN).
+- Feedback PATCH bad status -> 400 "status: Invalid option".
+- AI empty message -> 400 "message: Vui long nhap noi dung cau hoi".
+- OTP send (unknown patient) -> 404 "Thong tin khong khop..."; verify empty sessionId -> 400 "Thieu sessionId".
+- Patient lookup invalid type -> 400 "identifierType: Loai dinh danh khong hop le".
+- Appointment check-patient valid -> 200 exists:true BN-001; bad cccd -> 400; cancel -> 200 success.
+- Pagination: news X-Total-Count:7, doctors?limit=2 tra 2 item + X-Total-Count:4, feedback X-Total-Count:3.
+- API unknown -> 404 JSON "API endpoint khong ton tai"; non-API -> SPA index.html.
+- Rate limit: burst 25x booking -> 20x 400 + 429 tu request 21; message "Qua nhieu yeu cau gui bieu mau...".
+- tsc -p server/tsconfig.json pass; 
+pm run lint frontend van do (pre-existing ChoBenhNhanPage/vite.config/motion ease - Wave D).
+
+### Ghi chu
+
+- Docker: cai package moi + code moi -> docker compose up -d --build --force-recreate --renew-anon-volumes; tsx watch trong container khong reload khi edit file nen can docker compose restart admin-api sau khi sua.
+- Token test luu %TEMP%\token.txt phai .Trim() truoc khi dung (Set-Content -Encoding UTF8 them BOM).
+- Rate limit bucket trong bo nho -> reset khi restart container (lien quan khi chay E2E).

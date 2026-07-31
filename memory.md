@@ -156,7 +156,7 @@ npm run lint && npm run build
 
 | Endpoint | Limit | Áp dụng |
 |----------|-------|---------|
-| Public API (feedback/record-request/contact/lab-test/teleconsult) | **5 request/IP/15 phút** | Đã enforce ở AGENTS.md Public Form API Standards + Phase 49 |
+| Public form POST (booking/feedback/record-request/consent/appointment) | **5 request/IP/15 phút per endpoint** | ✅ Phase 86: `server/middleware/rate-limit.middleware.ts` — mỗi form 1 bucket riêng (`bookingFormLimiter`, `feedbackFormLimiter`, `recordRequestFormLimiter`, `consentFormLimiter`, `appointmentFormLimiter`); lookup 30/15ph, AI 20/15ph, OTP verify 10/15ph |
 | Admin Auth (login/refresh/OTP) | **5 request/phút** | Chưa enforce code |
 | Login attempts | **5 lần → lockout 30 phút** | Chưa enforce code |
 | Default public API khác | 100 request/phút | Chưa enforce code |
@@ -225,7 +225,9 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 | Password hash | ✅ PBKDF2-SHA512 100k iterations | `server/services/auth.service.ts:34` + `seed.ts` chuẩn. Tương đương bcrypt cost 12. |
 | Security headers | ✅ Qua nginx + helmet | Phase 83: nginx server-level CSP/Permissions-Policy/HSTS + bỏ CORS reflect-any; helmet CSP env-aware (dev lax / prod strict `script-src 'self'`). Có 2 CSP (nginx + helmet) cùng áp dụng — browser lấy intersection. |
 | Rate limit admin auth/login lockout | ✅ Đã có | Phase 83: express-rate-limit 10 req/15ph trên `/auth/admin/*` + `/otp/*`; nginx `admin_auth` zone 50r/m. Lockout 30ph sau 5 lần chưa enforce (Phase 86). |
-| Input validation (Zod) | ❌ Chưa có | Phase 86 (Wave C) |
+| Input validation (Zod) | ✅ Phase 86 | `server/validators/schemas.ts` + `middleware.ts` (validate helper, message tiếng Việt, phát hiện thiếu trường qua `getPathValue`); wire toàn bộ route public + admin write (booking/feedback/record-request/consent/appointment/ai/patient-lookup/otp/specialty/doctor/news/service/org/testimonial) |
+| Pagination thật | ✅ Phase 86 | `server/utils/pagination.ts` (`getPagination`) — bookings/feedback/record-requests/doctors/news trả `X-Total-Count`; 3 route PHI trả `{data,total,page,pageSize}` giữ key `records/tests/histories` cho frontend |
+| Health check DB + graceful shutdown | ✅ Phase 86 | `/api/health` check `SELECT 1` qua Prisma (503 degraded nếu DB lỗi); `server.ts` cleanup `uploads/temp` lúc khởi động + SIGTERM/SIGINT shutdown (`server.close` → `$disconnect` → exit 0, force 10s) + `unhandledRejection`/`uncaughtException` log; API 404 `{error:"API endpoint không tồn tại"}` trước SPA fallback; MulterError → 400 |
 | CCCD encrypt | ✅ Đã có | Phase 84 (Wave B): AES-256-GCM (`cccd.service.ts`) + `cccdHash` SHA-256 unique + bỏ cột `cccd` plaintext; lookup match qua hash, encrypt roundtrip verify, mask `0012****90` |
 
 ---
@@ -267,6 +269,7 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 | Edge hardening + CSP (Phase 83): cài `cookie-parser`; `app.ts` trust proxy + helmet CSP env-aware (dev: unsafe-inline/eval + ws://localhost:3000; prod: strict `script-src 'self'`). nginx: bỏ CORS reflect-any, thêm CSP/Permissions-Policy/client_max_body_size 25m server-level. `package.json` build → `dist-server/server.cjs` + start → `node dist-server/server.cjs`; `server.ts` static options; `.dockerignore` thêm dist-server/env. LƯU Ý OPS: frontend container chạy `server.ts` nên mọi edit app.ts cũng cần restart/rebuild bvdh-frontend | ✅ Hoàn thành (2026-07-31) |
 | CCCD encryption + migration drift fix (Phase 84): schema Patient bỏ cột `cccd` plaintext → thêm `cccdHash String? @unique` + `cccdEncrypted`; tạo `server/services/cccd.service.ts` (AES-256-GCM encrypt/decrypt `iv.tag.data` base64, hashCccd SHA-256 + maskCccd `0012****90`). Migration `20260731110412_cccd_hash` applied; `appointment.service` + `patient.service` lookup match qua hash; `toPublicPatient` fix (fullName/registeredAt); `seed.ts` insert patients dùng hash/encrypt (raw SQL). Drift migration `20260731110047_fix_drift` (tender dates Timestamp(3), policy_version nullable, tender_dept) — shadow DB config trong `prisma.config.ts` + docker-compose mount. Soft-delete middleware mở rộng findUnique/update/delete. `$transaction` cho consent.createPolicy + record-request.processStatusChange. `.env.example` đầy đủ biến. Verify: tsc pass, lookup BN-001 qua cccd 001234567890 trả patient, encrypt/decrypt roundtrip OK, DB hash khớp `9e7636...` | ✅ Hoàn thành (2026-07-31) |
 | Audit logging + RBAC + indexes (Phase 85): `activity_logs` mở rộng `durationMs`/`dataAccessed`/`patientId` + index createdAt/userId/patientId (migration `20260731123000_activity_logs_enrichment`); tạo `activity-log.service.ts` + `activity-log.middleware.ts` (activityLogger đo duration qua `res.on("finish")`) wire toàn bộ admin write routes (SPECIALTY/DOCTOR/NEWS/SERVICE/TESTIMONIAL/FEEDBACK/RECORD_REQUEST/ORG actions) + 3 PHI routes (`PHI_READ_*` + `dataAccessed:"PHI"` + patientId). RBAC: specialties/doctors/organization/service/testimonial write → `requireSuperAdmin`; news/feedback/record-request write → `requireAdmin` + `authorizeDepartmentAccess`; bookings GET + appointment `/search` → `requireAnyStaff` (helper mới gồm Receptionist+Doctor). Index `patients.phone` + `appointments.phone`. Verify: tsc pass, admin tạo specialty → log `SPECIALTY_CREATE` có userId+duration+ip, PHI read → log `PHI_READ_MEDICAL_RECORDS` dataAccessed=PHI, reception đọc bookings OK nhưng POST specialties 403 | ✅ Hoàn thành (2026-07-31) |
+| API hardening (Phase 86 Wave C): Zod validation + rate limit per-form + pagination thật + health check DB + graceful shutdown. Cài `zod@^4.4.3`; tạo `server/validators/schemas.ts` (full schemas tiếng Việt) + `server/validators/middleware.ts` (`validate` — detect thiếu trường qua `getPathValue` vì Zod v4 không expose `received`) wire toàn bộ route public + admin write; `server/middleware/rate-limit.middleware.ts` (mỗi form 1 bucket riêng `bookingFormLimiter`/`feedbackFormLimiter`/`recordRequestFormLimiter`/`consentFormLimiter`/`appointmentFormLimiter` 5 req/IP/15ph theo `agents/06-server-api.md`, `lookupLimiter` 30/15ph, `aiLimiter` 20/15ph, `otpVerifyLimiter` 10/15ph — form này không chặn form kia); `server/utils/pagination.ts` (`getPagination` page/limit/skip) — bookings/feedback/record-requests/doctors/news trả `X-Total-Count` giữ shape mảng (frontend không break), 3 route PHI trả `{data,total,page,pageSize}` giữ key `records/tests/histories`; `/api/health` check `SELECT 1` qua Prisma (503 degraded nếu DB lỗi); `server.ts` cleanup `uploads/temp` lúc khởi động + SIGTERM/SIGINT graceful shutdown (close→$disconnect→exit 0, force 10s) + unhandledRejection/uncaughtException; `app.use("/api", notFoundHandler)` → 404 JSON `API endpoint không tồn tại` trước SPA fallback; MulterError → 400; xóa dead code `validateInput`/`validateSubmitInput`. Verify E2E đầy đủ qua `https://localhost:8443`: booking valid 201 / invalid phone 400 tiếng Việt / missing field 400 "Thiếu thông tin bắt buộc"; feedback rating+contact validate; record-request date_to<date_from 400; specialty create 201 + missing/bad type 400; feedback PATCH bad status 400; AI empty message 400; OTP verify 400; patient lookup 400/404; check-patient 200 + bad cccd 400; cancel 200; pagination X-Total-Count (news 7, doctors 4, feedback 3); API 404 JSON; SPA fallback HTML; rate limit burst → 429 đúng bucket + form khác không bị chặn chéo | ✅ Hoàn thành (2026-07-31) |
 | Spec v2.9 review + Database gap analysis | ✅ Hoàn thành (2026-07-22) |
 | dactaupdate.md updated with DB gaps | ✅ Hoàn thành |
 | Expert System Review Report (report-review.md) | ✅ Hoàn thành |
@@ -322,9 +325,9 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
 
 | # | Vấn đề | File | Trạng thái |
 |---|--------|------|------------|
-| H1 | Không input validation (Zod/Joi) — request body dùng raw từ client | Toàn bộ routes | ❌ |
+| H1 | Không input validation (Zod/Joi) — request body dùng raw từ client | Toàn bộ routes | ✅ Phase 86: `server/validators/schemas.ts` + `middleware.ts`, wire toàn bộ route public + admin write |
 | H2 | Không Prisma transaction — multi-step operation dễ mất đồng bộ (upload file + DB insert, xoá policy cũ + tạo mới...) | `server/services/*.ts` | ✅ Phase 84: `consent.service.createPolicy` + `record-request.processStatusChange` bọc `$transaction` |
-| H3 | Không pagination API — list endpoint sẽ trả hàng ngàn records | `booking/feedback/news/doctor.service.ts` | ❌ |
+| H3 | Không pagination API — list endpoint sẽ trả hàng ngàn records | `booking/feedback/news/doctor.service.ts` | ✅ Phase 86: `getPagination` + `X-Total-Count` trên bookings/feedback/record-requests/doctors/news + 3 route PHI trả `{data,total,page,pageSize}` |
 | H4 | Custom JWT — không theo RFC 7519 (thiếu `iat`, `exp` sai format) | `auth.service.ts:43-56` | ❌ |
 | H5 | Không helmet/CORS — thiếu security headers, CORS mở trắng | `server/app.ts` | ✅ Phase 83: helmet CSP env-aware + CORS chỉ allow `CORS_ORIGIN` (mặc định localhost:3000), nginx bỏ reflect-any |
 | H6 | Path traversal protection cần hardening — `resolveSafePhysicalPath` có thể bypass | `record-request.service.ts:46-55` | ❌ |
@@ -391,6 +394,13 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
   - ✅ DB image paths updated to local storage: `/images/doctors/*.jpg`, `/images/news/*.jpg`
   - ✅ External Pexels images downloaded to `public/images/` for local serving
   - ⚠️ Bookings, patients, schedules, logs vẫn dùng localStorage (chưa migrate sang PostgreSQL)
+
+### Phase 86 (Wave C — API hardening) - ✅ Hoàn thành (2026-07-31)
+- ✅ Zod validation toàn bộ route public + admin write
+- ✅ Rate limit per-endpoint: form 5/IP/15ph, lookup 30/15ph, AI 20/15ph, OTP verify 10/15ph
+- ✅ Pagination thật (X-Total-Count + page/limit/skip)
+- ✅ `/api/health` DB check + graceful shutdown + orphan cleanup + unhandled rejection
+- ⚠️ Chưa làm: lint frontend đỏ (pre-existing: ChoBenhNhanPage.tsx, vite.config.ts, motion ease), lockout 30ph sau 5 lần login sai, forgot password flow
 
 ### Phase 52 (2-3 tháng)
 - HIS integration thật

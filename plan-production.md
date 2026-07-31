@@ -2,7 +2,7 @@
 
 > **Ngày:** 2026-07-31 · **Phương pháp:** Production audit (4 agent song song: backend/security, Docker/nginx/ops, frontend, DB/tests) + verify thủ công các phát hiện nghiêm trọng.
 > **Score hiện tại: 45/100 — BLOCKED.** Không vận hành khi còn lỗ hổng PHI + token minting + admin writes không auth.
-> **Cập nhật (2026-07-31):** Wave A (Ph 81-83 security) + Wave B (Ph 84-85 data integrity) đã hoàn thành & commit. Còn blocker từ Wave C trở đi (Zod validation, pagination, rate limit, lint đỏ, tests).
+> **Cập nhật (2026-07-31):** Wave A (Ph 81-83 security) + Wave B (Ph 84-85 data integrity) + **Wave C (Ph 86 API hardening) đã hoàn thành & commit**. Còn blocker: lint đỏ frontend (Wave D), ops (Wave E), tests (Wave F).
 
 ---
 
@@ -80,13 +80,13 @@
 2. ✅ Enforce RBAC matrix đầy đủ + department ownership qua `authorizeDepartmentAccess`. (specialties/doctors/organization/service/testimonial write → requireSuperAdmin; news/feedback/record-request → requireAdmin + authorizeDepartmentAccess; bookings + appointment search → requireAnyStaff)
 3. ✅ Index `patients.phone`, `appointments.phone`.
 
-### 🟡 Wave C — API hardening (Phase 86)
+### 🟡 Wave C — API hardening (Phase 86) *đã hoàn thành*
 
-1. **Zod schema validation** cho mọi body (booking, feedback, record-request, admin CRUD, ai/consult limit history/message).
-2. **Rate limit** Express: public forms (5/IP/15ph), `patients/lookup`, `ai/consult`, OTP verify (per-session cap).
-3. **Pagination** thật: page/limit cho booking, feedback, record-request, news, doctors, patients.
-4. Health check có query DB; sửa thứ tự prod catch-all (`notFoundHandler` trước SPA fallback hoặc chỉ fallback cho GET non-/api).
-5. `unhandledRejection`/`uncaughtException` handler + graceful shutdown SIGTERM; dọn orphan temp files khi khởi động.
+1. ✅ **Zod schema validation** cho mọi body (booking, feedback, record-request, admin CRUD, ai/consult limit history/message). (`server/validators/schemas.ts` full schemas tiếng Việt + `middleware.ts` validate helper; detect thiếu trường qua `getPathValue` vì Zod v4 không expose `received`)
+2. ✅ **Rate limit** Express: mỗi form 1 bucket riêng 5/IP/15ph (`bookingFormLimiter`/`feedbackFormLimiter`/`recordRequestFormLimiter`/`consentFormLimiter`/`appointmentFormLimiter`), `patients/lookup` 30/15ph, `ai/consult` 20/15ph, OTP verify 10/15ph — form này không chặn form kia. (`server/middleware/rate-limit.middleware.ts`)
+3. ✅ **Pagination** thật: page/limit cho booking, feedback, record-request, news, doctors + 3 route PHI. (`server/utils/pagination.ts` `getPagination`; bookings/feedback/record-requests/doctors/news trả `X-Total-Count` giữ shape mảng, 3 route PHI trả `{data,total,page,pageSize}` giữ key `records/tests/histories`)
+4. ✅ Health check có query DB (`GET /api/health` check `SELECT 1` qua Prisma → 503 degraded nếu DB lỗi); sửa thứ tự prod catch-all (`app.use("/api", notFoundHandler)` → 404 JSON trước SPA fallback).
+5. ✅ `unhandledRejection`/`uncaughtException` handler + graceful shutdown SIGTERM (`server.ts`: cleanup `uploads/temp` khi khởi động; shutdown `server.close` → `$disconnect` → exit 0, force 10s). MulterError → 400. Xoá dead code `validateInput`/`validateSubmitInput`.
 
 ### 🟢 Wave D — Frontend (Phase 87-88)
 
@@ -143,4 +143,4 @@ Phase 89 → 90 → 91 (ops + tests, có thể xen kẽ)
 
 ## 5. Next action
 
-Wave A (81-83) + Wave B (84-85) đã hoàn thành. Tiếp theo: **Phase 86 (Wave C)** — Zod validation, rate limit Express, pagination thật, health check DB, graceful shutdown + orphan cleanup.
+Wave A (81-83) + Wave B (84-85) + Wave C (86) đã hoàn thành. Tiếp theo: **Phase 87 (Wave D)** — frontend: admin mutations dùng `useAuthedFetch`, booking submit await + bỏ fabricate CCCD, ErrorBoundary class component, xoá mock production path.
