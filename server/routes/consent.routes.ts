@@ -1,6 +1,9 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import { consentService } from "../services/consent.service";
 import { requirePatientReadAccess } from "../middleware/patient-access.middleware";
+import { consentFormLimiter } from "../middleware/rate-limit.middleware";
+import { validate } from "../validators/middleware";
+import { consentSubmitSchema, consentWithdrawSchema } from "../validators/schemas";
 
 const router = Router();
 
@@ -8,7 +11,7 @@ router.get("/policy/active", async (req, res) => {
   try {
     const policy = await consentService.getActivePolicy();
     if (!policy) {
-      return res.status(404).json({ error: "Không có chính sách hiệu lực" });
+      return res.status(404).json({ error: "KhÃ´ng cÃ³ chÃ­nh sÃ¡ch hiá»‡u lá»±c" });
     }
     res.json({
       version: policy.version,
@@ -18,7 +21,7 @@ router.get("/policy/active", async (req, res) => {
     });
   } catch (error) {
     console.error("[consent/policy/active] error:", error);
-    res.status(500).json({ error: "Lỗi khi lấy chính sách" });
+    res.status(500).json({ error: "Lá»—i khi láº¥y chÃ­nh sÃ¡ch" });
   }
 });
 
@@ -36,24 +39,13 @@ router.get("/check/:patientId", requirePatientReadAccess, async (req, res) => {
     });
   } catch (error) {
     console.error("[consent/check] error:", error);
-    res.status(500).json({ error: "Lỗi khi kiểm tra đồng ý" });
+    res.status(500).json({ error: "Lá»—i khi kiá»ƒm tra Ä‘á»“ng Ã½" });
   }
 });
 
-router.post("/submit", async (req, res) => {
+router.post("/submit", consentFormLimiter, validate(consentSubmitSchema), async (req, res) => {
   try {
     const { patient_id, policy_version, is_agreed, agreed_scopes } = req.body;
-
-    const validationError = consentService.validateSubmitInput({
-      patient_id,
-      policy_version,
-      is_agreed,
-      agreed_scopes,
-    });
-
-    if (validationError) {
-      return res.status(400).json({ error: validationError });
-    }
 
     const ip_address = req.ip || req.socket.remoteAddress;
     const user_agent = req.headers["user-agent"];
@@ -73,22 +65,18 @@ router.post("/submit", async (req, res) => {
 
     res.json({
       success: true,
-      message: is_agreed ? "Đồng ý chính sách thành công" : "Đã ghi nhận từ chối",
+      message: is_agreed ? "Äá»“ng Ã½ chÃ­nh sÃ¡ch thÃ nh cÃ´ng" : "ÄÃ£ ghi nháº­n tá»« chá»‘i",
       consent: result.consent,
     });
   } catch (error) {
     console.error("[consent/submit] error:", error);
-    res.status(500).json({ error: "Lỗi khi lưu đồng ý" });
+    res.status(500).json({ error: "Lá»—i khi lÆ°u Ä‘á»“ng Ã½" });
   }
 });
 
-router.post("/withdraw", async (req, res) => {
+router.post("/withdraw", consentFormLimiter, validate(consentWithdrawSchema), async (req, res) => {
   try {
     const { patient_id, policy_version, reason } = req.body;
-
-    if (!patient_id || !policy_version) {
-      return res.status(400).json({ error: "Thiếu thông tin bắt buộc" });
-    }
 
     const result = await consentService.withdraw({
       patient_id,
@@ -102,11 +90,11 @@ router.post("/withdraw", async (req, res) => {
 
     res.json({
       success: true,
-      message: "Đã rút lại sự đồng ý",
+      message: "ÄÃ£ rÃºt láº¡i sá»± Ä‘á»“ng Ã½",
     });
   } catch (error) {
     console.error("[consent/withdraw] error:", error);
-    res.status(500).json({ error: "Lỗi khi rút lại đồng ý" });
+    res.status(500).json({ error: "Lá»—i khi rÃºt láº¡i Ä‘á»“ng Ã½" });
   }
 });
 

@@ -2,6 +2,8 @@ import { Router } from "express";
 import * as specialtyService from "../services/specialty.service";
 import { authenticate, requireSuperAdmin } from "../middleware/auth.middleware";
 import { activityLogger } from "../middleware/activity-log.middleware";
+import { validate } from "../validators/middleware";
+import { specialtyCreateSchema, specialtyUpdateSchema } from "../validators/schemas";
 
 const router = Router();
 
@@ -26,7 +28,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", authenticate, requireSuperAdmin, activityLogger({ action: "SPECIALTY_CREATE" }), async (req, res) => {
+router.post("/", authenticate, requireSuperAdmin, validate(specialtyCreateSchema), activityLogger({ action: "SPECIALTY_CREATE" }), async (req, res) => {
   try {
     const specialty = await specialtyService.createSpecialty(req.body);
     res.status(201).json(specialty);
@@ -36,7 +38,7 @@ router.post("/", authenticate, requireSuperAdmin, activityLogger({ action: "SPEC
   }
 });
 
-router.put("/:id", authenticate, requireSuperAdmin, activityLogger({ action: "SPECIALTY_UPDATE" }), async (req, res) => {
+router.put("/:id", authenticate, requireSuperAdmin, validate(specialtyUpdateSchema), activityLogger({ action: "SPECIALTY_UPDATE" }), async (req, res) => {
   try {
     const specialty = await specialtyService.updateSpecialty(req.params.id, req.body);
     res.json(specialty);

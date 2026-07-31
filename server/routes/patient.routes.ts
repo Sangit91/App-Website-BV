@@ -3,20 +3,16 @@ import { patientService, toPublicPatient } from "../services/patient.service";
 import { consentCheckMiddleware } from "../middleware/consent.middleware";
 import { requirePatientReadAccess } from "../middleware/patient-access.middleware";
 import { phiAccessLogger } from "../middleware/activity-log.middleware";
+import { lookupLimiter } from "../middleware/rate-limit.middleware";
+import { validate } from "../validators/middleware";
+import { patientLookupSchema } from "../validators/schemas";
+import { getPagination } from "../utils/pagination";
 
 const router = Router();
 
-router.post("/lookup", async (req, res) => {
+router.post("/lookup", lookupLimiter, validate(patientLookupSchema), async (req, res) => {
   try {
     const { identifier, identifierType } = req.body;
-
-    if (!identifier || !identifierType) {
-      return res.status(400).json({ error: "Thiếu thông tin tra cứu" });
-    }
-
-    if (!["patientCode", "cccd", "phone"].includes(identifierType)) {
-      return res.status(400).json({ error: "Loại định danh không hợp lệ" });
-    }
 
     const patient = await patientService.lookup(identifier, identifierType);
 
@@ -35,18 +31,19 @@ router.get("/:patientId/medical-records", requirePatientReadAccess, consentCheck
   try {
     const { patientId } = req.params;
     const { startDate, endDate, clinicId } = req.query;
+    const { page, limit, skip } = getPagination(req.query, 50, 100);
 
-    const records = await patientService.getMedicalRecords(patientId, {
+    const result = await patientService.getMedicalRecords(patientId, {
       startDate: startDate as string | undefined,
       endDate: endDate as string | undefined,
       clinicId: clinicId as string | undefined,
-    });
+    }, { skip, take: limit });
 
     res.json({
-      records,
-      total: records.length,
-      page: 1,
-      pageSize: records.length,
+      records: result.data,
+      total: result.total,
+      page,
+      pageSize: limit,
     });
   } catch (error) {
     console.error("[patient] medical-records error:", error);
@@ -58,19 +55,20 @@ router.get("/:patientId/clinical-tests", requirePatientReadAccess, consentCheckM
   try {
     const { patientId } = req.params;
     const { startDate, endDate, testType, status } = req.query;
+    const { page, limit, skip } = getPagination(req.query, 50, 100);
 
-    const tests = await patientService.getClinicalTests(patientId, {
+    const result = await patientService.getClinicalTests(patientId, {
       startDate: startDate as string | undefined,
       endDate: endDate as string | undefined,
       testType: testType as string | undefined,
       status: status as string | undefined,
-    });
+    }, { skip, take: limit });
 
     res.json({
-      tests,
-      total: tests.length,
-      page: 1,
-      pageSize: tests.length,
+      tests: result.data,
+      total: result.total,
+      page,
+      pageSize: limit,
     });
   } catch (error) {
     console.error("[patient] clinical-tests error:", error);
@@ -81,14 +79,15 @@ router.get("/:patientId/clinical-tests", requirePatientReadAccess, consentCheckM
 router.get("/:patientId/treatment-histories", requirePatientReadAccess, consentCheckMiddleware, phiAccessLogger({ action: "PHI_READ_TREATMENT_HISTORIES", dataAccessed: "PHI" }), async (req, res) => {
   try {
     const { patientId } = req.params;
+    const { page, limit, skip } = getPagination(req.query, 50, 100);
 
-    const histories = await patientService.getTreatmentHistories(patientId);
+    const result = await patientService.getTreatmentHistories(patientId, { skip, take: limit });
 
     res.json({
-      histories,
-      total: histories.length,
-      page: 1,
-      pageSize: histories.length,
+      histories: result.data,
+      total: result.total,
+      page,
+      pageSize: limit,
     });
   } catch (error) {
     console.error("[patient] treatment-histories error:", error);

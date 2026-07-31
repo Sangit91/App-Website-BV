@@ -2,6 +2,8 @@ import { Router } from "express";
 import * as testimonialService from "../services/testimonial.service";
 import { authenticate, requireAdmin, requireSuperAdmin } from "../middleware/auth.middleware.js";
 import { activityLogger } from "../middleware/activity-log.middleware";
+import { validate } from "../validators/middleware";
+import { testimonialCreateSchema, testimonialUpdateSchema } from "../validators/schemas";
 
 const router = Router();
 
@@ -30,7 +32,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", validate(testimonialCreateSchema), async (req, res) => {
   try {
     const testimonial = await testimonialService.createTestimonial(req.body);
     res.status(201).json(testimonial);
@@ -40,7 +42,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.put("/:id", authenticate, requireSuperAdmin, activityLogger({ action: "TESTIMONIAL_UPDATE" }), async (req, res) => {
+router.put("/:id", authenticate, requireSuperAdmin, validate(testimonialUpdateSchema), activityLogger({ action: "TESTIMONIAL_UPDATE" }), async (req, res) => {
   try {
     const testimonial = await testimonialService.updateTestimonial(req.params.id, req.body);
     res.json(testimonial);

@@ -1,32 +1,19 @@
 import { Router } from "express";
 import { appointmentService } from "../services/appointment.service";
 import { authenticate, requireAnyStaff } from "../middleware/auth.middleware";
+import { appointmentFormLimiter, lookupLimiter } from "../middleware/rate-limit.middleware";
+import { validate } from "../validators/middleware";
+import {
+  appointmentCheckPatientSchema,
+  appointmentCreateSchema,
+  appointmentCancelSchema,
+} from "../validators/schemas";
 
 const router = Router();
 
-function validatePhone(phone: string): boolean {
-  return /^[0-9]{10,11}$/.test(phone);
-}
-
-function validateCCCD(cccd: string): boolean {
-  return /^[0-9]{9}$|^[0-9]{12}$/.test(cccd);
-}
-
-router.post("/check-patient", async (req, res) => {
+router.post("/check-patient", appointmentFormLimiter, validate(appointmentCheckPatientSchema), async (req, res) => {
   try {
     const { identity_card, full_name, dob, phone } = req.body;
-
-    if (!identity_card || !full_name || !dob || !phone) {
-      return res.status(400).json({ error: "Thiếu thông tin bắt buộc" });
-    }
-
-    if (!validateCCCD(identity_card)) {
-      return res.status(400).json({ error: "Số CCCD không hợp lệ (9 hoặc 12 số)" });
-    }
-
-    if (!validatePhone(phone)) {
-      return res.status(400).json({ error: "Số điện thoại không hợp lệ" });
-    }
 
     const { patient, isNew } = await appointmentService.getOrCreatePatient({
       cccd: identity_card,
@@ -49,13 +36,9 @@ router.post("/check-patient", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", appointmentFormLimiter, validate(appointmentCreateSchema), async (req, res) => {
   try {
     const { patientCode, patientName, phone, specialtyId, specialtyName, doctorName, appointmentDate, appointmentTime, symptoms } = req.body;
-
-    if (!patientCode || !specialtyId || !appointmentDate) {
-      return res.status(400).json({ error: "Thiếu thông tin bắt buộc" });
-    }
 
     const appointment = await appointmentService.createAppointment({
       patientName: patientName || "",
@@ -105,7 +88,7 @@ router.get("/search", authenticate, requireAnyStaff, async (req, res) => {
   }
 });
 
-router.get("/:bookingCode", async (req, res) => {
+router.get("/:bookingCode", lookupLimiter, async (req, res) => {
   try {
     const phone = req.query.phone as string | undefined;
     const appointment = await appointmentService.findByBookingCode(req.params.bookingCode);
@@ -126,7 +109,7 @@ router.get("/:bookingCode", async (req, res) => {
   }
 });
 
-router.patch("/:bookingCode/cancel", async (req, res) => {
+router.patch("/:bookingCode/cancel", appointmentFormLimiter, validate(appointmentCancelSchema), async (req, res) => {
   try {
     const phone = (req.body?.phone || "") as string;
 

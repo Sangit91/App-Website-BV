@@ -39,7 +39,7 @@ export const patientService = {  async lookup(identifier: string, identifierType
     return patient || null;
   },
 
-  async getMedicalRecords(patientId: string, filters: { startDate?: string; endDate?: string; clinicId?: string }) {
+  async getMedicalRecords(patientId: string, filters: { startDate?: string; endDate?: string; clinicId?: string }, pageInfo?: { skip: number; take: number }) {
     const prisma = getPrisma();
     const where: any = { patientId, isActive: true };
 
@@ -50,16 +50,21 @@ export const patientService = {  async lookup(identifier: string, identifierType
       where.admissionDate = { ...where.admissionDate, lte: new Date(filters.endDate) };
     }
 
-    const records = await prisma.medicalRecord.findMany({
-      where,
-      include: { clinicalTests: true, treatments: true },
-      orderBy: { admissionDate: "desc" },
-    });
+    const [data, total] = await Promise.all([
+      prisma.medicalRecord.findMany({
+        where,
+        include: { clinicalTests: true, treatments: true },
+        orderBy: { admissionDate: "desc" },
+        skip: pageInfo?.skip,
+        take: pageInfo?.take,
+      }),
+      prisma.medicalRecord.count({ where }),
+    ]);
 
-    return records;
+    return { data, total };
   },
 
-  async getClinicalTests(patientId: string, filters: { startDate?: string; endDate?: string; testType?: string; status?: string }) {
+  async getClinicalTests(patientId: string, filters: { startDate?: string; endDate?: string; testType?: string; status?: string }, pageInfo?: { skip: number; take: number }) {
     const prisma = getPrisma();
     const where: any = { patientId };
 
@@ -76,17 +81,31 @@ export const patientService = {  async lookup(identifier: string, identifierType
       where.resultStatus = filters.status;
     }
 
-    return prisma.clinicalTest.findMany({
-      where,
-      orderBy: { testDate: "desc" },
-    });
+    const [data, total] = await Promise.all([
+      prisma.clinicalTest.findMany({
+        where,
+        orderBy: { testDate: "desc" },
+        skip: pageInfo?.skip,
+        take: pageInfo?.take,
+      }),
+      prisma.clinicalTest.count({ where }),
+    ]);
+
+    return { data, total };
   },
 
-  async getTreatmentHistories(patientId: string) {
+  async getTreatmentHistories(patientId: string, pageInfo?: { skip: number; take: number }) {
     const prisma = getPrisma();
-    return prisma.treatmentHistory.findMany({
-      where: { patientId },
-      orderBy: { treatmentDate: "desc" },
-    });
+    const where: any = { patientId };
+    const [data, total] = await Promise.all([
+      prisma.treatmentHistory.findMany({
+        where,
+        orderBy: { treatmentDate: "desc" },
+        skip: pageInfo?.skip,
+        take: pageInfo?.take,
+      }),
+      prisma.treatmentHistory.count({ where }),
+    ]);
+    return { data, total };
   },
 };

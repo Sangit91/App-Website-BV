@@ -5,6 +5,10 @@ import fs from "fs";
 import { recordRequestService, resolveSafePhysicalPath } from "../services/record-request.service";
 import { authenticate, requireAdmin, authorizeDepartmentAccess } from "../middleware/auth.middleware";
 import { activityLogger } from "../middleware/activity-log.middleware";
+import { recordRequestFormLimiter } from "../middleware/rate-limit.middleware";
+import { validate } from "../validators/middleware";
+import { recordRequestCreateSchema, recordRequestUpdateSchema } from "../validators/schemas";
+import { getPagination } from "../utils/pagination";
 
 const router = Router();
 
@@ -26,14 +30,9 @@ const upload = multer({
   },
 });
 
-router.post("/", async (req, res) => {
+router.post("/", recordRequestFormLimiter, validate(recordRequestCreateSchema), async (req, res) => {
   try {
     const { patient_name, patient_id, patient_code, request_type, date_from, date_to, delivery_method, reason, contact_phone, contact_email } = req.body;
-
-    const validationError = recordRequestService.validateInput({ patient_name, patient_id, patient_code, request_type, date_from, date_to, delivery_method, reason, contact_phone, contact_email });
-    if (validationError) {
-      return res.status(400).json({ error: validationError });
-    }
 
     const newRequest = await recordRequestService.create({ patient_name, patient_id, patient_code, request_type, date_from, date_to, delivery_method, reason, contact_phone, contact_email });
     res.status(201).json({
@@ -106,12 +105,14 @@ router.get("/:id/files/:fileId", authenticate, requireAdmin, async (req, res) =>
 router.get("/", authenticate, requireAdmin, async (req, res) => {
   try {
     const { status, from, to } = req.query;
-    const allRequests = await recordRequestService.getAll({
+    const { page, limit } = getPagination(req.query, 200, 200);
+    const { data, total } = await recordRequestService.getAll({
       status: status as any,
       from: from as string,
       to: to as string
-    });
-    res.json(allRequests);
+    }, page, limit);
+    res.setHeader("X-Total-Count", String(total));
+    res.json(data);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Lỗi máy chủ";
     res.status(500).json({ error: message });
@@ -131,7 +132,7 @@ router.get("/:id", authenticate, requireAdmin, async (req, res) => {
   }
 });
 
-router.patch("/:id", authenticate, requireAdmin, authorizeDepartmentAccess, activityLogger({ action: "RECORD_REQUEST_UPDATE" }), async (req, res) => {
+router.patch("/:id", authenticate, requireAdmin, authorizeDepartmentAccess, validate(recordRequestUpdateSchema), activityLogger({ action: "RECORD_REQUEST_UPDATE" }), async (req, res) => {
   try {
     const { status, admin_notes, processed_by } = req.body;
     const current = await recordRequestService.getById(req.params.id);

@@ -12,11 +12,17 @@ export interface CreateBookingInput {
 }
 
 export const bookingService = {
-  async getAll(): Promise<Appointment[]> {
-    return getPrisma().appointment.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 200,
-    });
+  async getAll(page = 1, limit = 200): Promise<{ data: Appointment[]; total: number }> {
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      getPrisma().appointment.findMany({
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip,
+      }),
+      getPrisma().appointment.count(),
+    ]);
+    return { data, total };
   },
 
   async search(query: string): Promise<Appointment[]> {
@@ -61,21 +67,12 @@ export const bookingService = {
       data: {
         status,
         ...(status === "da_xac_nhan" && { confirmedAt: new Date() }),
-        ...(status === "da_huy" && {
-          cancelledAt: extra?.cancelledAt || new Date(),
-          cancelReason: extra?.cancelReason || null,
-          cancelledBy: extra?.cancelledBy || null,
-        }),
-      },
-    });
+      ...(status === "da_huy" && {
+        cancelledAt: extra?.cancelledAt || new Date(),
+        cancelReason: extra?.cancelReason || null,
+        cancelledBy: extra?.cancelledBy || null,
+      }),
+    },
+  });
   },
-
-  validateInput(input: Partial<CreateBookingInput>): string | null {
-    if (!input.patientName) return "Vui lòng nhập họ và tên người bệnh";
-    if (!input.phone) return "Vui lòng nhập số điện thoại";
-    if (!input.specialty) return "Vui lòng chọn chuyên khoa";
-    if (!input.date) return "Vui lòng chọn ngày khám";
-    if (!input.timeSlot) return "Vui lòng chọn khung giờ khám";
-    return null;
-  }
 };

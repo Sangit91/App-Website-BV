@@ -1,16 +1,15 @@
 import { Router } from "express";
 import { aiService } from "../services/ai.service";
+import { aiLimiter } from "../middleware/rate-limit.middleware";
+import { validate } from "../validators/middleware";
+import { aiConsultSchema } from "../validators/schemas";
 
 const router = Router();
 
 // Gemini AI Health Consultant
-router.post("/consult", async (req, res) => {
+router.post("/consult", aiLimiter, validate(aiConsultSchema), async (req, res) => {
   try {
     const { message, history } = req.body;
-    
-    if (!message) {
-      return res.status(400).json({ error: "Vui lòng nhập nội dung câu hỏi" });
-    }
 
     const result = await aiService.consult(message, history || []);
     res.json(result);

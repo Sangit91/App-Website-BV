@@ -2,13 +2,18 @@ import { Router } from "express";
 import * as newsService from "../services/news.service";
 import { authenticate, requireAdmin, authorizeDepartmentAccess } from "../middleware/auth.middleware";
 import { activityLogger } from "../middleware/activity-log.middleware";
+import { validate } from "../validators/middleware";
+import { newsCreateSchema, newsUpdateSchema } from "../validators/schemas";
+import { getPagination } from "../utils/pagination";
 
 const router = Router();
 
 router.get("/", async (req, res) => {
   try {
-    const news = await newsService.getNews();
-    res.json(news);
+    const { page, limit } = getPagination(req.query, 200, 200);
+    const { data, total } = await newsService.getNews(page, limit);
+    res.setHeader("X-Total-Count", String(total));
+    res.json(data);
   } catch (err) {
     console.error("Error fetching news:", err);
     res.status(500).json({ error: "Failed to fetch news" });
@@ -36,7 +41,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", authenticate, requireAdmin, authorizeDepartmentAccess, activityLogger({ action: "NEWS_CREATE" }), async (req, res) => {
+router.post("/", authenticate, requireAdmin, authorizeDepartmentAccess, validate(newsCreateSchema), activityLogger({ action: "NEWS_CREATE" }), async (req, res) => {
   try {
     const item = await newsService.createNews(req.body);
     res.status(201).json(item);
@@ -46,7 +51,7 @@ router.post("/", authenticate, requireAdmin, authorizeDepartmentAccess, activity
   }
 });
 
-router.put("/:id", authenticate, requireAdmin, authorizeDepartmentAccess, activityLogger({ action: "NEWS_UPDATE" }), async (req, res) => {
+router.put("/:id", authenticate, requireAdmin, authorizeDepartmentAccess, validate(newsUpdateSchema), activityLogger({ action: "NEWS_UPDATE" }), async (req, res) => {
   try {
     const item = await newsService.updateNews(req.params.id, req.body);
     res.json(item);

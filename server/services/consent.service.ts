@@ -158,14 +158,4 @@ export const consentService = {
       orderBy: { effectiveDate: "desc" },
     });
   },
-
-  validateSubmitInput(input: Partial<SubmitConsentInput>): string | null {
-    if (!input.patient_id) return "Thiếu mã bệnh nhân";
-    if (!input.policy_version) return "Thiếu phiên bản chính sách";
-    if (typeof input.is_agreed !== "boolean") return "Thiếu trạng thái đồng ý";
-    if (input.is_agreed && (!input.agreed_scopes || input.agreed_scopes.length === 0)) {
-      return "Vui lòng chọn ít nhất một phạm vi đồng ý";
-    }
-    return null;
-  },
 };

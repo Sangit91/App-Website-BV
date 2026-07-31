@@ -2,13 +2,18 @@ import { Router } from "express";
 import * as doctorService from "../services/doctor.service";
 import { authenticate, requireSuperAdmin } from "../middleware/auth.middleware";
 import { activityLogger } from "../middleware/activity-log.middleware";
+import { validate } from "../validators/middleware";
+import { doctorCreateSchema, doctorUpdateSchema, doctorScheduleSchema } from "../validators/schemas";
+import { getPagination } from "../utils/pagination";
 
 const router = Router();
 
 router.get("/", async (req, res) => {
   try {
-    const doctors = await doctorService.getDoctors();
-    res.json(doctors);
+    const { page, limit } = getPagination(req.query, 200, 200);
+    const { data, total } = await doctorService.getDoctors(page, limit);
+    res.setHeader("X-Total-Count", String(total));
+    res.json(data);
   } catch (err) {
     console.error("Error fetching doctors:", err);
     res.status(500).json({ error: "Failed to fetch doctors" });
@@ -36,7 +41,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", authenticate, requireSuperAdmin, activityLogger({ action: "DOCTOR_CREATE" }), async (req, res) => {
+router.post("/", authenticate, requireSuperAdmin, validate(doctorCreateSchema), activityLogger({ action: "DOCTOR_CREATE" }), async (req, res) => {
   try {
     const doctor = await doctorService.createDoctor(req.body);
     res.status(201).json(doctor);
@@ -46,7 +51,7 @@ router.post("/", authenticate, requireSuperAdmin, activityLogger({ action: "DOCT
   }
 });
 
-router.put("/:id", authenticate, requireSuperAdmin, activityLogger({ action: "DOCTOR_UPDATE" }), async (req, res) => {
+router.put("/:id", authenticate, requireSuperAdmin, validate(doctorUpdateSchema), activityLogger({ action: "DOCTOR_UPDATE" }), async (req, res) => {
   try {
     const doctor = await doctorService.updateDoctor(req.params.id, req.body);
     res.json(doctor);
@@ -66,7 +71,7 @@ router.delete("/:id", authenticate, requireSuperAdmin, activityLogger({ action: 
   }
 });
 
-router.patch("/:id/schedule", authenticate, requireSuperAdmin, activityLogger({ action: "DOCTOR_SCHEDULE_UPDATE" }), async (req, res) => {
+router.patch("/:id/schedule", authenticate, requireSuperAdmin, validate(doctorScheduleSchema), activityLogger({ action: "DOCTOR_SCHEDULE_UPDATE" }), async (req, res) => {
   try {
     const schedule = await doctorService.updateDoctorSchedule(req.params.id, req.body);
     res.json(schedule);

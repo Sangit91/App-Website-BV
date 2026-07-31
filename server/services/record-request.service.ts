@@ -69,7 +69,7 @@ async function cleanDirectory(dir: string): Promise<void> {
 }
 
 export const recordRequestService = {
-  async getAll(filters?: { status?: RecordRequestStatus; from?: string; to?: string }): Promise<RecordRequest[]> {
+  async getAll(filters?: { status?: RecordRequestStatus; from?: string; to?: string }, page = 1, limit = 200): Promise<{ data: RecordRequest[]; total: number }> {
     const where: Prisma.RecordRequestWhereInput = {};
     if (filters?.status) where.status = filters.status;
     if (filters?.from || filters?.to) {
@@ -78,12 +78,18 @@ export const recordRequestService = {
         ...(filters.to && { lte: new Date(filters.to) }),
       };
     }
-    return getPrisma().recordRequest.findMany({
-      where,
-      include: { files: true },
-      orderBy: { createdAt: "desc" },
-      take: 200,
-    });
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      getPrisma().recordRequest.findMany({
+        where,
+        include: { files: true },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip,
+      }),
+      getPrisma().recordRequest.count({ where }),
+    ]);
+    return { data, total };
   },
 
   async getById(id: string): Promise<RecordRequest | null> {
@@ -212,16 +218,4 @@ export const recordRequestService = {
       );
     }
   },
-
-  validateInput(input: Partial<CreateRecordRequestInput>): string | null {
-    if (!input.patient_name?.trim()) return "Vui lòng nhập họ và tên";
-    if (!input.request_type) return "Vui lòng chọn loại hồ sơ cần trích sao";
-    if (!input.date_from) return "Vui lòng chọn ngày bắt đầu";
-    if (!input.date_to) return "Vui lòng chọn ngày kết thúc";
-    if (!input.delivery_method) return "Vui lòng chọn phương thức nhận";
-    if (input.date_from && input.date_to && new Date(input.date_from) > new Date(input.date_to)) {
-      return "Ngày bắt đầu không được sau ngày kết thúc";
-    }
-    return null;
-  }
 };

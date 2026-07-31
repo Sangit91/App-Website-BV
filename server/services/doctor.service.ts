@@ -21,14 +21,20 @@ export interface ScheduleInput {
   sunday: string;
 }
 
-export async function getDoctors() {
+export async function getDoctors(page = 1, limit = 200) {
   const prisma = getPrisma();
-  return prisma.doctor.findMany({
-    where: { isActive: true },
-    include: { specialty: true },
-    orderBy: { createdAt: "asc" },
-    take: 200,
-  });
+  const skip = (page - 1) * limit;
+  const [data, total] = await Promise.all([
+    prisma.doctor.findMany({
+      where: { isActive: true },
+      include: { specialty: true },
+      orderBy: { createdAt: "asc" },
+      take: limit,
+      skip,
+    }),
+    prisma.doctor.count({ where: { isActive: true } }),
+  ]);
+  return { data, total };
 }
 
 export async function getDoctorById(id: string) {

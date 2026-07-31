@@ -2,6 +2,9 @@ import { Router } from "express";
 import { adminLogin, refreshTokens, revokeSession } from "../services/auth.service.js";
 import { getPrisma } from "../db/prisma.js";
 import { otpService } from "../services/otp.service";
+import { otpVerifyLimiter } from "../middleware/rate-limit.middleware";
+import { validate } from "../validators/middleware";
+import { otpSendSchema, otpVerifySchema } from "../validators/schemas";
 
 const router = Router();
 
@@ -28,15 +31,8 @@ function getRefreshToken(req: import("express").Request): string | null {
   return (typeof fromCookie === "string" && fromCookie) || (typeof fromBody === "string" && fromBody) || null;
 }
 
-router.post("/otp/send", async (req, res) => {
+router.post("/otp/send", validate(otpSendSchema), async (req, res) => {
   const { patientCode, phone } = req.body;
-
-  if (!patientCode || !phone) {
-    return res.status(400).json({
-      success: false,
-      message: "Thiếu mã bệnh nhân hoặc số điện thoại"
-    });
-  }
 
   try {
     const patient = await getPrisma().patient.findFirst({
@@ -79,15 +75,8 @@ router.post("/otp/send", async (req, res) => {
   }
 });
 
-router.post("/otp/verify", (req, res) => {
+router.post("/otp/verify", otpVerifyLimiter, validate(otpVerifySchema), (req, res) => {
   const { sessionId, otpCode } = req.body;
-
-  if (!sessionId || !otpCode) {
-    return res.status(400).json({
-      success: false,
-      message: "Thiếu sessionId hoặc mã OTP"
-    });
-  }
 
   const result = otpService.verifyOtp(sessionId, otpCode);
 

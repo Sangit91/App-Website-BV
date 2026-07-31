@@ -21,7 +21,7 @@ export interface UpdateFeedbackInput {
 }
 
 export const feedbackService = {
-  async getAll(filters?: { status?: FeedbackStatus; from?: string; to?: string }) {
+  async getAll(filters?: { status?: FeedbackStatus; from?: string; to?: string }, page = 1, limit = 200) {
     const where: Prisma.FeedbackRequestWhereInput = {};
     if (filters?.status) where.status = filters.status;
     if (filters?.from || filters?.to) {
@@ -30,7 +30,12 @@ export const feedbackService = {
         ...(filters.to && { lte: new Date(filters.to) }),
       };
     }
-    return getPrisma().feedbackRequest.findMany({ where, orderBy: { createdAt: "desc" }, take: 200 });
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      getPrisma().feedbackRequest.findMany({ where, orderBy: { createdAt: "desc" }, take: limit, skip }),
+      getPrisma().feedbackRequest.count({ where }),
+    ]);
+    return { data, total };
   },
 
   async getById(id: string) {
@@ -64,15 +69,4 @@ export const feedbackService = {
       return null;
     }
   },
-
-  validateInput(input: Partial<CreateFeedbackInput>): string | null {
-    if (!input.content?.trim()) return "Vui lòng nhập nội dung góp ý";
-    if (!input.rating || input.rating < 1 || input.rating > 5) return "Vui lòng chọn đánh giá từ 1-5 sao";
-    if (!input.service_type) return "Vui lòng chọn loại dịch vụ";
-    const hasContact = input.contact_phone || input.contact_email;
-    if (!input.patient_id && !hasContact) {
-      return "Vui lòng cung cấp số điện thoại hoặc email để chúng tôi có thể phản hồi";
-    }
-    return null;
-  }
 };

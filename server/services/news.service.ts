@@ -50,13 +50,19 @@ export interface NewsUpdateInput {
   publishedAt?: string;
 }
 
-export async function getNews() {
+export async function getNews(page = 1, limit = 200) {
   const prisma = getPrisma();
-  return prisma.news.findMany({
-    where: { isActive: true },
-    orderBy: { publishedAt: "desc" },
-    take: 200,
-  });
+  const skip = (page - 1) * limit;
+  const [data, total] = await Promise.all([
+    prisma.news.findMany({
+      where: { isActive: true },
+      orderBy: { publishedAt: "desc" },
+      take: limit,
+      skip,
+    }),
+    prisma.news.count({ where: { isActive: true } }),
+  ]);
+  return { data, total };
 }
 
 export async function getNewsById(id: string) {

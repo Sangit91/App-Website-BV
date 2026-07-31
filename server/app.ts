@@ -4,6 +4,8 @@ import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
+import { getPrisma } from "./db/prisma";
+import { notFoundHandler } from "./middleware/error.middleware";
 import bookingRoutes from "./routes/booking.routes";
 import testResultRoutes from "./routes/test-result.routes";
 import aiRoutes from "./routes/ai.routes";
@@ -57,8 +59,14 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", time: new Date().toISOString() });
+app.get("/api/health", async (_req, res) => {
+  try {
+    await getPrisma().$queryRaw`SELECT 1`;
+    res.json({ status: "ok", db: "ok", time: new Date().toISOString() });
+  } catch (error) {
+    console.error("[health] db check failed:", error);
+    res.status(503).json({ status: "degraded", db: "error", time: new Date().toISOString() });
+  }
 });
 
 app.use("/api/v1/bookings", bookingRoutes);
@@ -75,5 +83,8 @@ app.use("/api/v1/specialties", specialtyRoutes);
 app.use("/api/v1/doctors", doctorRoutes);
 app.use("/api/v1/news", newsRoutes);
 app.use("/api/v1/consent", consentRoutes);
+
+// API 404 trước khi SPA fallback (server.ts) — tránh trả index.html cho /api/* không tồn tại.
+app.use("/api", notFoundHandler);
 
 export default app;

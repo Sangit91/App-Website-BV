@@ -2,17 +2,16 @@ import { Router } from "express";
 import { feedbackService } from "../services/feedback.service";
 import { authenticate, requireAdmin, authorizeDepartmentAccess } from "../middleware/auth.middleware";
 import { activityLogger } from "../middleware/activity-log.middleware";
+import { feedbackFormLimiter } from "../middleware/rate-limit.middleware";
+import { validate } from "../validators/middleware";
+import { feedbackCreateSchema, feedbackUpdateSchema } from "../validators/schemas";
+import { getPagination } from "../utils/pagination";
 
 const router = Router();
 
-router.post("/", async (req, res) => {
+router.post("/", feedbackFormLimiter, validate(feedbackCreateSchema), async (req, res) => {
   try {
     const { patient_name, patient_id, service_type, rating, content, contact_phone, contact_email } = req.body;
-
-    const validationError = feedbackService.validateInput({ patient_name, patient_id, service_type, rating, content, contact_phone, contact_email });
-    if (validationError) {
-      return res.status(400).json({ error: validationError });
-    }
 
     const newFeedback = await feedbackService.create({ patient_name, patient_id, service_type, rating, content, contact_phone, contact_email });
     res.status(201).json({
@@ -29,12 +28,14 @@ router.post("/", async (req, res) => {
 router.get("/", authenticate, requireAdmin, async (req, res) => {
   try {
     const { status, from, to } = req.query;
-    const allFeedback = await feedbackService.getAll({
+    const { page, limit } = getPagination(req.query, 200, 200);
+    const { data, total } = await feedbackService.getAll({
       status: status as any,
       from: from as string,
       to: to as string
-    });
-    res.json(allFeedback);
+    }, page, limit);
+    res.setHeader("X-Total-Count", String(total));
+    res.json(data);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Lỗi máy chủ";
     res.status(500).json({ error: message });
@@ -54,7 +55,7 @@ router.get("/:id", authenticate, requireAdmin, async (req, res) => {
   }
 });
 
-router.patch("/:id", authenticate, requireAdmin, authorizeDepartmentAccess, activityLogger({ action: "FEEDBACK_UPDATE" }), async (req, res) => {
+router.patch("/:id", authenticate, requireAdmin, authorizeDepartmentAccess, validate(feedbackUpdateSchema), activityLogger({ action: "FEEDBACK_UPDATE" }), async (req, res) => {
   try {
     const { status, admin_response, responded_by } = req.body;
     const updated = await feedbackService.update(req.params.id, { status, admin_response, responded_by });

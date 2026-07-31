@@ -2,6 +2,8 @@ import { Router } from "express";
 import * as serviceService from "../services/service.service";
 import { authenticate, requireSuperAdmin } from "../middleware/auth.middleware.js";
 import { activityLogger } from "../middleware/activity-log.middleware";
+import { validate } from "../validators/middleware";
+import { serviceGroupCreateSchema, serviceGroupUpdateSchema, serviceCreateSchema, serviceUpdateSchema } from "../validators/schemas";
 
 const router = Router();
 
@@ -52,7 +54,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/groups", authenticate, requireSuperAdmin, activityLogger({ action: "SERVICE_GROUP_CREATE" }), async (req, res) => {
+router.post("/groups", authenticate, requireSuperAdmin, validate(serviceGroupCreateSchema), activityLogger({ action: "SERVICE_GROUP_CREATE" }), async (req, res) => {
   try {
     const group = await serviceService.createServiceGroup(req.body);
     res.status(201).json(group);
@@ -62,7 +64,7 @@ router.post("/groups", authenticate, requireSuperAdmin, activityLogger({ action:
   }
 });
 
-router.post("/", authenticate, requireSuperAdmin, activityLogger({ action: "SERVICE_CREATE" }), async (req, res) => {
+router.post("/", authenticate, requireSuperAdmin, validate(serviceCreateSchema), activityLogger({ action: "SERVICE_CREATE" }), async (req, res) => {
   try {
     const service = await serviceService.createService(req.body);
     res.status(201).json(service);
@@ -72,7 +74,7 @@ router.post("/", authenticate, requireSuperAdmin, activityLogger({ action: "SERV
   }
 });
 
-router.put("/groups/:id", authenticate, requireSuperAdmin, activityLogger({ action: "SERVICE_GROUP_UPDATE" }), async (req, res) => {
+router.put("/groups/:id", authenticate, requireSuperAdmin, validate(serviceGroupUpdateSchema), activityLogger({ action: "SERVICE_GROUP_UPDATE" }), async (req, res) => {
   try {
     const group = await serviceService.updateServiceGroup(req.params.id, req.body);
     res.json(group);
@@ -82,7 +84,7 @@ router.put("/groups/:id", authenticate, requireSuperAdmin, activityLogger({ acti
   }
 });
 
-router.put("/:id", authenticate, requireSuperAdmin, activityLogger({ action: "SERVICE_UPDATE" }), async (req, res) => {
+router.put("/:id", authenticate, requireSuperAdmin, validate(serviceUpdateSchema), activityLogger({ action: "SERVICE_UPDATE" }), async (req, res) => {
   try {
     const service = await serviceService.updateService(req.params.id, req.body);
     res.json(service);
