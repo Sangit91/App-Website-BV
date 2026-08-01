@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef, MouseEvent } from "react";
 import { useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
-import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
-import { Info, Users, Building2, Award, Heart, ArrowRight, Check, Activity, ChevronDown, type LucideIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { motion, useScroll, useTransform, useInView, useMotionValue } from "framer-motion";
+import { Info, Users, Building2, Award, Heart, Check, Activity, type LucideIcon } from "lucide-react";
 import Organization from "../components/public/Organization";
 import DetailModal from "../components/public/DetailModal";
 
@@ -76,22 +75,8 @@ function FloatingShape({ className, delay = 0 }: { className: string; delay?: nu
   );
 }
 
-const whyChooseItems = [
-  "Đội ngũ bác sĩ chuyên môn cao, giàu kinh nghiệm",
-  "Trang thiết bị y tế hiện đại, tiên tiến",
-  "Quy trình khám chữa bệnh chuyên nghiệp",
-  "Thái độ phục vụ tận tâm, chu đáo",
-  "Chi phí hợp lý, minh bạch"
-];
-
 const partners = [
   "BHYT Quảng Nam", "Bảo Việt", "PTI", "PJICO", "Manulife", "Prudential"
-];
-
-const directors = [
-  { name: "BS CKII Nguyễn Thống Nhất", role: "Giám đốc", img: "/images/doctors/giamdoc-1.jpeg" },
-  { name: "BSCK II Lê Minh Dũng", role: "Phó Giám đốc", img: "/images/doctors/phogiamdoc-1.jpeg" },
-  { name: "BS CKII Nguyễn Đình Hoàng", role: "Phó Giám đốc", img: "/images/doctors/phogiamdoc-2.jpeg" }
 ];
 
 const facilities = [
@@ -110,7 +95,7 @@ const facilities = [
   {
     title: "Tiện nghi – Sang trọng",
     icon: Heart,
-    image: "/images/pages/coso-2.jpeg",
+    image: "/images/pages/vip-1.jpeg",
     items: ["Wifi miễn phí toàn bệnh viện", "Nhà hàng cao cấp", "Khu vui chơi trẻ em", "Bãi đỗ xe rộng rãi"]
   }
 ];
@@ -347,7 +332,6 @@ function ProcessCard({ item, index }: ProcessCardProps) {
 
 export default function GioiThieuPage() {
   const location = useLocation();
-  const [isExpanded, setIsExpanded] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState<{ title: string; icon: LucideIcon; image: string; items: string[] } | null>(null);
   const [selectedValue, setSelectedValue] = useState<{ image: string; icon: typeof Heart; title: string; desc: string } | null>(null);
 
@@ -533,6 +517,17 @@ export default function GioiThieuPage() {
             />
           </motion.div>
 
+          {/* Intro paragraph */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="text-ink/75 text-base md:text-lg leading-relaxed max-w-3xl mx-auto text-center mb-12"
+          >
+            Bệnh viện Đa khoa Khu vực Miền Núi Phía Bắc Quảng Nam được thành lập với sứ mệnh mang đến dịch vụ y tế chất lượng cao cho người dân khu vực. Với đội ngũ y bác sĩ 100% trình độ sau đại học, hệ thống trang thiết bị hiện đại cùng quy trình khám chữa bệnh chuẩn quốc tế, chúng tôi cam kết đồng hành vì sức khỏe và hạnh phúc của cộng đồng.
+          </motion.p>
+
           {/* Summary Cards - Always Visible */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {[
@@ -557,120 +552,32 @@ export default function GioiThieuPage() {
             ))}
           </div>
 
-          {/* Expandable Details */}
+          {/* Đối tác Bảo hiểm - Always Visible */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
-            transition={{ delay: 0.5 }}
-            className="bg-mint/30 rounded-3xl p-8"
+            transition={{ delay: 0.3 }}
+            className="bg-mint/30 rounded-3xl p-8 text-center"
           >
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              aria-expanded={isExpanded}
-              aria-controls="detail-section-content"
-              className="w-full flex items-center justify-between mb-6 cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <Info className="w-5 h-5 text-brand-green" />
-                <span className="font-display font-bold text-lg text-green-dark">Thông tin chi tiết</span>
-              </div>
-              <motion.div
-                animate={{ rotate: isExpanded ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ChevronDown className="w-5 h-5 text-green-dark" />
-              </motion.div>
-            </button>
-
-            <AnimatePresence mode="wait">
-              {isExpanded && (
-                <motion.div
-                  id="detail-section-content"
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0, height: "auto" }}
-                  exit={{ opacity: 0, y: -20, height: 0 }}
-                  transition={{ duration: reducedMotion ? 0 : 0.4 }}
-                  className="overflow-hidden"
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <Info className="w-5 h-5 text-brand-green" />
+              <h3 className="font-display font-bold text-lg text-green-dark">Đối tác Bảo hiểm</h3>
+            </div>
+            <div className="flex flex-wrap justify-center gap-3">
+              {partners.map((partner, idx) => (
+                <motion.span
+                  key={partner}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ delay: 0.4 + idx * 0.05 }}
+                  className="bg-white px-4 py-2 rounded-full text-green-dark font-semibold text-sm shadow-sm"
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Why Choose */}
-                    <div className="bg-white rounded-2xl p-6">
-                      <h4 className="font-display font-bold text-lg text-green-dark mb-4">Tại sao chọn Bệnh viện?</h4>
-                      <ul className="space-y-3">
-                        {whyChooseItems.map((item, idx) => (
-                          <motion.li
-                            key={item}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="flex items-start gap-3"
-                          >
-                            <div className="w-5 h-5 rounded-full bg-brand-green/10 flex items-center justify-center shrink-0 mt-0.5">
-                              <Check className="w-3 h-3 text-brand-green" />
-                            </div>
-                            <span className="text-gray-700 text-sm">{item}</span>
-                          </motion.li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Partners */}
-                    <div className="bg-white rounded-2xl p-6">
-                      <h4 className="font-display font-bold text-lg text-green-dark mb-4">Đối tác Bảo hiểm</h4>
-                      <div className="flex flex-wrap gap-3">
-                        {partners.map((partner, idx) => (
-                          <motion.span
-                            key={partner}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="bg-mint/50 px-4 py-2 rounded-full text-green-dark font-semibold text-sm"
-                          >
-                            {partner}
-                          </motion.span>
-                        ))}
-                      </div>
-
-                      <div className="mt-6 pt-6 border-t border-green-800/5">
-                        <h4 className="font-display font-bold text-lg text-green-dark mb-4">Ban Giám Đốc</h4>
-                        <div className="flex justify-center gap-6">
-                          {directors.map((leader, idx) => (
-                            <motion.div
-                              key={leader.name}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.3 + idx * 0.1 }}
-                              className="text-center"
-                            >
-                              <img
-                                src={leader.img}
-                                alt={leader.name}
-                                className="w-16 h-16 rounded-full mx-auto mb-2 object-cover border-2 border-brand-green/20"
-                                referrerPolicy="no-referrer"
-                                loading="lazy"
-                              />
-                              <p className="font-semibold text-ink text-xs">{leader.name}</p>
-                              <p className="text-gray-400 text-[10px]">{leader.role}</p>
-                            </motion.div>
-                          ))}
-                        </div>
-                        <div className="mt-4 text-center">
-                          <Link
-                            to="/so-do-to-chuc"
-                            className="inline-flex items-center gap-2 text-brand-green font-semibold text-sm hover:text-brand-green/80 transition-colors"
-                          >
-                            <Info size={14} />
-                            Xem sơ đồ tổ chức đầy đủ
-                            <ArrowRight size={14} />
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  {partner}
+                </motion.span>
+              ))}
+            </div>
           </motion.div>
         </div>
       </section>
@@ -728,7 +635,7 @@ export default function GioiThieuPage() {
       </section>
 
       {/* WhyChooseUs */}
-      <section className="bg-mint/30 py-24">
+      <section id="tai-sao-chon" className="bg-mint/30 py-24">
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -755,13 +662,13 @@ export default function GioiThieuPage() {
                   desc: "Hệ thống MRI, CT Scanner, máy nội soi Olympus thế hệ mới"
                 },
                 {
-                  image: "/images/pages/coso-1.jpeg",
+                  image: "/images/pages/hoso-1.jpeg",
                   icon: Heart,
                   title: "Quy trình chuyên nghiệp",
                   desc: "Quy trình khám chữa bệnh chuẩn quốc tế, an toàn và hiệu quả"
                 },
                 {
-                  image: "/images/pages/khamtongquat-1.jpeg",
+                  image: "/images/pages/nhi-1.jpeg",
                   icon: Users,
                   title: "Thái độ phục vụ tận tâm",
                   desc: "Chăm sóc người bệnh như người nhà, 24/7 mọi lúc mọi nơi"

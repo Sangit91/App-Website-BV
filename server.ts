@@ -1,5 +1,6 @@
 import app from "./server/app";
 import express from "express";
+import http from "node:http";
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs/promises";
@@ -28,10 +29,15 @@ async function cleanupOrphanTempFiles(): Promise<void> {
 const startServer = async () => {
   await cleanupOrphanTempFiles();
 
+  const httpServer = http.createServer(app);
+
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: { server: httpServer },
+      },
       appType: "spa",
     });
     app.use(vite.middlewares);
@@ -52,13 +58,13 @@ const startServer = async () => {
     app.use(errorHandler);
   }
 
-  const server = app.listen(PORT, "0.0.0.0", () => {
+  httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);
   });
 
   const shutdown = (signal: string) => {
     console.log(`Received ${signal}, shutting down gracefully...`);
-    server.close(async () => {
+    httpServer.close(async () => {
       try {
         const { prisma } = await import("./server/db/prisma");
         await prisma.$disconnect();

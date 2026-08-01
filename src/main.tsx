@@ -7,10 +7,10 @@ import { AdminProvider } from './context/AdminContext.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <HospitalProvider>
-      <AdminProvider>
+    <AdminProvider>
+      <HospitalProvider>
         <App />
-      </AdminProvider>
-    </HospitalProvider>
+      </HospitalProvider>
+    </AdminProvider>
   </StrictMode>,
 );

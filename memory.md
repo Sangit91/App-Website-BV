@@ -93,7 +93,11 @@ agents/                    # (Phase 79) 9 file tách từ AGENTS.md theo nhóm �
 
 ## ⚠️ Docker Dev Workflow — BẮT BUỘC NHỚ
 
-**Vite HMR đang BẬT trong container** (`docker-compose.yml:16` set `DISABLE_HMR=false`, `vite.config.ts:18-19` theo đó set `hmr: { clientPort: 3000 }` + `watch: {}`).
+**Vite HMR đang BẬT trong container** (`docker-compose.yml:16` set `DISABLE_HMR=false`, `vite.config.ts:18-19` theo đó set `hmr: { clientPort: 8443 }` + `watch: {}`).
+
+### Nguyên nhân
+
+Từ Phase 74: HMR từng bị tắt (`DISABLE_HMR=true`) → phải `docker restart bvdh-frontend` mỗi lần sửa code. **Phase 75 (2026-07-28)**: Bật lại HMR để dev auto-reload nhanh hơn. **Phase 89 (2026-08-01)**: Fix HMR thật sự hoạt động qua nginx — root cause là `clientPort: 3000` (cổng không public từ Phase 70) → browser cố kết nối `wss://localhost:3000` fail. Fix: `clientPort: 8443` (nginx public) + `server.ts` truyền `hmr: { server: httpServer }` để Vite WS gắn vào Express http server (8000) thay vì tự mở port riêng 24678. Verify: `check_ws.ps1` WS handshake qua nginx → `{"type":"connected"}`.
 
 ### Nguyên nhân
 
@@ -102,8 +106,9 @@ Từ Phase 74: HMR từng bị tắt (`DISABLE_HMR=true`) → phải `docker res
 ### Quy tắc hiện tại (HMR BẬT)
 
 Mỗi lần sửa file `.tsx` / `.ts` / `.css` / `vite.config.ts`:
-- **Lý tưởng:** KHÔNG cần restart container — Vite auto-transform và browser auto-reload qua WebSocket. Chỉ cần save file → browser tự refresh (hoặc Ctrl+R nếu cần force).
+- **Lý tưởng:** KHÔNG cần restart container — Vite auto-transform và browser auto-reload qua WebSocket (HMR đã verify hoạt động qua nginx 8443 từ Phase 89). Chỉ cần save file → browser tự refresh.
 - **Thực tế (HMR đôi khi silent fail):** Nếu user báo "code mới chưa có hiệu lực" dù HMR đang BẬT → **docker restart bvdh-frontend NGAY**, không debug sâu — đây là bước đầu tiên, không phải cuối cùng.
+- **🔴 Recurring (Phase 88, 2026-08-01):** Agent 2 lần quên restart sau khi sửa `src/` (fix Specialties bar + swap Provider trong main.tsx) → browser serve code cũ, gây nhầm "fix không hiệu lực". **Luật BẮT BUỘC:** sau MỌI lần sửa file trong `src/` → verify HMR connect (xem browser console không còn `WebSocket connection failed`) hoặc `docker restart bvdh-frontend` + đợi healthy trước khi báo hoàn tất.
 
 ### Khi nào CẦN restart/rebuild
 

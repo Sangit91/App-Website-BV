@@ -35,12 +35,13 @@ Nếu lint báo lỗi `server.allowedHosts` ở `vite.config.ts`, đó là pre-e
 
 ### 📌 Docker Dev Workflow — BẮT BUỘC NHỚ
 
-**Vite HMR đang BẬT trong container** (`docker-compose.yml:16` set `DISABLE_HMR=false`, `vite.config.ts:18-19` theo đó set `hmr: { clientPort: 3000 }` + `watch: {}`).
+**Vite HMR đang BẬT trong container** (`docker-compose.yml:16` set `DISABLE_HMR=false`, `vite.config.ts:18-19` theo đó set `hmr: { clientPort: 8443 }` + `watch: {}`).
 
 #### Lịch sử
 
 - Trước Phase 74: HMR từng bị tắt (`DISABLE_HMR=true`) → phải `docker restart bvdh-frontend` mỗi lần sửa code.
 - **Phase 75 (2026-07-28)**: Bật lại HMR để dev auto-reload nhanh hơn. Nginx config (`nginx/nginx.conf:133`) đã proxy WebSocket đúng cho HMR.
+- **Phase 89 (2026-08-01)**: Fix HMR thật sự hoạt động qua nginx — root cause `clientPort: 3000` (cổng không public từ Phase 70). Fix: `clientPort: 8443` (nginx public) + `server.ts` truyền `hmr: { server: httpServer }` (Vite WS gắn vào Express 8000, không mở port riêng 24678). Verify bằng `scripts/check_ws.ps1` → `{"type":"connected"}`.
 
 #### ⚠️ LUẬT CỨNG: Restart container sau mỗi lần sửa frontend
 

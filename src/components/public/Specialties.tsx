@@ -348,7 +348,7 @@ function SpecialtyCard({
             style={{ transform: "translateZ(20px)" }}
           >
             {spec.name}
-            <span className="absolute -left-2 top-1/2 w-1 h-6 bg-brand-green/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <span className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-6 bg-brand-green/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </h3>
 
           {/* Description */}

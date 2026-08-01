@@ -74,7 +74,7 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
   // Link to section mapping for mega menu navigation
   const linkSections: Record<string, string> = {
     // Gioi Thieu
-    "Tại sao lại chọn Bệnh viện": "/gioi-thieu#ve-chung-toi",
+    "Tại sao lại chọn Bệnh viện": "/gioi-thieu#tai-sao-chon",
     "Đối tác của Bệnh viện": "/gioi-thieu#ve-chung-toi",
     "Ban Giám Đốc": "/so-do-to-chuc",
     "Sơ đồ tổ chức": "/gioi-thieu#so-do-to-chuc",
