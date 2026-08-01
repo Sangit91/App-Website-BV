@@ -86,7 +86,7 @@ const sectionVariants = {
   hidden: { opacity: 0, y: 16 },
   visible: (i: number) => ({
     opacity: 1, y: 0,
-    transition: { delay: i * 0.1, duration: 0.35, ease: "easeOut" }
+    transition: { delay: i * 0.1, duration: 0.35, ease: "easeOut" as const }
   }),
 };
 
@@ -94,7 +94,7 @@ const itemVariants = {
   hidden: { opacity: 0, y: 12 },
   visible: (i: number) => ({
     opacity: 1, y: 0,
-    transition: { delay: i * 0.05, duration: 0.3, ease: "easeOut" }
+    transition: { delay: i * 0.05, duration: 0.3, ease: "easeOut" as const }
   }),
 };
 

@@ -14,7 +14,7 @@ export default defineConfig(() => {
     server: {
       host: '0.0.0.0',
       port: Number(process.env.PORT) || 3000,
-      allowedHosts: true,
+      allowedHosts: ['localhost', '.localhost', '127.0.0.1', 'bvdh.local'],
       hmr: process.env.DISABLE_HMR !== 'true' ? { clientPort: 3000 } : false,
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
       proxy: process.env.NODE_ENV === 'production' ? {} : {

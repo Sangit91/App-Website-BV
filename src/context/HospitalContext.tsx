@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Specialty, Doctor, NewsItem } from "../types";
 import { SPECIALTIES, DOCTORS, NEWS } from "../data";
+import { useAuthedFetch } from "../hooks/useAuthedFetch";
 
 export type Role = "Super Admin" | "Receptionist" | "Doctor" | "Department Admin";
 
@@ -94,6 +95,8 @@ interface HospitalContextType {
 const HospitalContext = createContext<HospitalContextType | undefined>(undefined);
 
 export function HospitalProvider({ children }: { children: React.ReactNode }) {
+  const authedFetch = useAuthedFetch();
+
   // 1. Core lists initialized from localStorage or defaults
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
@@ -435,7 +438,7 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     saveDoctors(updatedDocs);
 
     // Call API to persist to PostgreSQL
-    fetch("/api/v1/doctors", {
+    authedFetch("/api/v1/doctors", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -497,7 +500,7 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     const updated = [...specialties, newSpec];
     saveSpecialties(updated);
 
-    fetch("/api/v1/specialties", {
+    authedFetch("/api/v1/specialties", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -515,7 +518,7 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     const updated = specialties.map(s => s.id === spec.id ? spec : s);
     saveSpecialties(updated);
 
-    fetch(`/api/v1/specialties/${spec.id}`, {
+    authedFetch(`/api/v1/specialties/${spec.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -534,7 +537,7 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     const updated = specialties.filter(s => s.id !== id);
     saveSpecialties(updated);
 
-    fetch(`/api/v1/specialties/${id}`, {
+    authedFetch(`/api/v1/specialties/${id}`, {
       method: "DELETE",
     }).catch(err => console.error("Error syncing specialty deletion to API:", err));
 
@@ -550,7 +553,7 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     const updated = [newNews, ...news];
     saveNews(updated);
 
-    fetch("/api/v1/news", {
+    authedFetch("/api/v1/news", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -579,7 +582,7 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     const updated = news.map(n => n.id === newsInput.id ? newsInput : n);
     saveNews(updated);
 
-    fetch(`/api/v1/news/${newsInput.id}`, {
+    authedFetch(`/api/v1/news/${newsInput.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -609,7 +612,7 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
     const updated = news.filter(n => n.id !== id);
     saveNews(updated);
 
-    fetch(`/api/v1/news/${id}`, {
+    authedFetch(`/api/v1/news/${id}`, {
       method: "DELETE",
     }).catch(err => console.error("Error syncing news deletion to API:", err));
 
@@ -709,7 +712,7 @@ export function HospitalProvider({ children }: { children: React.ReactNode }) {
         sunday: shiftToApi[current.sunday] || "nghi",
         [day]: shiftToApi[shift] || "nghi",
       };
-      fetch(`/api/v1/doctors/${doctorId}/schedule`, {
+      authedFetch(`/api/v1/doctors/${doctorId}/schedule`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

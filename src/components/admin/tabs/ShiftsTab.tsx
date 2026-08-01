@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { useHospital } from "../../../context/HospitalContext";
 import { useAdmin } from "../../../context/AdminContext";
+import { useAuthedFetch } from "../../../hooks/useAuthedFetch";
 import { Card, Button } from "../../ui";
 import EditModal from "../ui/EditModal";
 import { Plus, Lock, CalendarRange, Sun, Moon, Bed } from "lucide-react";
@@ -11,6 +12,7 @@ export default function ShiftsTab() {
     updateScheduleShift: (doctorId: string, day: "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday", shift: "Ca Sáng" | "Ca Chiều" | "Nghỉ") => void;
   };
   const { activeUser } = useAdmin();
+  const authedFetch = useAuthedFetch();
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   const isSuperAdmin = activeUser?.role === "Super Admin";
@@ -40,7 +42,7 @@ export default function ShiftsTab() {
   const handleAddSubmit = (data: Record<string, string | number | boolean | File | null>) => {
     const doctorId = data.doctorId as string;
     if (!doctorId) return;
-    fetch(`/api/v1/doctors/${doctorId}/schedule`, {
+    authedFetch(`/api/v1/doctors/${doctorId}/schedule`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -93,7 +95,7 @@ export default function ShiftsTab() {
     visible: (i: number) => ({
       opacity: 1,
       x: 0,
-      transition: { delay: i * 0.04, duration: 0.3, ease: "easeOut" }
+      transition: { delay: i * 0.04, duration: 0.3, ease: "easeOut" as const }
     })
   };
 

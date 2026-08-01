@@ -41,13 +41,22 @@ export function resolvePhysicalPath(filePath: string): string {
 // Whitelist các thư mục uploads được phép truy cập (chống path traversal).
 const ALLOWED_UPLOAD_DIRS = [PENDING_UPLOADS_DIR, APPROVED_UPLOADS_DIR] as const;
 
+function isInside(dirAbs: string, targetAbs: string): boolean {
+  const rel = path.relative(dirAbs, targetAbs);
+  return rel === "" || (!rel.startsWith("..") && !path.isAbsolute(rel));
+}
+
 // Đảm bảo đường dẫn vật lý nằm trong 1 trong các thư mục được phép.
 // Trả về null nếu path vượt ra ngoài whitelist (path traversal attempt).
+// Hardening (H6): so sánh qua path.relative (chính xác hơn startsWith —
+// chặn case/prefix mismatch, null byte, `..` vượt khỏi whitelist).
 export function resolveSafePhysicalPath(filePath: string): string | null {
-  const resolved = resolvePhysicalPath(filePath);
-  const resolvedAbs = path.resolve(resolved);
+  if (typeof filePath !== "string" || filePath.length === 0 || filePath.includes("\0")) {
+    return null;
+  }
+  const resolvedAbs = path.resolve(resolvePhysicalPath(filePath));
   for (const allowed of ALLOWED_UPLOAD_DIRS) {
-    if (resolvedAbs.startsWith(path.resolve(allowed) + path.sep)) {
+    if (isInside(path.resolve(allowed), resolvedAbs)) {
       return resolvedAbs;
     }
   }

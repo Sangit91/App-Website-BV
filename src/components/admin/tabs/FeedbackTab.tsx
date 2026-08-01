@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Card, Badge, Button } from "../../ui";
 import { Search, MessageSquare, Star, Eye, Check, X, HeartHandshake } from "lucide-react";
+import { useAuthedFetch } from "../../../hooks/useAuthedFetch";
 
 type FeedbackStatus = 'moi' | 'dang_xu_ly' | 'da_xu_ly';
 type ServiceType = 'kham-benh' | 'noi-tru' | 'cap-cuu' | 'ban-si' | 'other';
@@ -38,11 +39,12 @@ const rowVariants = {
   hidden: { opacity: 0, x: -8 },
   visible: (i: number) => ({
     opacity: 1, x: 0,
-    transition: { delay: i * 0.03, duration: 0.25, ease: "easeOut" }
+    transition: { delay: i * 0.03, duration: 0.25, ease: "easeOut" as const }
   })
 };
 
 export default function FeedbackTab() {
+  const authedFetch = useAuthedFetch();
   const [feedbacks, setFeedbacks] = useState<FeedbackRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -55,7 +57,7 @@ export default function FeedbackTab() {
   useEffect(() => {
     const fetchFeedbacks = async () => {
     try {
-      const res = await fetch("/api/v1/feedback-requests");
+      const res = await authedFetch("/api/v1/feedback-requests");
       const data = await res.json();
       if (Array.isArray(data)) {
         const normalized = data.map(item => ({
@@ -98,7 +100,7 @@ export default function FeedbackTab() {
     if (!selectedFeedback || !responseText.trim()) return;
     setIsReplying(true);
     try {
-      const res = await fetch(`/api/v1/feedback-requests/${selectedFeedback.id}`, {
+      const res = await authedFetch(`/api/v1/feedback-requests/${selectedFeedback.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "da_xu_ly", admin_response: responseText, responded_by: "admin-001" })
@@ -113,7 +115,7 @@ export default function FeedbackTab() {
 
   const handleStatusChange = async (id: string, status: FeedbackStatus) => {
     try {
-      const res = await fetch(`/api/v1/feedback-requests/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
+      const res = await authedFetch(`/api/v1/feedback-requests/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, status, updated_at: new Date().toISOString() } : f));

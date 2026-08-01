@@ -54,9 +54,21 @@ export function verifyPassword(password: string, hash: string, salt: string): bo
   return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(computedHash));
 }
 
+function nowSeconds(): number {
+  return Math.floor(Date.now() / 1000);
+}
+
 function generateAccessToken(payload: TokenPayload): string {
   const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
-  const body = Buffer.from(JSON.stringify({ ...payload, exp: Date.now() + ACCESS_TOKEN_EXPIRY })).toString("base64url");
+  const now = nowSeconds();
+  const body = Buffer.from(
+    JSON.stringify({
+      ...payload,
+      sub: payload.userId,
+      iat: now,
+      exp: now + ACCESS_TOKEN_EXPIRY / 1000,
+    })
+  ).toString("base64url");
   const signature = crypto.createHmac("sha256", JWT_SECRET).update(`${header}.${body}`).digest("base64url");
   return `${header}.${body}.${signature}`;
 }
@@ -64,35 +76,59 @@ function generateAccessToken(payload: TokenPayload): string {
 function generateRefreshToken(payload: TokenPayload): string {
   const jti = crypto.randomUUID();
   const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
-  const body = Buffer.from(JSON.stringify({ ...payload, jti, exp: Date.now() + REFRESH_TOKEN_EXPIRY })).toString("base64url");
+  const now = nowSeconds();
+  const body = Buffer.from(
+    JSON.stringify({
+      ...payload,
+      sub: payload.userId,
+      jti,
+      iat: now,
+      exp: now + REFRESH_TOKEN_EXPIRY / 1000,
+    })
+  ).toString("base64url");
   const signature = crypto.createHmac("sha256", JWT_REFRESH_SECRET).update(`${header}.${body}`).digest("base64url");
   return `${header}.${body}.${signature}`;
 }
 
-export function verifyAccessToken(token: string): TokenPayload | null {
+function verifyTokenSignature(token: string, secret: string): Record<string, unknown> | null {
   try {
     const [header, body, signature] = token.split(".");
-    const expectedSig = crypto.createHmac("sha256", JWT_SECRET).update(`${header}.${body}`).digest("base64url");
+    const expectedSig = crypto.createHmac("sha256", secret).update(`${header}.${body}`).digest("base64url");
     if (signature !== expectedSig) return null;
-    const payload = JSON.parse(Buffer.from(body, "base64url").toString());
-    if (payload.exp < Date.now()) return null;
-    return { userId: payload.userId, username: payload.username, role: payload.role, departmentId: payload.departmentId };
+    return JSON.parse(Buffer.from(body, "base64url").toString()) as Record<string, unknown>;
   } catch {
     return null;
   }
 }
 
+function isExpired(payload: Record<string, unknown>): boolean {
+  const exp = payload.exp;
+  if (typeof exp !== "number") return true;
+  // RFC 7519: exp là NumericDate (seconds). Chấp nhận cả ms cũ để không phá session đang có.
+  const expMs = exp > 1e12 ? exp : exp * 1000;
+  return expMs < Date.now();
+}
+
+function toTokenPayload(payload: Record<string, unknown>): TokenPayload | null {
+  if (typeof payload.userId !== "string") return null;
+  return {
+    userId: payload.userId,
+    username: typeof payload.username === "string" ? payload.username : "",
+    role: typeof payload.role === "string" ? payload.role : "",
+    departmentId: typeof payload.departmentId === "string" ? payload.departmentId : undefined,
+  };
+}
+
+export function verifyAccessToken(token: string): TokenPayload | null {
+  const payload = verifyTokenSignature(token, JWT_SECRET);
+  if (!payload || isExpired(payload)) return null;
+  return toTokenPayload(payload);
+}
+
 export function verifyRefreshToken(token: string): TokenPayload | null {
-  try {
-    const [header, body, signature] = token.split(".");
-    const expectedSig = crypto.createHmac("sha256", JWT_REFRESH_SECRET).update(`${header}.${body}`).digest("base64url");
-    if (signature !== expectedSig) return null;
-    const payload = JSON.parse(Buffer.from(body, "base64url").toString());
-    if (payload.exp < Date.now()) return null;
-    return { userId: payload.userId, username: payload.username, role: payload.role, departmentId: payload.departmentId };
-  } catch {
-    return null;
-  }
+  const payload = verifyTokenSignature(token, JWT_REFRESH_SECRET);
+  if (!payload || isExpired(payload)) return null;
+  return toTokenPayload(payload);
 }
 
 function clearLoginAttempts(username: string): void {
@@ -100,9 +136,9 @@ function clearLoginAttempts(username: string): void {
 }
 
 function storeRefreshToken(token: string, userId: string): void {
-  const payload = verifyRefreshToken(token);
-  if (!payload) return;
-  const jti = (payload as TokenPayload & { jti?: string }).jti || "";
+  const raw = verifyTokenSignature(token, JWT_REFRESH_SECRET);
+  if (!raw || isExpired(raw)) return;
+  const jti = typeof raw.jti === "string" ? raw.jti : "";
   refreshTokenStore.set(token, { userId, jti, expiresAt: Date.now() + REFRESH_TOKEN_EXPIRY });
 }
 

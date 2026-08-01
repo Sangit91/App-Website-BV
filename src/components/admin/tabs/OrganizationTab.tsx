@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { useHospital } from "../../../context/HospitalContext";
 import { useAdmin } from "../../../context/AdminContext";
+import { useAuthedFetch } from "../../../hooks/useAuthedFetch";
 import { Card, Button } from "../../ui";
 import EditModal from "../ui/EditModal";
 import ConfirmDialog from "../ui/ConfirmDialog";
@@ -26,6 +27,7 @@ interface Division {
 export default function OrganizationTab() {
   const { addLog } = useHospital();
   const { activeUser } = useAdmin();
+  const authedFetch = useAuthedFetch();
   const [divisions, setDivisions] = useState<Record<string, Division>>({});
   const [selectedDivision, setSelectedDivision] = useState("");
   const [search, setSearch] = useState("");
@@ -89,13 +91,13 @@ export default function OrganizationTab() {
     try {
       let res;
       if (editing) {
-        res = await fetch("/api/v1/organization/" + editing.divisionId + "/departments/" + editing.dept.id, {
+        res = await authedFetch("/api/v1/organization/" + editing.divisionId + "/departments/" + editing.dept.id, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(form)
         });
       } else {
-        res = await fetch("/api/v1/organization/" + selectedDivision + "/departments", {
+        res = await authedFetch("/api/v1/organization/" + selectedDivision + "/departments", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(form)
@@ -119,7 +121,7 @@ export default function OrganizationTab() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      const res = await fetch("/api/v1/organization/" + deleteTarget.divisionId + "/departments/" + deleteTarget.deptId, { method: "DELETE" });
+      const res = await authedFetch("/api/v1/organization/" + deleteTarget.divisionId + "/departments/" + deleteTarget.deptId, { method: "DELETE" });
       if (res.ok) {
         await fetchData();
         addLog("Xóa khoa/phòng \"" + deleteTarget.deptName + "\" khỏi sơ đồ tổ chức");

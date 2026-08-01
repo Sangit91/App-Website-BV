@@ -76,7 +76,7 @@ const rowVariants = {
   hidden: { opacity: 0, x: -8 },
   visible: (i: number) => ({
     opacity: 1, x: 0,
-    transition: { delay: i * 0.03, duration: 0.25, ease: "easeOut" }
+    transition: { delay: i * 0.03, duration: 0.25, ease: "easeOut" as const }
   })
 };
 
@@ -97,7 +97,7 @@ export default function RecordRequestsTab() {
   useEffect(() => {
     const fetchRequests = async () => {
     try {
-      const res = await fetch("/api/v1/record-requests");
+      const res = await authedFetch("/api/v1/record-requests");
       const data = await res.json();
       if (Array.isArray(data)) {
         const normalized = data.map(item => ({
@@ -192,13 +192,13 @@ export default function RecordRequestsTab() {
       cancelled = true;
       Object.values(fetched).forEach(url => URL.revokeObjectURL(url));
     };
-  }, [detailModalOpen, selectedRequest, accessToken]);
+  }, [detailModalOpen, selectedRequest, authedFetch]);
 
   const handleSubmitResponse = async () => {
     if (!selectedRequest || !adminNotes.trim()) return;
     setIsReplying(true);
     try {
-      const res = await fetch(`/api/v1/record-requests/${selectedRequest.id}`, {
+      const res = await authedFetch(`/api/v1/record-requests/${selectedRequest.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -227,7 +227,7 @@ export default function RecordRequestsTab() {
 
   const handleStatusChange = async (id: string, status: RecordRequestStatus) => {
     try {
-      const res = await fetch(`/api/v1/record-requests/${id}`, {
+      const res = await authedFetch(`/api/v1/record-requests/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status })
