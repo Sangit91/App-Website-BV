@@ -1,46 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog } from "../../ui";
 import { Home, Zap, Heart, Users, FileText, Star, Settings } from "lucide-react";
 import { Button } from "../../../ui";
 import { useHospital } from "../../../../context/HospitalContext";
+import { useSiteContent } from "../../../../context/SiteContentContext";
+import { DEFAULT_HOME, type SiteHome, type SiteHomeHero, type SiteQuickAction, type SiteWhyChooseReason, type SiteStatistic, type SiteTestimonial } from "../../../../data/siteHome";
 
-interface QuickAction {
-  id: string;
-  title: string;
-  icon: string;
-  link: string;
-  color: string;
-}
-
-interface WhyChooseReason {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-}
-
-interface Statistic {
-  value: string;
-  label: string;
-}
-
-interface Testimonial {
-  id: string;
-  name: string;
-  role: string;
-  content: string;
-  rating?: number;
-}
-
-interface HeroData {
-  title: string;
-  subtitle: string;
-  ctaText: string;
-  ctaLink: string;
-  backgroundImage: string;
-}
+type FieldValue = string | number | boolean | File | null;
 
 export default function HomeTab() {
+  const { getSection, saveSection } = useSiteContent();
+  const { news } = useHospital();
+  const [data, setData] = useState<SiteHome>(DEFAULT_HOME);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const heroNews = news.filter(n => n.tag === "Sự kiện" || n.tag === "Thông báo")[0];
+    const fallback = heroNews?.image || "/images/bg-hero.jpg";
+    setData(getSection("home", { ...DEFAULT_HOME, hero: { ...DEFAULT_HOME.hero, backgroundImage: fallback } }));
+  }, [getSection, news]);
+
+  const persist = async (next: SiteHome) => {
+    setData(next);
+    setSaving(true);
+    try {
+      await saveSection("home", next);
+    } catch (err) {
+      console.error("Error saving home section:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -48,45 +39,44 @@ export default function HomeTab() {
           <h2 className="font-display font-bold text-2xl text-green-dark">Quản lý Trang chủ</h2>
           <p className="text-sm text-ink/60 mt-1">Cập nhật nội dung hiển thị trên trang chủ bệnh viện</p>
         </div>
-        <span className="text-xs font-bold bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full">6 Sections</span>
+        <div className="flex items-center gap-3">
+          {saving && <span className="text-xs font-semibold text-brand-green animate-pulse">Đang lưu...</span>}
+          <span className="text-xs font-bold bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full">6 Sections</span>
+        </div>
       </div>
 
-      <HeroSection />
-      <QuickActionsSection />
-      <WhyChooseUsSection />
-      <StatisticsSection />
+      <HeroSection data={data} onPersist={persist} />
+      <QuickActionsSection data={data} onPersist={persist} />
+      <WhyChooseUsSection data={data} onPersist={persist} />
+      <StatisticsSection data={data} onPersist={persist} />
       <FeaturedNewsSection />
-      <TestimonialsSection />
+      <TestimonialsSection data={data} onPersist={persist} />
     </div>
   );
 }
 
-function HeroSection() {
-  const { news } = useHospital();
+function HeroSection({ data, onPersist }: { data: SiteHome; onPersist: (next: SiteHome) => Promise<void> }) {
   const [enabled, setEnabled] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editingData, setEditingData] = useState<HeroData | null>(null);
-
-  const heroNews = news.filter(n => n.tag === "Sự kiện" || n.tag === "Thông báo")[0];
-
-  const defaultData: HeroData = {
-    title: "Chăm sóc sức khỏe toàn diện",
-    subtitle: "Bệnh viện Đa Khoa Khu Vực Miền Núi Phía Bắc Quảng Nam",
-    ctaText: "Đặt lịch khám ngay",
-    ctaLink: "/dat-lich",
-    backgroundImage: heroNews?.image || "/images/bg-hero.jpg"
-  };
-
-  const [data, setData] = useState<HeroData>(defaultData);
+  const [editingData, setEditingData] = useState<SiteHomeHero | null>(null);
+  const hero = data.hero;
 
   const handleOpenEdit = () => {
-    setEditingData(data);
+    setEditingData(hero);
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
-    setData(prev => ({ ...prev, ...formData }));
+  const handleSave = async (formData: Record<string, FieldValue>) => {
+    const updatedHero: SiteHomeHero = {
+      title: (formData.title as string) || "",
+      subtitle: (formData.subtitle as string) || "",
+      ctaText: (formData.ctaText as string) || "",
+      ctaLink: (formData.ctaLink as string) || "/",
+      backgroundImage: ((formData.backgroundImage as string) || "").trim()
+    };
+    await onPersist({ ...data, hero: { ...hero, ...updatedHero } });
     setIsEditOpen(false);
+    setEditingData(null);
   };
 
   return (
@@ -113,20 +103,20 @@ function HeroSection() {
             <div className="space-y-4">
               <div>
                 <label className="text-[10px] font-bold text-green-dark uppercase tracking-wider">Tiêu đề chính</label>
-                <p className="text-sm text-green-dark font-semibold mt-1">{data.title}</p>
+                <p className="text-sm text-green-dark font-semibold mt-1">{hero.title}</p>
               </div>
               <div>
                 <label className="text-[10px] font-bold text-green-dark uppercase tracking-wider">Phụ đề</label>
-                <p className="text-xs text-ink/70 mt-1">{data.subtitle}</p>
+                <p className="text-xs text-ink/70 mt-1">{hero.subtitle}</p>
               </div>
               <div>
                 <label className="text-[10px] font-bold text-green-dark uppercase tracking-wider">Nút CTA</label>
-                <p className="text-xs text-ink/70 mt-1">{data.ctaText} → {data.ctaLink}</p>
+                <p className="text-xs text-ink/70 mt-1">{hero.ctaText} → {hero.ctaLink}</p>
               </div>
             </div>
             <div className="relative h-40 rounded-xl overflow-hidden bg-gray-100">
-              {data.backgroundImage ? (
-                <img src={data.backgroundImage} alt="Hero background" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              {hero.backgroundImage ? (
+                <img src={hero.backgroundImage} alt="Hero background" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">
                   <Home size={32} />
@@ -142,7 +132,7 @@ function HeroSection() {
 
       <EditModal
         isOpen={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
+        onClose={() => { setIsEditOpen(false); setEditingData(null); }}
         onSubmit={handleSave}
         title="Chỉnh sửa Hero Section"
         fields={[
@@ -152,17 +142,18 @@ function HeroSection() {
           { name: "ctaLink", label: "Link nút bấm", description: "Đường dẫn khi click", hint: "Bắt đầu bằng / VD: /dat-lich, /chuyen-khoa, /lien-he" },
           { name: "backgroundImage", label: "Ảnh nền", type: "image", description: "Ảnh hero section" }
         ]}
-        initialData={(editingData || data) as unknown as Record<string, string | number | boolean | File | null>}
+        initialData={(editingData || hero) as unknown as Record<string, FieldValue>}
       />
     </>
   );
 }
 
-function QuickActionsSection() {
+function QuickActionsSection({ data, onPersist }: { data: SiteHome; onPersist: (next: SiteHome) => Promise<void> }) {
   const [enabled, setEnabled] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [editingAction, setEditingAction] = useState<QuickAction | null>(null);
+  const [editingAction, setEditingAction] = useState<SiteQuickAction | null>(null);
+  const actions = data.quickActions;
 
   const iconOptions = [
     { value: "calendar", label: "📅 Lịch khám" },
@@ -182,18 +173,9 @@ function QuickActionsSection() {
     { value: "from-teal-500 to-cyan-600", label: "Teal" }
   ];
 
-  const [actions, setActions] = useState<QuickAction[]>([
-    { id: "1", title: "Đặt lịch khám", icon: "calendar", link: "/dat-lich", color: "from-brand-green to-emerald-600" },
-    { id: "2", title: "Chuyên khoa", icon: "stethoscope", link: "/chuyen-khoa", color: "from-blue-500 to-cyan-600" },
-    { id: "3", title: "Bảng giá dịch vụ", icon: "document", link: "/dich-vu", color: "from-purple-500 to-violet-600" },
-    { id: "4", title: "Tin tức", icon: "newspaper", link: "/tin-tuc", color: "from-rose-500 to-pink-600" },
-    { id: "5", title: "Hướng dẫn", icon: "book", link: "/cho-benh-nhan", color: "from-amber-500 to-orange-600" },
-    { id: "6", title: "Liên hệ", icon: "phone", link: "/lien-he", color: "from-teal-500 to-cyan-600" }
-  ]);
-
   const getIconLabel = (iconValue: string) => iconOptions.find(o => o.value === iconValue)?.label || iconValue;
 
-  const handleOpenEdit = (action: QuickAction | null = null) => {
+  const handleOpenEdit = (action: SiteQuickAction | null = null) => {
     setEditingAction(action || {
       id: crypto.randomUUID(),
       title: "",
@@ -204,18 +186,27 @@ function QuickActionsSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
-    if (editingAction && actions.find(a => a.id === editingAction.id)) {
-      setActions(prev => prev.map(a => a.id === editingAction.id ? { ...a, ...formData } : a));
-    } else {
-      setActions(prev => [...prev, { id: crypto.randomUUID(), ...formData } as QuickAction]);
-    }
+  const handleSave = async (formData: Record<string, FieldValue>) => {
+    const updatedAction: SiteQuickAction = {
+      id: editingAction?.id || crypto.randomUUID(),
+      title: (formData.title as string) || "",
+      icon: (formData.icon as string) || "calendar",
+      link: (formData.link as string) || "/",
+      color: (formData.color as string) || "from-brand-green to-emerald-600"
+    };
+    const next: SiteHome = {
+      ...data,
+      quickActions: actions.find(a => a.id === editingAction?.id)
+        ? actions.map(a => (a.id === editingAction?.id ? { ...a, ...updatedAction } : a))
+        : [...actions, updatedAction]
+    };
+    await onPersist(next);
     setIsEditOpen(false);
     setEditingAction(null);
   };
 
-  const handleDelete = (id: string) => {
-    setActions(prev => prev.filter(a => a.id !== id));
+  const handleDelete = async (id: string) => {
+    await onPersist({ ...data, quickActions: actions.filter(a => a.id !== id) });
     setDeleteConfirm(null);
   };
 
@@ -229,6 +220,11 @@ function QuickActionsSection() {
         onEnabledChange={setEnabled}
         badge={`${actions.length} items`}
         badgeColor="blue"
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
+            Thêm Action
+          </Button>
+        }
       >
         <div className="p-5">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
@@ -263,7 +259,7 @@ function QuickActionsSection() {
           { name: "link", label: "Đường dẫn", required: true, description: "Link khi click vào nút", hint: "Bắt đầu bằng / VD: /dat-lich, /tin-tuc" },
           { name: "color", label: "Màu sắc", type: "select", options: colorOptions, description: "Màu gradient của nút" }
         ]}
-        initialData={(editingAction || {}) as Record<string, string | number | boolean | File | null>}
+        initialData={(editingAction || {}) as Record<string, FieldValue>}
       />
 
       <ConfirmDialog
@@ -279,11 +275,12 @@ function QuickActionsSection() {
   );
 }
 
-function WhyChooseUsSection() {
+function WhyChooseUsSection({ data, onPersist }: { data: SiteHome; onPersist: (next: SiteHome) => Promise<void> }) {
   const [enabled, setEnabled] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [editingReason, setEditingReason] = useState<WhyChooseReason | null>(null);
+  const [editingReason, setEditingReason] = useState<SiteWhyChooseReason | null>(null);
+  const reasons = data.whyChoose;
 
   const iconOptions = [
     { value: "user-check", label: "👨‍⚕️ Bác sĩ" },
@@ -294,16 +291,9 @@ function WhyChooseUsSection() {
     { value: "clock", label: "⏰ Nhanh chóng" }
   ];
 
-  const [reasons, setReasons] = useState<WhyChooseReason[]>([
-    { id: "1", title: "Đội ngũ bác sĩ chuyên môn cao", description: "Bác sĩ có nhiều năm kinh nghiệm và chứng chỉ quốc tế", icon: "user-check" },
-    { id: "2", title: "Trang thiết bị hiện đại", description: "Hệ thống máy móc và thiết bị y tế tiên tiến nhất", icon: "activity" },
-    { id: "3", title: "Quy trình khám chuẩn quốc tế", description: "Áp dụng quy trình JCI đảm bảo chất lượng", icon: "clipboard" },
-    { id: "4", title: "Chăm sóc tận tâm 24/7", description: "Đội ngũ y tá luôn sẵn sàng hỗ trợ mọi lúc", icon: "heart" }
-  ]);
-
   const getIconEmoji = (iconValue: string) => iconOptions.find(o => o.value === iconValue)?.label?.match(/[\p{Emoji}]/u)?.[0] || "•";
 
-  const handleOpenEdit = (reason: WhyChooseReason | null = null) => {
+  const handleOpenEdit = (reason: SiteWhyChooseReason | null = null) => {
     setEditingReason(reason || {
       id: crypto.randomUUID(),
       title: "",
@@ -313,18 +303,26 @@ function WhyChooseUsSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
-    if (editingReason && reasons.find(r => r.id === editingReason.id)) {
-      setReasons(prev => prev.map(r => r.id === editingReason.id ? { ...r, ...formData } : r));
-    } else {
-      setReasons(prev => [...prev, { id: crypto.randomUUID(), ...formData } as WhyChooseReason]);
-    }
+  const handleSave = async (formData: Record<string, FieldValue>) => {
+    const updatedReason: SiteWhyChooseReason = {
+      id: editingReason?.id || crypto.randomUUID(),
+      title: (formData.title as string) || "",
+      description: (formData.description as string) || "",
+      icon: (formData.icon as string) || "user-check"
+    };
+    const next: SiteHome = {
+      ...data,
+      whyChoose: reasons.find(r => r.id === editingReason?.id)
+        ? reasons.map(r => (r.id === editingReason?.id ? { ...r, ...updatedReason } : r))
+        : [...reasons, updatedReason]
+    };
+    await onPersist(next);
     setIsEditOpen(false);
     setEditingReason(null);
   };
 
-  const handleDelete = (id: string) => {
-    setReasons(prev => prev.filter(r => r.id !== id));
+  const handleDelete = async (id: string) => {
+    await onPersist({ ...data, whyChoose: reasons.filter(r => r.id !== id) });
     setDeleteConfirm(null);
   };
 
@@ -338,6 +336,11 @@ function WhyChooseUsSection() {
         onEnabledChange={setEnabled}
         badge={`${reasons.length} items`}
         badgeColor="amber"
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
+            Thêm lý do
+          </Button>
+        }
       >
         <div className="p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -373,7 +376,7 @@ function WhyChooseUsSection() {
           { name: "description", label: "Mô tả", type: "textarea", rows: 2, description: "Mô tả chi tiết", hint: "Mô tả ngắn 1-2 câu, dễ hiểu" },
           { name: "icon", label: "Icon", type: "select", options: iconOptions, description: "Icon đại diện cho lý do" }
         ]}
-        initialData={(editingReason || {}) as Record<string, string | number | boolean | File | null>}
+        initialData={(editingReason || {}) as Record<string, FieldValue>}
       />
 
       <ConfirmDialog
@@ -389,30 +392,27 @@ function WhyChooseUsSection() {
   );
 }
 
-function StatisticsSection() {
+function StatisticsSection({ data, onPersist }: { data: SiteHome; onPersist: (next: SiteHome) => Promise<void> }) {
   const [enabled, setEnabled] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editingStat, setEditingStat] = useState<Statistic | null>(null);
+  const [editingStat, setEditingStat] = useState<SiteStatistic | null>(null);
+  const stats = data.stats;
 
-  const [stats, setStats] = useState<Statistic[]>([
-    { value: "15+", label: "Năm kinh nghiệm" },
-    { value: "50+", label: "Bác sĩ chuyên khoa" },
-    { value: "1000+", label: "Bệnh nhân/tháng" },
-    { value: "20+", label: "Chuyên khoa" }
-  ]);
-
-  const handleOpenEdit = (stat: Statistic) => {
+  const handleOpenEdit = (stat: SiteStatistic) => {
     setEditingStat(stat);
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
-    if (editingStat) {
-      const idx = stats.findIndex(s => s.label === editingStat.label);
-      if (idx !== -1) {
-        setStats(prev => prev.map((s, i) => i === idx ? { ...s, ...formData } : s));
-      }
-    }
+  const handleSave = async (formData: Record<string, FieldValue>) => {
+    if (!editingStat) return;
+    const updatedStat: SiteStatistic = {
+      value: (formData.value as string) || "",
+      label: (formData.label as string) || ""
+    };
+    await onPersist({
+      ...data,
+      stats: stats.map(s => (s.label === editingStat.label ? { ...s, ...updatedStat } : s))
+    });
     setIsEditOpen(false);
     setEditingStat(null);
   };
@@ -454,7 +454,7 @@ function StatisticsSection() {
           { name: "value", label: "Giá trị", required: true, description: "Số liệu thống kê", hint: "VD: 100+, 50+, 1M+", prefix: "" },
           { name: "label", label: "Nhãn", required: true, description: "Mô tả số liệu", hint: "VD: Năm kinh nghiệm, Bác sĩ chuyên khoa" }
         ]}
-        initialData={(editingStat || {}) as Record<string, string | number | boolean | File | null>}
+        initialData={(editingStat || {}) as Record<string, FieldValue>}
       />
     </>
   );
@@ -494,19 +494,14 @@ function FeaturedNewsSection() {
   );
 }
 
-function TestimonialsSection() {
+function TestimonialsSection({ data, onPersist }: { data: SiteHome; onPersist: (next: SiteHome) => Promise<void> }) {
   const [enabled, setEnabled] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
+  const [editingTestimonial, setEditingTestimonial] = useState<SiteTestimonial | null>(null);
+  const testimonials = data.testimonials;
 
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([
-    { id: "1", name: "Nguyễn Văn A", role: "Bệnh nhân", content: "Đội ngũ bác sĩ rất tận tâm, chăm sóc bệnh nhân chu đáo. Tôi rất hài lòng với dịch vụ tại đây.", rating: 5 },
-    { id: "2", name: "Trần Thị B", role: "Người nhà bệnh nhân", content: "Bệnh viện sạch sẽ, hiện đại. Quy trình khám nhanh chóng, không phải chờ đợi lâu.", rating: 5 },
-    { id: "3", name: "Lê Văn C", role: "Bệnh nhân", content: "Bác sĩ giỏi, máy móc thiết bị hiện đại. Chi phí hợp lý, phù hợp với người dân.", rating: 4 }
-  ]);
-
-  const handleOpenEdit = (testimonial: Testimonial | null = null) => {
+  const handleOpenEdit = (testimonial: SiteTestimonial | null = null) => {
     setEditingTestimonial(testimonial || {
       id: crypto.randomUUID(),
       name: "",
@@ -517,18 +512,27 @@ function TestimonialsSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
-    if (editingTestimonial && testimonials.find(t => t.id === editingTestimonial.id)) {
-      setTestimonials(prev => prev.map(t => t.id === editingTestimonial.id ? { ...t, ...formData } : t));
-    } else {
-      setTestimonials(prev => [...prev, { id: crypto.randomUUID(), ...formData, rating: 5 } as Testimonial]);
-    }
+  const handleSave = async (formData: Record<string, FieldValue>) => {
+    const updatedTestimonial: SiteTestimonial = {
+      id: editingTestimonial?.id || crypto.randomUUID(),
+      name: (formData.name as string) || "",
+      role: (formData.role as string) || "",
+      content: (formData.content as string) || "",
+      rating: typeof formData.rating === "number" ? formData.rating : editingTestimonial?.rating || 5
+    };
+    const next: SiteHome = {
+      ...data,
+      testimonials: testimonials.find(t => t.id === editingTestimonial?.id)
+        ? testimonials.map(t => (t.id === editingTestimonial?.id ? { ...t, ...updatedTestimonial } : t))
+        : [...testimonials, updatedTestimonial]
+    };
+    await onPersist(next);
     setIsEditOpen(false);
     setEditingTestimonial(null);
   };
 
-  const handleDelete = (id: string) => {
-    setTestimonials(prev => prev.filter(t => t.id !== id));
+  const handleDelete = async (id: string) => {
+    await onPersist({ ...data, testimonials: testimonials.filter(t => t.id !== id) });
     setDeleteConfirm(null);
   };
 
@@ -542,6 +546,11 @@ function TestimonialsSection() {
         onEnabledChange={setEnabled}
         badge={`${testimonials.length} items`}
         badgeColor="rose"
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
+            Thêm cảm nhận
+          </Button>
+        }
       >
         <div className="p-5">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -582,7 +591,7 @@ function TestimonialsSection() {
           { name: "role", label: "Vai trò", required: true, description: "Vai trò/đối tượng", hint: "VD: Bệnh nhân, Người nhà bệnh nhân, Khách hàng" },
           { name: "content", label: "Nội dung", type: "textarea", rows: 3, required: true, description: "Nội dung cảm nhận", hint: "Viết cảm nhận thực tế, ngắn gọn 2-3 câu" }
         ]}
-        initialData={(editingTestimonial || {}) as Record<string, string | number | boolean | File | null>}
+        initialData={(editingTestimonial || {}) as Record<string, FieldValue>}
       />
 
       <ConfirmDialog

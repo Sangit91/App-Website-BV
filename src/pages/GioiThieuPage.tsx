@@ -5,6 +5,8 @@ import { motion, useScroll, useTransform, useInView, useMotionValue } from "fram
 import { Info, Users, Building2, Award, Heart, Check, Activity, type LucideIcon } from "lucide-react";
 import Organization from "../components/public/Organization";
 import DetailModal from "../components/public/DetailModal";
+import { useSiteContent } from "../context/SiteContentContext";
+import { DEFAULT_ABOUT } from "../data/siteAbout";
 
 function useReducedMotion() {
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -75,30 +77,8 @@ function FloatingShape({ className, delay = 0 }: { className: string; delay?: nu
   );
 }
 
-const partners = [
-  "BHYT Quảng Nam", "Bảo Việt", "PTI", "PJICO", "Manulife", "Prudential"
-];
-
-const facilities = [
-  {
-    title: "Cơ sở – Trang thiết bị",
-    icon: Building2,
-    image: "/images/pages/coso-1.jpeg",
-    items: ["5 phòng mổ hiện đại", "200 giường bệnh", "Thiết bị MRI, CT Scanner", "Phòng ICU với 20 giường"]
-  },
-  {
-    title: "Hình ảnh bệnh viện",
-    icon: Award,
-    image: "/images/pages/coso-2.jpeg",
-    items: ["Không gian sạch sẽ, thoáng mát", "Khu vườn cây xanh mát", "Phòng chờ hiện đại", "Khuôn viên rộng 5 hecta"]
-  },
-  {
-    title: "Tiện nghi – Sang trọng",
-    icon: Heart,
-    image: "/images/pages/vip-1.jpeg",
-    items: ["Wifi miễn phí toàn bệnh viện", "Nhà hàng cao cấp", "Khu vui chơi trẻ em", "Bãi đỗ xe rộng rãi"]
-  }
-];
+const facilityIcons: LucideIcon[] = [Building2, Award, Heart];
+const whyChooseIcons: LucideIcon[] = [Activity, Building2, Heart, Users];
 
 const careProcesses = [
   {
@@ -334,6 +314,22 @@ export default function GioiThieuPage() {
   const location = useLocation();
   const [selectedFeature, setSelectedFeature] = useState<{ title: string; icon: LucideIcon; image: string; items: string[] } | null>(null);
   const [selectedValue, setSelectedValue] = useState<{ image: string; icon: typeof Heart; title: string; desc: string } | null>(null);
+
+  const { getSection } = useSiteContent();
+  const about = getSection("about", DEFAULT_ABOUT);
+  const partners = about.partners;
+  const facilities = about.facilities.map((f, idx) => ({
+    title: f.title,
+    icon: facilityIcons[idx % facilityIcons.length],
+    image: f.image,
+    items: f.items,
+  }));
+  const whyChooseItems = about.whyChoose.map((item, idx) => ({
+    image: item.image,
+    icon: whyChooseIcons[idx % whyChooseIcons.length],
+    title: item.title,
+    desc: item.desc,
+  }));
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -648,32 +644,7 @@ export default function GioiThieuPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                {
-                  image: "/images/components/why-choose-1.jpeg",
-                  icon: Activity,
-                  title: "Đội ngũ bác sĩ chuyên môn cao",
-                  desc: "100% bác sĩ có trình độ sau đại học, giàu kinh nghiệm và y đức"
-                },
-                {
-                  image: "/images/components/why-choose-2.jpeg",
-                  icon: Building2,
-                  title: "Trang thiết bị hiện đại",
-                  desc: "Hệ thống MRI, CT Scanner, máy nội soi Olympus thế hệ mới"
-                },
-                {
-                  image: "/images/pages/hoso-1.jpeg",
-                  icon: Heart,
-                  title: "Quy trình chuyên nghiệp",
-                  desc: "Quy trình khám chữa bệnh chuẩn quốc tế, an toàn và hiệu quả"
-                },
-                {
-                  image: "/images/pages/nhi-1.jpeg",
-                  icon: Users,
-                  title: "Thái độ phục vụ tận tâm",
-                  desc: "Chăm sóc người bệnh như người nhà, 24/7 mọi lúc mọi nơi"
-                }
-              ].map((item, idx) => {
+              {whyChooseItems.map((item, idx) => {
                 const Icon = item.icon;
                 const colors = [
                   "from-brand-green/80 to-green-800/90",

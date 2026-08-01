@@ -2,6 +2,8 @@ import React, { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { MapPin, Phone, Mail, Clock, Heart, Award, ShieldCheck, ArrowUpRight } from "lucide-react";
 import HospitalLogo from "./HospitalLogo";
+import { useSiteContent } from "../../context/SiteContentContext";
+import { DEFAULT_CONTACT } from "../../data/siteContact";
 
 interface FooterProps {
   onScrollToSection: (id: string) => void;
@@ -10,6 +12,8 @@ interface FooterProps {
 
 export default function Footer({ onScrollToSection, onOpenAdmin }: FooterProps) {
   const currentYear = 2026;
+  const { getSection } = useSiteContent();
+  const contact = getSection("contact", DEFAULT_CONTACT);
 
   const quickLinks = [
     { label: "Giới thiệu bệnh viện", id: "gioi-thieu" },
@@ -145,23 +149,23 @@ export default function Footer({ onScrollToSection, onOpenAdmin }: FooterProps) 
           <ul className="space-y-3">
             <li className="flex items-start gap-2 text-xs md:text-[13px] text-mint/85">
               <MapPin size={16} className="text-peach shrink-0 mt-0.5" />
-              <span>107 Quang Trung - xã Đại Lộc - thành phố Đà Nẵng.</span>
+              <span>{contact.address}.</span>
             </li>
             <li className="flex items-center gap-2 text-xs md:text-[13px] text-mint/85">
               <Phone size={15} className="text-brand-green shrink-0" />
-              <span>Cấp cứu: 02353.747.432</span>
+              <span>Cấp cứu: {contact.emergency}</span>
             </li>
             <li className="flex items-center gap-2 text-xs md:text-[13px] text-mint/85">
               <Phone size={15} className="text-brand-green shrink-0" />
-              <span>Đường dây nóng: 02353.747.432</span>
+              <span>Đường dây nóng: {contact.hotline}</span>
             </li>
             <li className="flex items-center gap-2 text-xs md:text-[13px] text-mint/85">
               <Mail size={15} className="text-peach shrink-0" />
-              <span className="break-all">bvdkbacquangnam@gmail.com</span>
+              <span className="break-all">{contact.email}</span>
             </li>
             <li className="flex items-center gap-2 text-xs md:text-[13px] text-mint/85">
               <Clock size={15} className="text-peach shrink-0" />
-              <span>Khám BHYT: Thứ 2 đến Thứ 6</span>
+              <span>{contact.workingHours}</span>
             </li>
           </ul>
         </motion.div>

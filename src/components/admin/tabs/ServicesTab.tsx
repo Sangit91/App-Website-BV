@@ -1,52 +1,43 @@
-import { useState } from "react";
-import { Briefcase, List, Calendar, Home, Syringe, Shield, Heart, Truck, Plane } from "lucide-react";
-import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog, ImageUploader } from "../ui";
-import { Button } from "../../ui";
-import { LucideIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Briefcase, List } from "lucide-react";
+import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog } from "../ui";
+import { useSiteContent } from "../../../context/SiteContentContext";
+import {
+  DEFAULT_SERVICES,
+  SERVICE_ICON_MAP,
+  SERVICE_COLOR_OPTIONS,
+  type SiteServiceCategory,
+  type SiteServiceItem,
+} from "../../../data/siteServices";
 
-const ICON_MAP: Record<string, LucideIcon> = {
-  Calendar, Home, Syringe, Shield, Heart, Truck, Plane
-};
-
-const DEFAULT_CATEGORIES = [
-  { key: "dich-vu-tron-goi", title: "Dịch vụ trọn gói", icon: "Calendar", color: "from-orange-500 to-amber-600" },
-  { key: "tai-nha-van-chuyen", title: "Tại nhà & Vận chuyển", icon: "Home", color: "from-blue-500 to-cyan-600" },
-  { key: "tiem-chung", title: "Tiêm chủng", icon: "Syringe", color: "from-green-500 to-emerald-600" },
-  { key: "bao-hiem-vip", title: "Bảo hiểm & VIP", icon: "Shield", color: "from-purple-500 to-violet-600" },
-  { key: "goi-kham", title: "Gói khám", icon: "Heart", color: "from-pink-500 to-rose-600" }
-];
-
-const DEFAULT_SERVICES: Record<string, ServiceItem[]> = {
-  "dich-vu-tron-goi": [
-    { id: "1", name: "Dịch vụ trọn gói", desc: "Gói khám, điều trị toàn diện", price: "Từ 5.000.000đ", img: "/images/pages/vip-1.jpeg", highlight: true },
-    { id: "2", name: "Kiến thức thai sản", desc: "Tư vấn, chăm sóc mẹ và bé", price: "Miễn phí", img: "/images/pages/sanphukhoa-1.jpeg" },
-    { id: "3", name: "Điều trị vô sinh, hiếm muộn", desc: "IVF, IUI, các phương pháp hỗ trợ", price: "Từ 15.000.000đ", img: "/images/pages/timmach-1.jpeg" }
-  ],
-  "tai-nha-van-chuyen": [
-    { id: "4", name: "Dịch vụ khám tại nhà", desc: "Bác sĩ đến tận nhà khám", price: "Từ 500.000đ", img: "/images/pages/tainha-1.jpeg", highlight: true },
-    { id: "5", name: "Dịch vụ vận chuyển cấp cứu", desc: "Xe cấp cứu 24/7", price: "Theo km", img: "/images/pages/vanchuyen-1.jpeg" }
-  ],
-  "tiem-chung": [
-    { id: "6", name: "Tiêm chủng – Vaccine", desc: "Đầy đủ các loại vaccine", price: "Từ 200.000đ", img: "/images/pages/tiemchung-1.jpeg", highlight: true }
-  ],
-  "bao-hiem-vip": [
-    { id: "7", name: "Bảo hiểm Bệnh viện", desc: "Các gói bảo hiểm y tế", price: "Theo gói", img: "/images/pages/bhyt-1.jpeg", highlight: true }
-  ],
-  "goi-kham": [
-    { id: "8", name: "Gói khám sức khỏe định kỳ", desc: "Tổng quát, toàn diện", price: "Từ 1.500.000đ", img: "/images/pages/khamtongquat-1.jpeg", highlight: true }
-  ]
-};
-
-interface ServiceItem {
-  id: string;
-  name: string;
-  desc: string;
-  price: string;
-  img: string;
-  highlight?: boolean;
-}
+type FieldValue = string | number | boolean | File | null;
 
 export default function ServicesTab() {
+  const { getSection, saveSection } = useSiteContent();
+  const [data, setData] = useState<SiteServiceCategory[]>(DEFAULT_SERVICES);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const loaded = getSection("services", DEFAULT_SERVICES);
+    const normalized = loaded.map(cat => ({
+      ...cat,
+      items: cat.items.map(item => ({ ...item, id: item.id || `s-${crypto.randomUUID()}` })),
+    }));
+    setData(normalized);
+  }, [getSection]);
+
+  const persist = async (next: SiteServiceCategory[]) => {
+    setData(next);
+    setSaving(true);
+    try {
+      await saveSection("services", next);
+    } catch (err) {
+      console.error("Error saving services section:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -54,37 +45,43 @@ export default function ServicesTab() {
           <h2 className="font-display font-bold text-2xl text-green-dark">Quản lý Dịch vụ</h2>
           <p className="text-sm text-ink/60 mt-1">Cập nhật nội dung trang Dịch vụ bệnh viện</p>
         </div>
-        <span className="text-xs font-bold bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full">5 Categories</span>
+        <div className="flex items-center gap-3">
+          {saving && <span className="text-xs font-semibold text-brand-green animate-pulse">Đang lưu...</span>}
+          <span className="text-xs font-bold bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full">{data.length} Categories</span>
+        </div>
       </div>
 
-      <ServiceCategoriesSection />
-      <ServiceItemsSection />
+      <ServiceCategoriesSection data={data} onPersist={persist} />
+      <ServiceItemsSection data={data} onPersist={persist} />
     </div>
   );
 }
 
-function ServiceCategoriesSection() {
-  const [enabled, setEnabled] = useState(true);
+function ServiceCategoriesSection({ data, onPersist }: { data: SiteServiceCategory[]; onPersist: (next: SiteServiceCategory[]) => Promise<void> }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<typeof DEFAULT_CATEGORIES[0] | null>(null);
+  const [editingCategory, setEditingCategory] = useState<SiteServiceCategory | null>(null);
 
-  const iconOptions = Object.keys(ICON_MAP).map(key => ({ value: key, label: key }));
+  const iconOptions = Object.keys(SERVICE_ICON_MAP).map(key => ({ value: key, label: key }));
 
-  const colorOptions = [
-    { value: "from-orange-500 to-amber-600", label: "Cam" },
-    { value: "from-blue-500 to-cyan-600", label: "Xanh dương" },
-    { value: "from-green-500 to-emerald-600", label: "Xanh lá" },
-    { value: "from-purple-500 to-violet-600", label: "Tím" },
-    { value: "from-pink-500 to-rose-600", label: "Hồng" },
-    { value: "from-teal-500 to-cyan-600", label: "Teal" }
-  ];
-
-  const handleOpenEdit = (category: typeof DEFAULT_CATEGORIES[0] | null = null) => {
-    setEditingCategory(category || DEFAULT_CATEGORIES[0]);
+  const handleOpenEdit = (category: SiteServiceCategory | null = null) => {
+    setEditingCategory(category || data[0]);
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
+  const handleSave = async (formData: Record<string, FieldValue>) => {
+    if (!editingCategory) return;
+    const next = data.map(cat =>
+      cat.key === editingCategory.key
+        ? {
+            ...cat,
+            title: (formData.title as string) || cat.title,
+            icon: (formData.icon as string) || cat.icon,
+            color: (formData.color as string) || cat.color,
+            description: (formData.description as string) || cat.description,
+          }
+        : cat
+    );
+    await onPersist(next);
     setIsEditOpen(false);
     setEditingCategory(null);
   };
@@ -95,15 +92,13 @@ function ServiceCategoriesSection() {
         title="Danh mục dịch vụ"
         description="Các loại dịch vụ của bệnh viện"
         icon={<List size={20} />}
-        enabled={enabled}
-        onEnabledChange={setEnabled}
-        badge="5 danh mục"
+        badge={`${data.length} danh mục`}
         badgeColor="green"
       >
         <div className="p-5">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {DEFAULT_CATEGORIES.map((cat, idx) => {
-              const Icon = ICON_MAP[cat.icon] || Calendar;
+            {data.map((cat, idx) => {
+              const Icon = SERVICE_ICON_MAP[cat.icon] || SERVICE_ICON_MAP.Calendar;
               return (
                 <ItemCard
                   key={cat.key}
@@ -131,26 +126,25 @@ function ServiceCategoriesSection() {
         fields={[
           { name: "title", label: "Tên danh mục", required: true, description: "Tên loại dịch vụ", hint: "VD: Dịch vụ trọn gói, Tiêm chủng, Gói khám" },
           { name: "icon", label: "Icon", type: "select", options: iconOptions, description: "Icon đại diện" },
-          { name: "color", label: "Màu sắc", type: "select", options: colorOptions, description: "Màu gradient hiển thị" }
+          { name: "color", label: "Màu sắc", type: "select", options: SERVICE_COLOR_OPTIONS, description: "Màu gradient hiển thị" },
+          { name: "description", label: "Mô tả", type: "textarea", rows: 2, description: "Mô tả danh mục hiển thị trên trang công khai" }
         ]}
-        initialData={editingCategory || {}}
+        initialData={(editingCategory || {}) as Record<string, FieldValue>}
       />
     </>
   );
 }
 
-function ServiceItemsSection() {
-  const [enabled, setEnabled] = useState(true);
-  const [activeCategory, setActiveCategory] = useState("dich-vu-tron-goi");
+function ServiceItemsSection({ data, onPersist }: { data: SiteServiceCategory[]; onPersist: (next: SiteServiceCategory[]) => Promise<void> }) {
+  const [activeCategory, setActiveCategory] = useState(data[0]?.key || "");
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [editingService, setEditingService] = useState<ServiceItem | null>(null);
-  const [services, setServices] = useState<Record<string, ServiceItem[]>>(DEFAULT_SERVICES);
+  const [editingService, setEditingService] = useState<SiteServiceItem | null>(null);
 
-  const currentServices = services[activeCategory] || [];
-  const currentCategory = DEFAULT_CATEGORIES.find(c => c.key === activeCategory) || DEFAULT_CATEGORIES[0];
+  const currentCategory = data.find(c => c.key === activeCategory) || data[0];
+  const currentServices = currentCategory?.items || [];
 
-  const handleOpenEdit = (service: ServiceItem | null = null) => {
+  const handleOpenEdit = (service: SiteServiceItem | null = null) => {
     setEditingService(service || {
       id: crypto.randomUUID(),
       name: "",
@@ -162,44 +156,56 @@ function ServiceItemsSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
-    if (editingService && currentServices.find(s => s.id === editingService.id)) {
-      setServices(prev => ({
-        ...prev,
-        [activeCategory]: prev[activeCategory].map(s => s.id === editingService.id ? { ...s, ...formData } : s)
-      }));
-    } else {
-      setServices(prev => ({
-        ...prev,
-        [activeCategory]: [...(prev[activeCategory] || []), { id: crypto.randomUUID(), ...formData, highlight: false } as ServiceItem]
-      }));
-    }
+  const handleSave = async (formData: Record<string, FieldValue>) => {
+    if (!currentCategory) return;
+    const highlight = formData.highlight === "true" || formData.highlight === true;
+    const updatedItem: SiteServiceItem = {
+      id: editingService?.id || crypto.randomUUID(),
+      name: (formData.name as string) || "",
+      desc: (formData.desc as string) || "",
+      price: (formData.price as string) || "",
+      img: ((formData.img as string) || "").trim(),
+      highlight,
+    };
+
+    const next = data.map(cat => {
+      if (cat.key !== currentCategory.key) return cat;
+      if (currentServices.find(s => s.id === editingService?.id)) {
+        return { ...cat, items: cat.items.map(s => (s.id === editingService?.id ? { ...s, ...updatedItem } : s)) };
+      }
+      return { ...cat, items: [...cat.items, updatedItem] };
+    });
+    await onPersist(next);
     setIsEditOpen(false);
     setEditingService(null);
   };
 
-  const handleDelete = (id: string) => {
-    setServices(prev => ({
-      ...prev,
-      [activeCategory]: prev[activeCategory].filter(s => s.id !== id)
-    }));
+  const handleDelete = async (id: string) => {
+    if (!currentCategory) return;
+    const next = data.map(cat =>
+      cat.key === currentCategory.key ? { ...cat, items: cat.items.filter(s => s.id !== id) } : cat
+    );
+    await onPersist(next);
     setDeleteConfirm(null);
   };
 
+  const highlightOptions = [
+    { value: "false", label: "Không" },
+    { value: "true", label: "Có" },
+  ];
+
   return (
     <>
-<SectionCard
-        title={`Chi tiết dịch vụ: ${currentCategory.title}`}
+      <SectionCard
+        title={`Chi tiết dịch vụ: ${currentCategory?.title || ""}`}
         description="Các dịch vụ cụ thể trong từng danh mục"
         icon={<Briefcase size={20} />}
-        enabled={enabled}
-        onEnabledChange={setEnabled}
         badge={`${currentServices.length} dịch vụ`}
         badgeColor="blue"
       >
         <div className="p-5 space-y-4">
           <div className="flex flex-wrap gap-2 mb-4">
-            {DEFAULT_CATEGORIES.map(cat => (
+            {data.map(cat => (
               <button
                 key={cat.key}
                 onClick={() => setActiveCategory(cat.key)}
@@ -251,9 +257,13 @@ function ServiceItemsSection() {
           { name: "name", label: "Tên dịch vụ", required: true, description: "Tên dịch vụ cụ thể", hint: "VD: Dịch vụ trọn gói, Kiến thức thai sản" },
           { name: "desc", label: "Mô tả", type: "textarea", rows: 2, description: "Mô tả ngắn về dịch vụ", hint: "Mô tả 1-2 câu, dễ hiểu" },
           { name: "price", label: "Giá tham khảo", description: "Giá dịch vụ", hint: "VD: Từ 500.000đ, Miễn phí, Theo gói" },
-          { name: "img", label: "Hình ảnh", type: "image", description: "Ảnh minh họa dịch vụ" }
+          { name: "img", label: "Hình ảnh", type: "image", description: "Ảnh minh họa dịch vụ" },
+          { name: "highlight", label: "Nổi bật", type: "select", options: highlightOptions, description: "Hiển thị làm dịch vụ nổi bật" }
         ]}
-        initialData={(editingService || {}) as Record<string, string | number | boolean | File | null>}
+        initialData={{
+          ...(editingService || {}),
+          highlight: editingService?.highlight ? "true" : "false",
+        } as Record<string, FieldValue>}
       />
 
       <ConfirmDialog

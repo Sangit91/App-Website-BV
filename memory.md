@@ -246,6 +246,7 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 | Modern Animation Pattern (6 pages) | ✅ Hoàn thành |
 | ScrollAnimation public components + reducedMotion (Phase 87, 2026-08-01): CTABanner/Doctors/QuickActions/Testimonials/WhyChooseUs/HomePage wrap ScrollAnimation; GioiThieuPage animate→whileInView | ✅ Hoàn thành |
 | Wave D (Phase 88, 2026-08-01): admin mutations dùng useAuthedFetch (Bearer) — HospitalContext + FeedbackTab + RecordRequestsTab + OrganizationTab + ShiftsTab; lint GREEN lần đầu (Variants ease `as const`, ChoBenhNhanPage key, vite allowedHosts); JWT RFC 7519 (sub/iat/exp seconds); path traversal hardening (path.relative) | ✅ Hoàn thành |
+| site_content CMS (Phase 90, 2026-08-01): bảng `site_content` (JSON key-value) làm nguồn chung nội dung tĩnh — backend (schema + migration `20260801080000_site_content` + service + routes GET/PUT + app.ts), `SiteContentContext` (getSection deepMerge + saveSection PUT), 5 data modules (`src/data/siteServices/siteContact/siteAbout/sitePatient/siteHome.ts`), 5 admin tabs DB-backed (Services/Contact/About/Patient/HomeTab), public wire: DichVuPage/LienHePage/GioiThieuPage/Footer/Topbar/Navbar/CTABanner. **Home public KEEP as-is** (homepage bespoke hardcoded, không consume home CMS); **seed skip** (deepMerge fallback OK). Patient data admin-only (chưa render public). tsc sạch + bvdh-frontend healthy | ✅ Hoàn thành |
 | prefers-reduced-motion | ✅ Hoàn thành |
 | Shared Animation Hooks | ✅ Hoàn thành |
 | Organization Section in GioiThieuPage | ✅ Hoàn thành |

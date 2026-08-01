@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Phone, MapPin, Mail, Link2, Clock, Plus, Globe, ExternalLink } from "lucide-react";
 import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog } from "../ui";
 import { Button } from "../../ui";
+import { useSiteContent } from "../../../context/SiteContentContext";
+import { DEFAULT_CONTACT, type SiteContact } from "../../../data/siteContact";
 
 const QUICK_LINKS = [
   { id: "1", label: "Trang chủ", link: "/" },
@@ -23,11 +25,13 @@ const SUPPORT_LINKS = [
 
 interface ContactInfo {
   address: string;
-  phone: string;
+  addressShort: string;
+  emergency: string;
   hotline: string;
   email: string;
   website: string;
   workingHours: string;
+  emergencyHours: string;
 }
 
 interface QuickLink {
@@ -56,11 +60,13 @@ const itemVariants = {
 
 const infoItemMap: Record<string, { icon: any; color: string }> = {
   address: { icon: MapPin, color: "text-brand-green" },
-  phone: { icon: Phone, color: "text-brand-green" },
+  addressShort: { icon: MapPin, color: "text-brand-green" },
+  emergency: { icon: Phone, color: "text-peach" },
   hotline: { icon: Phone, color: "text-peach" },
   email: { icon: Mail, color: "text-brand-green" },
   website: { icon: Globe, color: "text-brand-green" },
   workingHours: { icon: Clock, color: "text-brand-green" },
+  emergencyHours: { icon: Clock, color: "text-peach" },
 };
 
 export default function ContactTab() {
@@ -93,32 +99,42 @@ export default function ContactTab() {
 }
 
 function ContactInfoSection() {
+  const { getSection, saveSection } = useSiteContent();
   const [enabled, setEnabled] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const defaultInfo: ContactInfo = {
-    address: "107 Quang Trung, Xã Đại Lộc, TP. Đà Nẵng",
-    phone: "0236 1234 567",
-    hotline: "1900 1234",
-    email: "bvdk.miennui@quangnam.gov.vn",
-    website: "https://bvdakhoaquangnam.vn",
-    workingHours: "Thứ 2 - Thứ 6: 7:00 - 17:00"
-  };
+  const defaultInfo: ContactInfo = DEFAULT_CONTACT;
 
-  const [info, setInfo] = useState(defaultInfo);
+  const [info, setInfo] = useState<ContactInfo>(defaultInfo);
 
-  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
-    setInfo(prev => ({ ...prev, ...formData }));
+  useEffect(() => {
+    setInfo(getSection("contact", defaultInfo));
+  }, [getSection]);
+
+  const handleSave = async (formData: Record<string, string | number | boolean | File | null>) => {
+    const next = { ...info, ...formData } as ContactInfo;
+    setInfo(next);
+    setSaving(true);
+    try {
+      await saveSection("contact", next);
+    } catch (err) {
+      console.error("Error saving contact section:", err);
+    } finally {
+      setSaving(false);
+    }
     setIsEditOpen(false);
   };
 
   const infoFields: { key: keyof ContactInfo; label: string }[] = [
     { key: "address", label: "Địa chỉ" },
-    { key: "phone", label: "Điện thoại" },
+    { key: "addressShort", label: "Địa chỉ (hiển thị ngắn)" },
+    { key: "emergency", label: "Cấp cứu" },
     { key: "hotline", label: "Hotline" },
     { key: "email", label: "Email" },
     { key: "website", label: "Website" },
     { key: "workingHours", label: "Giờ làm việc" },
+    { key: "emergencyHours", label: "Giờ cấp cứu" },
   ];
 
   return (
@@ -129,7 +145,7 @@ function ContactInfoSection() {
         icon={<Phone size={20} />}
         enabled={enabled}
         onEnabledChange={setEnabled}
-        badge="Cơ bản"
+        badge={saving ? "Đang lưu..." : "Cơ bản"}
         badgeColor="green"
         actions={
           <Button variant="ghost" size="sm" onClick={() => setIsEditOpen(true)} className="text-xs font-bold">
@@ -156,7 +172,7 @@ function ContactInfoSection() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold text-green-dark uppercase tracking-wide">{field.label}</p>
-                    <p className={`text-sm ${field.key === "hotline" ? "font-bold text-peach" : "text-ink"}`}>{info[field.key]}</p>
+                    <p className={`text-sm ${field.key === "hotline" || field.key === "emergency" ? "font-bold text-peach" : "text-ink"}`}>{info[field.key]}</p>
                   </div>
                 </motion.div>
               );
@@ -173,11 +189,13 @@ function ContactInfoSection() {
         size="lg"
         fields={[
           { name: "address", label: "Địa chỉ", required: true },
-          { name: "phone", label: "Điện thoại" },
+          { name: "addressShort", label: "Địa chỉ (hiển thị ngắn)", description: "Hiển thị trên banner, hero" },
+          { name: "emergency", label: "Số cấp cứu" },
           { name: "hotline", label: "Hotline" },
           { name: "email", label: "Email" },
           { name: "website", label: "Website" },
-          { name: "workingHours", label: "Giờ làm việc" }
+          { name: "workingHours", label: "Giờ làm việc" },
+          { name: "emergencyHours", label: "Giờ cấp cứu" }
         ]}
         initialData={info as unknown as Record<string, string | number | boolean | File | null>}
       />

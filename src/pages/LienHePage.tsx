@@ -5,6 +5,8 @@ import { useReducedMotion } from "../hooks/useReducedMotion";
 import { FloatingShape } from "../hooks/FloatingShape";
 import { AnimatedCounter } from "../hooks/AnimatedCounter";
 import { Phone, MapPin, Mail, Clock, Send, CheckCircle, Building2, Ambulance, Shield } from "lucide-react";
+import { useSiteContent } from "../context/SiteContentContext";
+import { DEFAULT_CONTACT } from "../data/siteContact";
 
 const stats = [
   { value: 15, label: "Năm phục vụ", suffix: "+", icon: Shield },
@@ -15,6 +17,8 @@ const stats = [
 
 export default function LienHePage() {
   const reducedMotion = useReducedMotion();
+  const { getSection } = useSiteContent();
+  const contact = getSection("contact", DEFAULT_CONTACT);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
@@ -80,7 +84,7 @@ export default function LienHePage() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-xs font-semibold mb-6">
               <MapPin size={14} />
-              <span>107 Quang Trung, Đại Lộc, Đà Nẵng</span>
+              <span>{contact.addressShort}</span>
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-white mb-4 drop-shadow-lg">
               Liên Hệ
@@ -144,10 +148,10 @@ export default function LienHePage() {
                   <h2 className="font-display font-bold text-xl text-green-dark mb-6">Thông tin liên hệ</h2>
                   <div className="space-y-5">
                     {[
-                      { icon: MapPin, title: "Địa chỉ", content: "107 Quang Trung, Xã Đại Lộc, TP. Đà Nẵng" },
-                      { icon: Phone, title: "Điện thoại", content: <>Cấp cứu: <a href="tel:02353747432" className="text-brand-green font-semibold">02353.747.432</a><br />Hotline: <a href="tel:02353747433" className="text-brand-green font-semibold">02353.747.433</a></> },
-                      { icon: Mail, title: "Email", content: "benhvien@bvqnam.vn" },
-                      { icon: Clock, title: "Giờ làm việc", content: <>Thứ 2 - Thứ 6: 7:00 - 17:00<br />Cấp cứu: 24/7</> },
+                      { icon: MapPin, title: "Địa chỉ", content: contact.address },
+                      { icon: Phone, title: "Điện thoại", content: <>Cấp cứu: <a href={`tel:${contact.emergency.replace(/\./g, "")}`} className="text-brand-green font-semibold">{contact.emergency}</a><br />Hotline: <a href={`tel:${contact.hotline.replace(/\./g, "")}`} className="text-brand-green font-semibold">{contact.hotline}</a></> },
+                      { icon: Mail, title: "Email", content: contact.email },
+                      { icon: Clock, title: "Giờ làm việc", content: <>{contact.workingHours}<br />{contact.emergencyHours}</> },
                     ].map((item) => (
                       <div key={item.title} className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-mint flex items-center justify-center shrink-0">

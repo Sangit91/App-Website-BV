@@ -1,26 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Heart, FileText, List, Plus, CheckCircle, Calendar, Clock, User, Ambulance, Shield, Stethoscope, Wallet, Edit, Trash2, LucideIcon } from "lucide-react";
 import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog } from "../ui";
 import { Button } from "../../ui";
+import { useSiteContent } from "../../../context/SiteContentContext";
+import { DEFAULT_PATIENT, type SitePatient, type SiteProcessStep, type SiteBringItem, type SiteFaq } from "../../../data/sitePatient";
 
-const PROCESS_STEPS = [
-  { id: "1", step: 1, title: "Đăng ký lịch hẹn", desc: "Qua website, điện thoại hoặc trực tiếp", icon: "calendar" },
-  { id: "2", step: 2, title: "Xác nhận lịch hẹn", desc: "Nhận SMS/email xác nhận thời gian khám", icon: "check" },
-  { id: "3", step: 3, title: "Đến bệnh viện", desc: "Đến quầy lễ tân với CCCD và mã lịch hẹn", icon: "user" },
-  { id: "4", step: 4, title: "Khám và chẩn đoán", desc: "Gặp bác sĩ chuyên khoa", icon: "stethoscope" },
-  { id: "5", step: 5, title: "Thanh toán", desc: "Thanh toán tại quầy thu ngân", icon: "wallet" },
-  { id: "6", step: 6, title: "Nhận kết quả", desc: "Kết quả xét nghiệm, đơn thuốc", icon: "clipboard" }
-];
-
-const WHAT_TO_BRING = [
-  { id: "1", text: "Chứng minh nhân dân / Căn cước công dân", icon: "card" },
-  { id: "2", text: "Thẻ BHYT (nếu có)", icon: "shield" },
-  { id: "3", text: "Kết quả xét nghiệm, siêu âm trước đó", icon: "document" },
-  { id: "4", text: "Đơn thuốc đang dùng", icon: "pill" },
-  { id: "5", text: "Giấy chuyển tuyến (nếu có)", icon: "referral" },
-  { id: "6", text: "Tiền mặt / Thẻ thanh toán", icon: "wallet" }
-];
+type FieldValue = string | number | boolean | File | null;
 
 const ICON_MAP: Record<string, LucideIcon> = {
   calendar: Calendar,
@@ -40,20 +26,6 @@ const ICON_MAP: Record<string, LucideIcon> = {
 
 const ICON_OPTIONS = Object.keys(ICON_MAP).map(key => ({ value: key, label: key }));
 
-interface ProcessItem {
-  id: string;
-  step: number;
-  title: string;
-  desc: string;
-  icon: string;
-}
-
-interface BringItem {
-  id: string;
-  text: string;
-  icon: string;
-}
-
 const sectionVariants = {
   hidden: { opacity: 0, y: 16 },
   visible: (i: number) => ({
@@ -63,13 +35,36 @@ const sectionVariants = {
   })
 };
 
-const colorMap: Record<string, string> = {
-  green: "bg-brand-green/10 text-brand-green border-l-brand-green",
-  amber: "bg-amber-50 text-amber-700 border-l-amber-400",
-  blue: "bg-blue-50 text-blue-700 border-l-blue-400",
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.05, duration: 0.3, ease: "easeOut" as const }
+  })
 };
 
 export default function PatientTab() {
+  const { getSection, saveSection } = useSiteContent();
+  const [data, setData] = useState<SitePatient>(DEFAULT_PATIENT);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setData(getSection("patient", DEFAULT_PATIENT));
+  }, [getSection]);
+
+  const persist = async (next: SitePatient) => {
+    setData(next);
+    setSaving(true);
+    try {
+      await saveSection("patient", next);
+    } catch (err) {
+      console.error("Error saving patient section:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       <div className="flex items-center justify-between">
@@ -82,39 +77,33 @@ export default function PatientTab() {
             <p className="text-[11px] text-ink/50">Cập nhật nội dung trang Hướng dẫn bệnh nhân</p>
           </div>
         </div>
-        <span className="text-xs font-bold bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full">3 Sections</span>
+        <div className="flex items-center gap-3">
+          {saving && <span className="text-xs font-semibold text-brand-green animate-pulse">Đang lưu...</span>}
+          <span className="text-xs font-bold bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full">3 Sections</span>
+        </div>
       </div>
 
       <motion.div custom={0} initial="hidden" animate="visible" variants={sectionVariants}>
-        <ProcessSection />
+        <ProcessSection data={data} onPersist={persist} />
       </motion.div>
       <motion.div custom={1} initial="hidden" animate="visible" variants={sectionVariants}>
-        <WhatToBringSection />
+        <WhatToBringSection data={data} onPersist={persist} />
       </motion.div>
       <motion.div custom={2} initial="hidden" animate="visible" variants={sectionVariants}>
-        <FaqSection />
+        <FaqSection data={data} onPersist={persist} />
       </motion.div>
     </motion.div>
   );
 }
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.05, duration: 0.3, ease: "easeOut" as const }
-  })
-};
-
-function ProcessSection() {
+function ProcessSection({ data, onPersist }: { data: SitePatient; onPersist: (next: SitePatient) => Promise<void> }) {
   const [enabled, setEnabled] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [editingStep, setEditingStep] = useState<ProcessItem | null>(null);
-  const [steps, setSteps] = useState(PROCESS_STEPS);
+  const [editingStep, setEditingStep] = useState<SiteProcessStep | null>(null);
+  const steps = data.processSteps;
 
-  const handleOpenEdit = (step: ProcessItem | null = null) => {
+  const handleOpenEdit = (step: SiteProcessStep | null = null) => {
     setEditingStep(step || {
       id: crypto.randomUUID(),
       step: steps.length + 1,
@@ -125,18 +114,27 @@ function ProcessSection() {
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
-    if (editingStep && steps.find(s => s.id === editingStep.id)) {
-      setSteps(prev => prev.map(s => s.id === editingStep.id ? { ...s, ...formData } : s));
-    } else {
-      setSteps(prev => [...prev, { id: crypto.randomUUID(), ...formData, step: prev.length + 1 } as ProcessItem]);
-    }
+  const handleSave = async (formData: Record<string, FieldValue>) => {
+    const updatedStep: SiteProcessStep = {
+      id: editingStep?.id || crypto.randomUUID(),
+      step: editingStep?.step || steps.length + 1,
+      title: (formData.title as string) || "",
+      desc: (formData.desc as string) || "",
+      icon: (formData.icon as string) || "calendar"
+    };
+    const next: SitePatient = {
+      ...data,
+      processSteps: steps.find(s => s.id === editingStep?.id)
+        ? steps.map(s => (s.id === editingStep?.id ? { ...s, ...updatedStep } : s))
+        : [...steps, { ...updatedStep, step: steps.length + 1 }]
+    };
+    await onPersist(next);
     setIsEditOpen(false);
     setEditingStep(null);
   };
 
-  const handleDelete = (id: string) => {
-    setSteps(prev => prev.filter(s => s.id !== id).map((s, i) => ({ ...s, step: i + 1 })));
+  const handleDelete = async (id: string) => {
+    await onPersist({ ...data, processSteps: steps.filter(s => s.id !== id).map((s, i) => ({ ...s, step: i + 1 })) });
     setDeleteConfirm(null);
   };
 
@@ -150,6 +148,11 @@ function ProcessSection() {
         onEnabledChange={setEnabled}
         badge={`${steps.length} bước`}
         badgeColor="green"
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
+            Thêm bước
+          </Button>
+        }
       >
         <div className="p-5">
           <div className="flex flex-wrap gap-4">
@@ -206,7 +209,7 @@ function ProcessSection() {
           { name: "desc", label: "Mô tả", type: "textarea", rows: 2, description: "Mô tả chi tiết bước", hint: "Mô tả ngắn gọn action cần thực hiện" },
           { name: "icon", label: "Icon", type: "select", options: ICON_OPTIONS, description: "Icon minh họa" }
         ]}
-        initialData={(editingStep || {}) as Record<string, string | number | boolean | File | null>}
+        initialData={(editingStep || {}) as Record<string, FieldValue>}
       />
 
       <ConfirmDialog
@@ -222,30 +225,37 @@ function ProcessSection() {
   );
 }
 
-function WhatToBringSection() {
+function WhatToBringSection({ data, onPersist }: { data: SitePatient; onPersist: (next: SitePatient) => Promise<void> }) {
   const [enabled, setEnabled] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [editingItem, setEditingItem] = useState<BringItem | null>(null);
-  const [items, setItems] = useState(WHAT_TO_BRING);
+  const [editingItem, setEditingItem] = useState<SiteBringItem | null>(null);
+  const items = data.whatToBring;
 
-  const handleOpenEdit = (item: BringItem | null = null) => {
+  const handleOpenEdit = (item: SiteBringItem | null = null) => {
     setEditingItem(item || { id: crypto.randomUUID(), text: "", icon: "card" });
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
-    if (editingItem && items.find(i => i.id === editingItem.id)) {
-      setItems(prev => prev.map(i => i.id === editingItem.id ? { ...i, ...formData } : i));
-    } else {
-      setItems(prev => [...prev, { id: crypto.randomUUID(), ...formData } as BringItem]);
-    }
+  const handleSave = async (formData: Record<string, FieldValue>) => {
+    const updatedItem: SiteBringItem = {
+      id: editingItem?.id || crypto.randomUUID(),
+      text: (formData.text as string) || "",
+      icon: (formData.icon as string) || "card"
+    };
+    const next: SitePatient = {
+      ...data,
+      whatToBring: items.find(i => i.id === editingItem?.id)
+        ? items.map(i => (i.id === editingItem?.id ? { ...i, ...updatedItem } : i))
+        : [...items, updatedItem]
+    };
+    await onPersist(next);
     setIsEditOpen(false);
     setEditingItem(null);
   };
 
-  const handleDelete = (id: string) => {
-    setItems(prev => prev.filter(i => i.id !== id));
+  const handleDelete = async (id: string) => {
+    await onPersist({ ...data, whatToBring: items.filter(i => i.id !== id) });
     setDeleteConfirm(null);
   };
 
@@ -259,6 +269,11 @@ function WhatToBringSection() {
         onEnabledChange={setEnabled}
         badge={`${items.length} items`}
         badgeColor="amber"
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
+            Thêm giấy tờ
+          </Button>
+        }
       >
         <div className="p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -314,7 +329,7 @@ function WhatToBringSection() {
           { name: "text", label: "Nội dung", type: "textarea", rows: 2, required: true },
           { name: "icon", label: "Icon", type: "select", options: ICON_OPTIONS }
         ]}
-        initialData={(editingItem || {}) as Record<string, string | number | boolean | File | null>}
+        initialData={(editingItem || {}) as Record<string, FieldValue>}
       />
 
       <ConfirmDialog
@@ -330,36 +345,37 @@ function WhatToBringSection() {
   );
 }
 
-function FaqSection() {
+function FaqSection({ data, onPersist }: { data: SitePatient; onPersist: (next: SitePatient) => Promise<void> }) {
   const [enabled, setEnabled] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [editingFaq, setEditingFaq] = useState<{id: string; question: string; answer: string} | null>(null);
+  const [editingFaq, setEditingFaq] = useState<SiteFaq | null>(null);
+  const faqs = data.faqs;
 
-  const [faqs, setFaqs] = useState([
-    { id: "1", question: "Giờ làm việc của bệnh viện?", answer: "Thứ 2 - Thứ 6: 7:00 - 17:00. Cấp cứu 24/7." },
-    { id: "2", question: "Làm sao để đặt lịch khám?", answer: "Qua website, gọi hotline hoặc đến trực tiếp quầy lễ tân." },
-    { id: "3", question: "Bệnh viện có hỗ trợ BHYT không?", answer: "Có, bệnh viện chấp nhận BHYT theo quy định của Bộ Y tế." },
-    { id: "4", question: "Thời gian chờ khám trung bình?", answer: "Khoảng 15-30 phút sau giờ hẹn, tùy tình trạng." }
-  ]);
-
-  const handleOpenEdit = (faq: typeof faqs[0] | null = null) => {
+  const handleOpenEdit = (faq: SiteFaq | null = null) => {
     setEditingFaq(faq || { id: crypto.randomUUID(), question: "", answer: "" });
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
-    if (editingFaq && faqs.find(f => f.id === editingFaq.id)) {
-      setFaqs(prev => prev.map(f => f.id === editingFaq.id ? { ...f, ...formData } : f));
-    } else {
-      setFaqs(prev => [...prev, { id: crypto.randomUUID(), ...formData } as { id: string; question: string; answer: string }]);
-    }
+  const handleSave = async (formData: Record<string, FieldValue>) => {
+    const updatedFaq: SiteFaq = {
+      id: editingFaq?.id || crypto.randomUUID(),
+      question: (formData.question as string) || "",
+      answer: (formData.answer as string) || ""
+    };
+    const next: SitePatient = {
+      ...data,
+      faqs: faqs.find(f => f.id === editingFaq?.id)
+        ? faqs.map(f => (f.id === editingFaq?.id ? { ...f, ...updatedFaq } : f))
+        : [...faqs, updatedFaq]
+    };
+    await onPersist(next);
     setIsEditOpen(false);
     setEditingFaq(null);
   };
 
-  const handleDelete = (id: string) => {
-    setFaqs(prev => prev.filter(f => f.id !== id));
+  const handleDelete = async (id: string) => {
+    await onPersist({ ...data, faqs: faqs.filter(f => f.id !== id) });
     setDeleteConfirm(null);
   };
 
@@ -373,6 +389,11 @@ function FaqSection() {
         onEnabledChange={setEnabled}
         badge={`${faqs.length} câu hỏi`}
         badgeColor="blue"
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
+            Thêm FAQ
+          </Button>
+        }
       >
         <div className="p-5">
           <div className="space-y-4">
@@ -404,7 +425,7 @@ function FaqSection() {
           { name: "question", label: "Câu hỏi", required: true, description: "Câu hỏi thường gặp", hint: "VD: Giờ làm việc của bệnh viện?, Làm sao đặt lịch khám?" },
           { name: "answer", label: "Câu trả lời", type: "textarea", rows: 3, required: true, description: "Câu trả lời ngắn gọn", hint: "Trả lời ngắn gọn, dễ hiểu (1-3 câu)" }
         ]}
-        initialData={editingFaq || {}}
+        initialData={(editingFaq || {}) as Record<string, FieldValue>}
       />
 
       <ConfirmDialog

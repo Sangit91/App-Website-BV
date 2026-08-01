@@ -2517,3 +2517,35 @@ pm run lint frontend van do (pre-existing ChoBenhNhanPage/vite.config/motion eas
 - docker restart bvdh-frontend + bvdh-backend -> healthy. Luu y: /api/v1/auth serve boi bvdh-backend (admin-api) khong phai frontend - phai restart backend.
 - E2E: login admin OK (RFC 7519 payload), POST /api/v1/specialties voi Bearer -> 201, DELETE cleanup OK.
 - Files affected: 15 files (auth.service, record-request.service, HospitalContext, 9 admin tabs, ChoBenhNhanPage, vite.config).
+
+## PHASE 90 - site_content CMS: JSON store cho nội dung tĩnh (Services/Contact/About/Patient/Home) (2026-08-01)
+
+### Quyết định kiến trúc
+
+- Tạo bảng `site_content` (key-value JSON) làm nguồn chung cho 5 phần nội dung tĩnh (Services/Contact/About/Patient/Home), KHÔNG mở rộng bảng `service_groups`/`services` hiện có.
+- Deep-merge: dữ liệu DB (`value`) đè lên fallback (defaults trong `src/data/*.ts`), key thiếu giữ fallback → không seed DB vẫn hiển thị default.
+
+### Backend
+
+- `prisma/schema.prisma`: model `SiteContent` (key String @id, value Json default "{}", updatedAt) → table `site_content`.
+- Migration `prisma/migrations/20260801080000_site_content/migration.sql` (CREATE TABLE site_content JSONB) — `prisma migrate deploy` OK, verified table.
+- `server/services/site-content.service.ts`: getAllContent/getContent/upsertContent.
+- `server/routes/site-content.routes.ts`: GET /, GET /:key public; PUT /:key → `authenticate` + `requireSuperAdmin` + `activityLogger` SITE_CONTENT_UPDATE.
+- Register `/api/v1/site-content` trong `server/app.ts`. Verify: GET trả `{"data":{}}` (cả qua nginx 8443).
+
+### Frontend context
+
+- `src/context/SiteContentContext.tsx`: content/loaded, `getSection<T>(key, fallback)` (deepMerge), `saveSection(key, value)` (PUT qua authedFetch). Provider wrap trong `main.tsx`.
+
+### Wire từng phần
+
+- **Services**: `src/data/siteServices.ts` (DEFAULT_SERVICES 5 categories + items s1–s20, SERVICE_ICON_MAP, SERVICE_COLOR_OPTIONS); `ServicesTab.tsx` viết lại DB-backed; `DichVuPage.tsx` đọc `getSection("services", DEFAULT_SERVICES)`.
+- **Contact**: `src/data/siteContact.ts` (address "107 Quang Trung, Xã Đại Lộc, TP. Đà Nẵng", emergency "02353.747.432", hotline "02353.747.433", email "bvdkbacquangnam@gmail.com", workingHours, emergencyHours); wire `ContactTab.tsx` (ContactInfoSection + EditModal 8 fields), `LienHePage.tsx`, `Footer.tsx`, `Topbar.tsx` (viết lại), `Navbar.tsx` (3 tel: link dùng `contact.emergency.replace(/\./g,"")`), `CTABanner.tsx`. Hardcode còn lại chỉ `tenderContactPhone` trong data.js/data.ts (chấp nhận).
+- **About**: `src/data/siteAbout.ts` (DEFAULT_ABOUT: whyChoose wc1–4, partners 6, facilities f1–3, directors d1–3); `AboutTab.tsx` viết lại DB-backed (WhyChoose/Leadership/Partners/Facilities dùng persist); `GioiThieuPage.tsx` đọc `getSection("about", DEFAULT_ABOUT)`, giữ `facilityIcons`/`whyChooseIcons` map index.
+- **Patient**: `src/data/sitePatient.ts` (processSteps 6, whatToBring 6, faqs 4); `PatientTab.tsx` DB-backed. Data admin-only (chưa render public).
+- **Home**: `src/data/siteHome.ts` (hero, quickActions 6, whyChoose 4, stats 4, testimonials 3); `HomeTab/index.tsx` DB-backed. **Quyết định:** public homepage KEEP as-is (Hero/QuickActions/WhyChooseUs/Testimonials/stats là bespoke hardcoded, không consume home CMS) — edit admin persist để dùng sau. **Seed: skip** (deepMerge fallback OK).
+
+### Verify
+
+- `npx tsc --noEmit` sạch sau từng phần; `docker restart bvdh-frontend` → healthy.
+- Files affected: backend (schema + migration + service + routes + app.ts), `SiteContentContext.tsx` + `main.tsx`, 5 data modules mới, 5 admin tabs (Services/Contact/About/Patient/HomeTab), public: DichVuPage/LienHePage/GioiThieuPage/Footer/Topbar/Navbar/CTABanner.

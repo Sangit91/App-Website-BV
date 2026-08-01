@@ -19,6 +19,7 @@ import specialtyRoutes from "./routes/specialty.routes";
 import doctorRoutes from "./routes/doctor.routes";
 import newsRoutes from "./routes/news.routes";
 import consentRoutes from "./routes/consent.routes";
+import siteContentRoutes from "./routes/site-content.routes";
 const app = express();
 
 // Behind nginx reverse proxy — trust proxy so req.ip + rate limiter per-IP work correctly.
@@ -83,6 +84,7 @@ app.use("/api/v1/specialties", specialtyRoutes);
 app.use("/api/v1/doctors", doctorRoutes);
 app.use("/api/v1/news", newsRoutes);
 app.use("/api/v1/consent", consentRoutes);
+app.use("/api/v1/site-content", siteContentRoutes);
 
 // API 404 trước khi SPA fallback (server.ts) — tránh trả index.html cho /api/* không tồn tại.
 app.use("/api", notFoundHandler);

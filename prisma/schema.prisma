@@ -596,3 +596,14 @@ model TreatmentHistory {
 
   @@map("treatment_history")
 }
+
+// ============================================================
+// SITE CONTENT (CMS) — nội dung tĩnh website đồng bộ admin/public
+// ============================================================
+model SiteContent {
+  key       String   @id
+  value     Json     @default("{}")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("site_content")
+}

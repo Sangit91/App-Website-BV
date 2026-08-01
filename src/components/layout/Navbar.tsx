@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Menu, X, Phone, Calendar, Heart, ChevronDown, ChevronRight } from "lucide-react";
 import HospitalLogo from "./HospitalLogo";
+import { useSiteContent } from "../../context/SiteContentContext";
+import { DEFAULT_CONTACT } from "../../data/siteContact";
 
 interface NavbarProps {
   onNavClick: (sectionId: string) => void;
@@ -22,6 +24,8 @@ interface MegaMenuItem {
 type MegaMenuData = Record<string, MegaMenuItem>;
 
 export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmin }: NavbarProps) {
+  const { getSection } = useSiteContent();
+  const contact = getSection("contact", DEFAULT_CONTACT);
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("trang-chu");
@@ -341,7 +345,7 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
         <div className="hidden xl:flex items-center 2xl:space-x-4 shrink-0">
           {/* Hotline Button with Pulsing Signal */}
           <a
-            href="tel:02353747432"
+            href={`tel:${contact.emergency.replace(/\./g, "")}`}
             className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-mint border border-brand-green/20 text-green-dark hover:bg-mint transition-colors duration-200 group whitespace-nowrap"
           >
             <div className="relative flex h-2 w-2">
@@ -349,7 +353,7 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
               <span className="relative inline-flex rounded-full h-2 w-2 bg-peach"></span>
             </div>
             <Phone size={12} className="text-brand-green group-hover:rotate-12 transition-transform duration-200" />
-            <span className="font-display font-bold text-[11px] xl:text-[11.5px] text-green-dark">Cấp cứu: 02353.747.432</span>
+            <span className="font-display font-bold text-[11px] xl:text-[11.5px] text-green-dark">Cấp cứu: {contact.emergency}</span>
           </a>
 
           {/* Admin Portal Button */}
@@ -375,7 +379,7 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
         {/* Mobile: Hamburger Button */}
         <div className="flex xl:hidden items-center space-x-2.5 shrink-0">
           <a
-            href="tel:02353747432"
+            href={`tel:${contact.emergency.replace(/\./g, "")}`}
             className="w-8.5 h-8.5 flex items-center justify-center rounded-full bg-mint text-brand-green border border-brand-green/10"
             title="Gọi Cấp Cứu"
           >
@@ -526,11 +530,11 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
           {/* Action buttons at mobile drawer bottom */}
           <div className="flex flex-col space-y-2.5 pt-4 border-t border-brand-green/10 mt-auto">
             <a
-              href="tel:02353747432"
+              href={`tel:${contact.emergency.replace(/\./g, "")}`}
               className="flex items-center justify-center gap-2.5 w-full bg-peach text-white font-display font-bold py-2 px-4 rounded-full shadow-md text-center text-xs"
             >
               <Phone size={14} />
-              <span>CẤP CỨU KHẨN CẤP: 02353.747.432</span>
+              <span>CẤP CỨU KHẨN CẤP: {contact.emergency}</span>
             </a>
 
             <button

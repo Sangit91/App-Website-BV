@@ -1,37 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Info, Users, Building2, Handshake } from "lucide-react";
-import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog, ImageUploader } from "../ui";
+import { SectionCard, ItemCard, AddCard, EditModal, ConfirmDialog } from "../ui";
 import { Button } from "../../ui";
+import { useSiteContent } from "../../../context/SiteContentContext";
+import { DEFAULT_ABOUT, type SiteAbout, type SiteFacility, type SiteWhyChoose, type SiteDirector } from "../../../data/siteAbout";
 
-interface Director {
-  id: string;
-  name: string;
-  role: string;
-  image: string;
-  bio?: string;
-}
-
-interface Partner {
-  id: string;
-  name: string;
-  logo?: string;
-  website?: string;
-}
-
-interface Facility {
-  id: string;
-  title: string;
-  description: string;
-  image: string;
-  items: string[];
-}
-
-interface WhyChooseItem {
-  id: string;
-  text: string;
-}
+type FieldValue = string | number | boolean | File | null;
 
 export default function AboutTab() {
+  const { getSection, saveSection } = useSiteContent();
+  const [data, setData] = useState<SiteAbout>(DEFAULT_ABOUT);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setData(getSection("about", DEFAULT_ABOUT));
+  }, [getSection]);
+
+  const persist = async (next: SiteAbout) => {
+    setData(next);
+    setSaving(true);
+    try {
+      await saveSection("about", next);
+    } catch (err) {
+      console.error("Error saving about section:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -39,69 +35,75 @@ export default function AboutTab() {
           <h2 className="font-display font-bold text-2xl text-green-dark">Quản lý Giới thiệu</h2>
           <p className="text-sm text-ink/60 mt-1">Cập nhật nội dung trang Giới thiệu bệnh viện</p>
         </div>
-        <span className="text-xs font-bold bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full">4 Sections</span>
+        <div className="flex items-center gap-3">
+          {saving && <span className="text-xs font-semibold text-brand-green animate-pulse">Đang lưu...</span>}
+          <span className="text-xs font-bold bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full">4 Sections</span>
+        </div>
       </div>
 
-      <AboutSection />
-      <LeadershipSection />
-      <PartnersSection />
-      <FacilitiesSection />
+      <WhyChooseSection data={data} onPersist={persist} />
+      <LeadershipSection data={data} onPersist={persist} />
+      <PartnersSection data={data} onPersist={persist} />
+      <FacilitiesSection data={data} onPersist={persist} />
     </div>
   );
 }
 
-function AboutSection() {
-  const [enabled, setEnabled] = useState(true);
+function WhyChooseSection({ data, onPersist }: { data: SiteAbout; onPersist: (next: SiteAbout) => Promise<void> }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [editingItem, setEditingItem] = useState<WhyChooseItem | null>(null);
+  const [editingItem, setEditingItem] = useState<SiteWhyChoose | null>(null);
 
-  const [whyChooseItems, setWhyChooseItems] = useState<WhyChooseItem[]>([
-    { id: "1", text: "Đội ngũ bác sĩ chuyên môn cao, giàu kinh nghiệm" },
-    { id: "2", text: "Trang thiết bị y tế hiện đại, tiên tiến" },
-    { id: "3", text: "Quy trình khám chữa bệnh chuyên nghiệp" },
-    { id: "4", text: "Thái độ phục vụ tận tâm, chu đáo" },
-    { id: "5", text: "Chi phí hợp lý, minh bạch" }
-  ]);
-
-  const handleOpenEdit = (item: WhyChooseItem | null = null) => {
-    setEditingItem(item || { id: "", text: "" });
+  const handleOpenEdit = (item: SiteWhyChoose | null = null) => {
+    setEditingItem(item || { id: crypto.randomUUID(), title: "", desc: "", image: "" });
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
-    if (editingItem?.id && whyChooseItems.find(i => i.id === editingItem.id)) {
-      setWhyChooseItems(prev => prev.map(i => i.id === editingItem.id ? { ...i, ...formData } : i));
-    } else {
-      setWhyChooseItems(prev => [...prev, { id: crypto.randomUUID(), ...formData } as WhyChooseItem]);
-    }
+  const handleSave = async (formData: Record<string, FieldValue>) => {
+    const updatedItem: SiteWhyChoose = {
+      id: editingItem?.id || crypto.randomUUID(),
+      title: (formData.title as string) || "",
+      desc: (formData.desc as string) || "",
+      image: ((formData.image as string) || "").trim(),
+    };
+    const next: SiteAbout = {
+      ...data,
+      whyChoose: data.whyChoose.find(i => i.id === editingItem?.id)
+        ? data.whyChoose.map(i => (i.id === editingItem?.id ? { ...i, ...updatedItem } : i))
+        : [...data.whyChoose, updatedItem],
+    };
+    await onPersist(next);
     setIsEditOpen(false);
     setEditingItem(null);
   };
 
-  const handleDelete = (id: string) => {
-    setWhyChooseItems(prev => prev.filter(i => i.id !== id));
+  const handleDelete = async (id: string) => {
+    await onPersist({ ...data, whyChoose: data.whyChoose.filter(i => i.id !== id) });
     setDeleteConfirm(null);
   };
 
   return (
     <>
       <SectionCard
-        title="Về chúng tôi"
-        description="Nội dung giới thiệu tổng quan về bệnh viện"
+        title="Tại sao chọn chúng tôi"
+        description="Các giá trị nổi bật hiển thị trên trang giới thiệu"
         icon={<Info size={20} />}
-        enabled={enabled}
-        onEnabledChange={setEnabled}
-        badge={`${whyChooseItems.length} điểm`}
+        badge={`${data.whyChoose.length} điểm`}
         badgeColor="green"
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
+            Thêm điểm nổi bật
+          </Button>
+        }
       >
         <div className="p-5">
-          <div className="space-y-3">
-            {whyChooseItems.map((item, idx) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {data.whyChoose.map((item, idx) => (
               <ItemCard
                 key={item.id}
-                title={item.text}
-                description="Điểm nổi bật"
+                title={item.title}
+                description={item.desc}
+                image={item.image}
                 index={idx}
                 actions={{
                   onEdit: () => handleOpenEdit(item),
@@ -109,7 +111,6 @@ function AboutSection() {
                 }}
               />
             ))}
-            <AddCard title="Thêm điểm nổi bật" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="green" />
           </div>
         </div>
       </SectionCard>
@@ -118,26 +119,14 @@ function AboutSection() {
         isOpen={isEditOpen}
         onClose={() => { setIsEditOpen(false); setEditingItem(null); }}
         onSubmit={handleSave}
-        title={editingItem && whyChooseItems.find(i => i.id === editingItem.id) ? "Chỉnh sửa điểm nổi bật" : "Thêm điểm nổi bật mới"}
+        title={editingItem && data.whyChoose.find(i => i.id === editingItem.id) ? "Chỉnh sửa điểm nổi bật" : "Thêm điểm nổi bật mới"}
+        size="lg"
         fields={[
-          {
-            name: "text",
-            label: "Nội dung điểm nổi bật",
-            type: "textarea",
-            rows: 2,
-            required: true,
-            description: "Mô tả ngắn gọn điểm nổi bật",
-            hint: "Tối đa 100 ký tự, viết ngắn gọn, dễ hiểu",
-            suggestions: [
-              "Đội ngũ bác sĩ chuyên môn cao, giàu kinh nghiệm",
-              "Trang thiết bị y tế hiện đại, tiên tiến",
-              "Quy trình khám chữa bệnh chuyên nghiệp",
-              "Thái độ phục vụ tận tâm, chu đáo",
-              "Chi phí hợp lý, minh bạch"
-            ]
-          }
+          { name: "title", label: "Tiêu đề", required: true, description: "Tên điểm nổi bật", hint: "VD: Đội ngũ bác sĩ chuyên môn cao" },
+          { name: "desc", label: "Mô tả", type: "textarea", rows: 2, required: true, description: "Mô tả ngắn gọn điểm nổi bật" },
+          { name: "image", label: "Hình ảnh", type: "image", description: "Ảnh minh họa" }
         ]}
-        initialData={(editingItem || {}) as Record<string, string | number | boolean | File | null>}
+        initialData={(editingItem || {}) as Record<string, FieldValue>}
       />
 
       <ConfirmDialog
@@ -153,17 +142,10 @@ function AboutSection() {
   );
 }
 
-function LeadershipSection() {
-  const [enabled, setEnabled] = useState(true);
+function LeadershipSection({ data, onPersist }: { data: SiteAbout; onPersist: (next: SiteAbout) => Promise<void> }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [editingDirector, setEditingDirector] = useState<Director | null>(null);
-
-  const [directors, setDirectors] = useState<Director[]>([
-    { id: "1", name: "BS CKII Nguyễn Thống Nhất", role: "Giám đốc", image: "/images/doctors/giamdoc-1.jpeg", bio: "Bác sĩ chuyên khoa II với hơn 20 năm kinh nghiệm" },
-    { id: "2", name: "BSCK II Lê Minh Dũng", role: "Phó Giám đốc", image: "/images/doctors/phogiamdoc-1.jpeg", bio: "Phó Giám đốc phụ trách chuyên môn" },
-    { id: "3", name: "BS CKII Nguyễn Đình Hoàng", role: "Phó Giám đốc", image: "/images/doctors/phogiamdoc-2.jpeg", bio: "Phó Giám đốc phụ trách hành chính" }
-  ]);
+  const [editingDirector, setEditingDirector] = useState<SiteDirector | null>(null);
 
   const roleOptions = [
     { value: "Giám đốc", label: "Giám đốc" },
@@ -173,29 +155,32 @@ function LeadershipSection() {
     { value: "Trưởng khoa", label: "Trưởng khoa" }
   ];
 
-  const handleOpenEdit = (director: Director | null = null) => {
-    setEditingDirector(director || {
-      id: crypto.randomUUID(),
-      name: "",
-      role: "Giám đốc",
-      image: "",
-      bio: ""
-    });
+  const handleOpenEdit = (director: SiteDirector | null = null) => {
+    setEditingDirector(director || { id: crypto.randomUUID(), name: "", role: "Giám đốc", image: "", bio: "" });
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
-    if (editingDirector && directors.find(d => d.id === editingDirector.id)) {
-      setDirectors(prev => prev.map(d => d.id === editingDirector.id ? { ...d, ...formData } : d));
-    } else {
-      setDirectors(prev => [...prev, { id: crypto.randomUUID(), ...formData } as Director]);
-    }
+  const handleSave = async (formData: Record<string, FieldValue>) => {
+    const updatedDirector: SiteDirector = {
+      id: editingDirector?.id || crypto.randomUUID(),
+      name: (formData.name as string) || "",
+      role: (formData.role as string) || "",
+      image: ((formData.image as string) || "").trim(),
+      bio: (formData.bio as string) || "",
+    };
+    const next: SiteAbout = {
+      ...data,
+      directors: data.directors.find(d => d.id === editingDirector?.id)
+        ? data.directors.map(d => (d.id === editingDirector?.id ? { ...d, ...updatedDirector } : d))
+        : [...data.directors, updatedDirector],
+    };
+    await onPersist(next);
     setIsEditOpen(false);
     setEditingDirector(null);
   };
 
-  const handleDelete = (id: string) => {
-    setDirectors(prev => prev.filter(d => d.id !== id));
+  const handleDelete = async (id: string) => {
+    await onPersist({ ...data, directors: data.directors.filter(d => d.id !== id) });
     setDeleteConfirm(null);
   };
 
@@ -205,14 +190,17 @@ function LeadershipSection() {
         title="Ban Lãnh đạo"
         description="Thông tin Giám đốc và các Phó Giám đốc"
         icon={<Users size={20} />}
-        enabled={enabled}
-        onEnabledChange={setEnabled}
-        badge={`${directors.length} người`}
+        badge={`${data.directors.length} người`}
         badgeColor="blue"
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
+            Thêm lãnh đạo
+          </Button>
+        }
       >
         <div className="p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {directors.map((director, idx) => (
+            {data.directors.map((director, idx) => (
               <ItemCard
                 key={director.id}
                 title={director.name}
@@ -227,7 +215,6 @@ function LeadershipSection() {
                 footer={director.bio ? <p className="text-xs text-ink/60 mt-2 line-clamp-2">{director.bio}</p> : undefined}
               />
             ))}
-            <AddCard title="Thêm lãnh đạo" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="blue" />
           </div>
         </div>
       </SectionCard>
@@ -236,7 +223,7 @@ function LeadershipSection() {
         isOpen={isEditOpen}
         onClose={() => { setIsEditOpen(false); setEditingDirector(null); }}
         onSubmit={handleSave}
-        title={editingDirector && directors.find(d => d.id === editingDirector.id) ? "Chỉnh sửa lãnh đạo" : "Thêm lãnh đạo mới"}
+        title={editingDirector && data.directors.find(d => d.id === editingDirector.id) ? "Chỉnh sửa lãnh đạo" : "Thêm lãnh đạo mới"}
         size="lg"
         fields={[
           { name: "name", label: "Họ tên", required: true, description: "Họ tên đầy đủ", hint: "VD: BS CKII Nguyễn Văn A" },
@@ -244,7 +231,7 @@ function LeadershipSection() {
           { name: "image", label: "Ảnh lãnh đạo", type: "image", description: "Ảnh chân dung" },
           { name: "bio", label: "Tiểu sử", type: "textarea", rows: 2, description: "Kinh nghiệm, trình độ", hint: "VD: Bác sĩ chuyên khoa II với hơn 20 năm kinh nghiệm" }
         ]}
-        initialData={(editingDirector || {}) as Record<string, string | number | boolean | File | null>}
+        initialData={(editingDirector || {}) as Record<string, FieldValue>}
       />
 
       <ConfirmDialog
@@ -260,42 +247,34 @@ function LeadershipSection() {
   );
 }
 
-function PartnersSection() {
-  const [enabled, setEnabled] = useState(true);
+function PartnersSection({ data, onPersist }: { data: SiteAbout; onPersist: (next: SiteAbout) => Promise<void> }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
+  const [editingName, setEditingName] = useState<string | null>(null);
+  const [nameInput, setNameInput] = useState("");
 
-  const [partners, setPartners] = useState<Partner[]>([
-    { id: "1", name: "BHYT Quảng Nam", website: "https://bhytquangnam.vn" },
-    { id: "2", name: "Bảo Việt", website: "https://baoviet.com.vn" },
-    { id: "3", name: "PTI", website: "https://pti.com.vn" },
-    { id: "4", name: "PJICO", website: "https://pjico.com.vn" },
-    { id: "5", name: "Manulife", website: "https://manulife.com.vn" },
-    { id: "6", name: "Prudential", website: "https://prudential.com.vn" }
-  ]);
-
-  const handleOpenEdit = (partner: Partner | null = null) => {
-    setEditingPartner(partner || {
-      id: crypto.randomUUID(),
-      name: "",
-      website: ""
-    });
+  const handleOpenEdit = (name: string | null = null) => {
+    setEditingName(name);
+    setNameInput(name || "");
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
-    if (editingPartner && partners.find(p => p.id === editingPartner.id)) {
-      setPartners(prev => prev.map(p => p.id === editingPartner.id ? { ...p, ...formData } : p));
-    } else {
-      setPartners(prev => [...prev, { id: crypto.randomUUID(), ...formData } as Partner]);
-    }
+  const handleSave = async (formData: Record<string, FieldValue>) => {
+    const nextName = (formData.name as string) || "";
+    if (!nextName.trim()) return;
+    const next: SiteAbout = {
+      ...data,
+      partners: editingName
+        ? data.partners.map(p => (p === editingName ? nextName : p))
+        : [...data.partners, nextName],
+    };
+    await onPersist(next);
     setIsEditOpen(false);
-    setEditingPartner(null);
+    setEditingName(null);
   };
 
-  const handleDelete = (id: string) => {
-    setPartners(prev => prev.filter(p => p.id !== id));
+  const handleDelete = async (id: string) => {
+    await onPersist({ ...data, partners: data.partners.filter(p => p !== id) });
     setDeleteConfirm(null);
   };
 
@@ -303,42 +282,43 @@ function PartnersSection() {
     <>
       <SectionCard
         title="Đối tác"
-        description="Logo và thông tin các đối tác của bệnh viện"
+        description="Các đối tác bảo hiểm của bệnh viện"
         icon={<Handshake size={20} />}
-        enabled={enabled}
-        onEnabledChange={setEnabled}
-        badge={`${partners.length} đối tác`}
+        badge={`${data.partners.length} đối tác`}
         badgeColor="amber"
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
+            Thêm đối tác
+          </Button>
+        }
       >
         <div className="p-5">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
-            {partners.map((partner, idx) => (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {data.partners.map((partner, idx) => (
               <ItemCard
-                key={partner.id}
-                title={partner.name}
-                description={partner.website || "Chưa có website"}
+                key={partner}
+                title={partner}
+                description="Đối tác"
                 index={idx}
                 actions={{
                   onEdit: () => handleOpenEdit(partner),
-                  onDelete: () => setDeleteConfirm(partner.id)
+                  onDelete: () => setDeleteConfirm(partner)
                 }}
               />
             ))}
-            <AddCard title="Thêm đối tác" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="amber" />
           </div>
         </div>
       </SectionCard>
 
       <EditModal
         isOpen={isEditOpen}
-        onClose={() => { setIsEditOpen(false); setEditingPartner(null); }}
+        onClose={() => { setIsEditOpen(false); setEditingName(null); }}
         onSubmit={handleSave}
-        title={editingPartner && partners.find(p => p.id === editingPartner.id) ? "Chỉnh sửa đối tác" : "Thêm đối tác mới"}
+        title={editingName ? "Chỉnh sửa đối tác" : "Thêm đối tác mới"}
         fields={[
-          { name: "name", label: "Tên đối tác", required: true, description: "Tên công ty/bảo hiểm", hint: "VD: BHYT Quảng Nam, Bảo Việt, Prudential" },
-          { name: "website", label: "Website", description: "Địa chỉ website", hint: "VD: https://bhytquangnam.vn" }
+          { name: "name", label: "Tên đối tác", required: true, description: "Tên công ty/bảo hiểm", hint: "VD: BHYT Quảng Nam, Bảo Việt, Prudential" }
         ]}
-        initialData={(editingPartner || {}) as Record<string, string | number | boolean | File | null>}
+        initialData={{ name: editingName || "" }}
       />
 
       <ConfirmDialog
@@ -354,59 +334,37 @@ function PartnersSection() {
   );
 }
 
-function FacilitiesSection() {
-  const [enabled, setEnabled] = useState(true);
+function FacilitiesSection({ data, onPersist }: { data: SiteAbout; onPersist: (next: SiteAbout) => Promise<void> }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [editingFacility, setEditingFacility] = useState<Facility | null>(null);
+  const [editingFacility, setEditingFacility] = useState<SiteFacility | null>(null);
 
-  const [facilities, setFacilities] = useState<Facility[]>([
-    {
-      id: "1",
-      title: "Cơ sở – Trang thiết bị",
-      description: "Hệ thống phòng mổ và thiết bị y tế hiện đại",
-      image: "/images/pages/coso-1.jpeg",
-      items: ["5 phòng mổ hiện đại", "200 giường bệnh", "Thiết bị MRI, CT Scanner", "Phòng ICU với 20 giường"]
-    },
-    {
-      id: "2",
-      title: "Hình ảnh bệnh viện",
-      description: "Không gian khám chữa bệnh thoáng mát",
-      image: "/images/pages/coso-2.jpeg",
-      items: ["Không gian sạch sẽ, thoáng mát", "Khu vườn cây xanh mát", "Phòng chờ hiện đại", "Khuôn viên rộng 5 hecta"]
-    },
-    {
-      id: "3",
-      title: "Tiện nghi – Sang trọng",
-      description: "Các tiện ích cho bệnh nhân và người nhà",
-      image: "/images/pages/coso-2.jpeg",
-      items: ["Wifi miễn phí toàn bệnh viện", "Nhà hàng cao cấp", "Khu vui chơi trẻ em", "Bãi đỗ xe rộng rãi"]
-    }
-  ]);
-
-  const handleOpenEdit = (facility: Facility | null = null) => {
-    setEditingFacility(facility || {
-      id: crypto.randomUUID(),
-      title: "",
-      description: "",
-      image: "",
-      items: []
-    });
+  const handleOpenEdit = (facility: SiteFacility | null = null) => {
+    setEditingFacility(facility || { id: crypto.randomUUID(), title: "", description: "", image: "", items: [] });
     setIsEditOpen(true);
   };
 
-  const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
-    if (editingFacility && facilities.find(f => f.id === editingFacility.id)) {
-      setFacilities(prev => prev.map(f => f.id === editingFacility.id ? { ...f, ...formData } : f));
-    } else {
-      setFacilities(prev => [...prev, { id: crypto.randomUUID(), ...formData, items: [] } as Facility]);
-    }
+  const handleSave = async (formData: Record<string, FieldValue>) => {
+    const updatedFacility: SiteFacility = {
+      id: editingFacility?.id || crypto.randomUUID(),
+      title: (formData.title as string) || "",
+      description: (formData.description as string) || "",
+      image: ((formData.image as string) || "").trim(),
+      items: editingFacility?.items || [],
+    };
+    const next: SiteAbout = {
+      ...data,
+      facilities: data.facilities.find(f => f.id === editingFacility?.id)
+        ? data.facilities.map(f => (f.id === editingFacility?.id ? { ...f, ...updatedFacility } : f))
+        : [...data.facilities, updatedFacility],
+    };
+    await onPersist(next);
     setIsEditOpen(false);
     setEditingFacility(null);
   };
 
-  const handleDelete = (id: string) => {
-    setFacilities(prev => prev.filter(f => f.id !== id));
+  const handleDelete = async (id: string) => {
+    await onPersist({ ...data, facilities: data.facilities.filter(f => f.id !== id) });
     setDeleteConfirm(null);
   };
 
@@ -416,14 +374,17 @@ function FacilitiesSection() {
         title="Cơ sở vật chất"
         description="Hình ảnh và mô tả các tiện ích của bệnh viện"
         icon={<Building2 size={20} />}
-        enabled={enabled}
-        onEnabledChange={setEnabled}
-        badge={`${facilities.length} mục`}
+        badge={`${data.facilities.length} mục`}
         badgeColor="purple"
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => handleOpenEdit()} className="text-xs font-bold">
+            Thêm cơ sở
+          </Button>
+        }
       >
         <div className="p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {facilities.map((facility, idx) => (
+            {data.facilities.map((facility, idx) => (
               <ItemCard
                 key={facility.id}
                 title={facility.title}
@@ -449,7 +410,6 @@ function FacilitiesSection() {
                 }
               />
             ))}
-            <AddCard title="Thêm cơ sở" description="Nhấn để thêm" onClick={() => handleOpenEdit()} color="blue" />
           </div>
         </div>
       </SectionCard>
@@ -458,14 +418,14 @@ function FacilitiesSection() {
         isOpen={isEditOpen}
         onClose={() => { setIsEditOpen(false); setEditingFacility(null); }}
         onSubmit={handleSave}
-        title={editingFacility && facilities.find(f => f.id === editingFacility.id) ? "Chỉnh sửa cơ sở" : "Thêm cơ sở mới"}
+        title={editingFacility && data.facilities.find(f => f.id === editingFacility.id) ? "Chỉnh sửa cơ sở" : "Thêm cơ sở mới"}
         size="lg"
         fields={[
           { name: "title", label: "Tiêu đề", required: true, description: "Tên tiện ích/cơ sở", hint: "VD: Cơ sở vật chất, Hình ảnh bệnh viện" },
           { name: "description", label: "Mô tả", type: "textarea", rows: 2, description: "Mô tả ngắn gọn", hint: "Mô tả 1-2 câu về cơ sở vật chất" },
           { name: "image", label: "Hình ảnh", type: "image", description: "Ảnh minh họa cơ sở" }
         ]}
-        initialData={(editingFacility || {}) as Record<string, string | number | boolean | File | null>}
+        initialData={(editingFacility || {}) as Record<string, FieldValue>}
       />
 
       <ConfirmDialog

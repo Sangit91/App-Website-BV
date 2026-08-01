@@ -1,12 +1,16 @@
 import React from "react";
 import { Phone, CalendarDays } from "lucide-react";
 import ScrollAnimation from "../ui/ScrollAnimation";
+import { useSiteContent } from "../../context/SiteContentContext";
+import { DEFAULT_CONTACT } from "../../data/siteContact";
 
 interface CTABannerProps {
   onOpenBooking: () => void;
 }
 
 export default function CTABanner({ onOpenBooking }: CTABannerProps) {
+  const { getSection } = useSiteContent();
+  const contact = getSection("contact", DEFAULT_CONTACT);
   return (
     <section className="bg-cream-white py-12 md:py-16">
       <div className="max-w-[1180px] mx-auto px-4">
@@ -48,11 +52,11 @@ export default function CTABanner({ onOpenBooking }: CTABannerProps) {
 
               {/* Button 2: Emergency Hotline */}
               <a
-                href="tel:02353747432"
+                href={`tel:${contact.emergency.replace(/\./g, "")}`}
                 className="flex items-center justify-center gap-2.5 bg-white hover:bg-mint text-green-dark font-sans text-sm md:text-base font-bold px-6 py-3.5 rounded-full transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 border-2 border-transparent"
               >
                 <Phone size={18} className="text-brand-green animate-pulse" />
-                <span>Hotline: 02353.747.432</span>
+                <span>Hotline: {contact.emergency}</span>
               </a>
             </div>
 
