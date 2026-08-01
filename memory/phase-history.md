@@ -2472,3 +2472,48 @@ pm run lint frontend van do (pre-existing ChoBenhNhanPage/vite.config/motion eas
 - npm run build pass (vite build + esbuild server + tsc server).
 - docker restart bvdh-frontend -> healthy.
 - Files affected: 8 files (CTABanner, Doctors, QuickActions, Testimonials, WhyChooseUs, ScrollAnimation, GioiThieuPage, HomePage).
+
+## PHASE 88 - Wave D: Admin auth sync + lint green + JWT RFC 7519 + path traversal hardening (2026-08-01)
+
+### Admin mutations dung Bearer token (P5 - critical blocker)
+
+- Backend Phase 85 da enforce `authenticate` cho toan bo write routes nhung frontend van dung plain `fetch` khong Bearer -> admin writes se 401 trong production. Fix toan bo:
+  - HospitalContext.tsx: import + `const authedFetch = useAuthedFetch()` (AdminProvider wrap HospitalProvider trong main.tsx nen hook kha dung). Thay plain fetch bang authedFetch: addDoctor/updateSpecialty/deleteSpecialty/addNews/updateNews/deleteNews/updateScheduleShift (POST/PUT/DELETE/PATCH).
+  - FeedbackTab.tsx: GET list + PATCH status + PATCH response -> authedFetch.
+  - RecordRequestsTab.tsx: GET list + PATCH status + PATCH process -> authedFetch.
+  - OrganizationTab.tsx: POST/PUT/DELETE departments -> authedFetch.
+  - ShiftsTab.tsx: PATCH doctor schedule -> authedFetch.
+- `addBooking` POST /api/v1/bookings la public endpoint (khong authenticate) -> giu plain fetch.
+
+### Lint green (P14 - Quality Gate)
+
+- Fix 12 file admin tabs: `ease: "easeOut" as const` (type Easing khong nhan string) o BookingsTab/ContactTab/FeedbackTab/PatientTab/PatientsTab/RecordRequestsTab/ShiftsTab/SpecialtiesTab/TenderTab.
+- ChoBenhNhanPage.tsx:449: `key={item.id || idx}` -> `key={idx}` (ItemData khong co field id).
+- vite.config.ts:6: `allowedHosts: true` -> `['localhost', '.localhost', '127.0.0.1', 'bvdh.local']` (type bool khong hop le).
+- Ket qua: `npm run lint` = 0 loi - LAN DAU TIEN GREEN sau production audit.
+
+### JWT RFC 7519 (H4)
+
+- auth.service.ts: exp sai format (milliseconds) + thieu iat + thieu sub. Refactor:
+  - `nowSeconds()` helper; access/refresh token body: `{...payload, sub: userId, iat: now, exp: now + TTL/1000}` (NumericDate seconds).
+  - `verifyTokenSignature(token, secret)` tach chung; `isExpired` chap nhan ca seconds (<1e12) va ms cu (>1e12) de khong pha session dang co.
+  - `toTokenPayload` validate fields; storeRefreshToken decode jti truc tiep tu raw payload (verifyRefreshToken da strip jti).
+  - Verify E2E: login -> payload `{"userId","username","role","sub","iat":1785557673,"exp":1785559473}` dung RFC 7519.
+
+### Path traversal hardening (H6)
+
+- record-request.service.ts: `resolveSafePhysicalPath` cai tien:
+  - Check `typeof !== string` / empty / null byte `\0`.
+  - Thay `startsWith(path.resolve(allowed) + path.sep)` bang `isInside` (path.relative + !startsWith("..") + !isAbsolute) - chinh xac hon, tranh bypass case/prefix.
+
+### M2 + scan items
+
+- RecordRequestsTab.tsx useEffect deps: `accessToken` -> `authedFetch` (fix missing dep).
+- Explore agent scan: H8 any types giam ~30+ -> 6; H9 unused icons ~36 -> 28 (15 files); M1 literal key={idx} = 0 (con index-key bien the 14 dong/7 files); M3/M11/M12/L6 da fix tu truoc; M13 rename 1 phan (PatientTab.tsx file cu, export PatientGuideTab).
+
+### Verify
+
+- npm run lint: 0 loi. npm run build: pass (vite + esbuild + tsc server).
+- docker restart bvdh-frontend + bvdh-backend -> healthy. Luu y: /api/v1/auth serve boi bvdh-backend (admin-api) khong phai frontend - phai restart backend.
+- E2E: login admin OK (RFC 7519 payload), POST /api/v1/specialties voi Bearer -> 201, DELETE cleanup OK.
+- Files affected: 15 files (auth.service, record-request.service, HospitalContext, 9 admin tabs, ChoBenhNhanPage, vite.config).

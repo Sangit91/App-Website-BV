@@ -240,6 +240,7 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 | Patient Portal (HIS Integration) | ✅ Hoàn thành |
 | Modern Animation Pattern (6 pages) | ✅ Hoàn thành |
 | ScrollAnimation public components + reducedMotion (Phase 87, 2026-08-01): CTABanner/Doctors/QuickActions/Testimonials/WhyChooseUs/HomePage wrap ScrollAnimation; GioiThieuPage animate→whileInView | ✅ Hoàn thành |
+| Wave D (Phase 88, 2026-08-01): admin mutations dùng useAuthedFetch (Bearer) — HospitalContext + FeedbackTab + RecordRequestsTab + OrganizationTab + ShiftsTab; lint GREEN lần đầu (Variants ease `as const`, ChoBenhNhanPage key, vite allowedHosts); JWT RFC 7519 (sub/iat/exp seconds); path traversal hardening (path.relative) | ✅ Hoàn thành |
 | prefers-reduced-motion | ✅ Hoàn thành |
 | Shared Animation Hooks | ✅ Hoàn thành |
 | Organization Section in GioiThieuPage | ✅ Hoàn thành |
@@ -271,8 +272,7 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 | CCCD encryption + migration drift fix (Phase 84): schema Patient bỏ cột `cccd` plaintext → thêm `cccdHash String? @unique` + `cccdEncrypted`; tạo `server/services/cccd.service.ts` (AES-256-GCM encrypt/decrypt `iv.tag.data` base64, hashCccd SHA-256 + maskCccd `0012****90`). Migration `20260731110412_cccd_hash` applied; `appointment.service` + `patient.service` lookup match qua hash; `toPublicPatient` fix (fullName/registeredAt); `seed.ts` insert patients dùng hash/encrypt (raw SQL). Drift migration `20260731110047_fix_drift` (tender dates Timestamp(3), policy_version nullable, tender_dept) — shadow DB config trong `prisma.config.ts` + docker-compose mount. Soft-delete middleware mở rộng findUnique/update/delete. `$transaction` cho consent.createPolicy + record-request.processStatusChange. `.env.example` đầy đủ biến. Verify: tsc pass, lookup BN-001 qua cccd 001234567890 trả patient, encrypt/decrypt roundtrip OK, DB hash khớp `9e7636...` | ✅ Hoàn thành (2026-07-31) |
 | Audit logging + RBAC + indexes (Phase 85): `activity_logs` mở rộng `durationMs`/`dataAccessed`/`patientId` + index createdAt/userId/patientId (migration `20260731123000_activity_logs_enrichment`); tạo `activity-log.service.ts` + `activity-log.middleware.ts` (activityLogger đo duration qua `res.on("finish")`) wire toàn bộ admin write routes (SPECIALTY/DOCTOR/NEWS/SERVICE/TESTIMONIAL/FEEDBACK/RECORD_REQUEST/ORG actions) + 3 PHI routes (`PHI_READ_*` + `dataAccessed:"PHI"` + patientId). RBAC: specialties/doctors/organization/service/testimonial write → `requireSuperAdmin`; news/feedback/record-request write → `requireAdmin` + `authorizeDepartmentAccess`; bookings GET + appointment `/search` → `requireAnyStaff` (helper mới gồm Receptionist+Doctor). Index `patients.phone` + `appointments.phone`. Verify: tsc pass, admin tạo specialty → log `SPECIALTY_CREATE` có userId+duration+ip, PHI read → log `PHI_READ_MEDICAL_RECORDS` dataAccessed=PHI, reception đọc bookings OK nhưng POST specialties 403 | ✅ Hoàn thành (2026-07-31) |
 | API hardening (Phase 86 Wave C): Zod validation + rate limit per-form + pagination thật + health check DB + graceful shutdown. Cài `zod@^4.4.3`; tạo `server/validators/schemas.ts` (full schemas tiếng Việt) + `server/validators/middleware.ts` (`validate` — detect thiếu trường qua `getPathValue` vì Zod v4 không expose `received`) wire toàn bộ route public + admin write; `server/middleware/rate-limit.middleware.ts` (mỗi form 1 bucket riêng `bookingFormLimiter`/`feedbackFormLimiter`/`recordRequestFormLimiter`/`consentFormLimiter`/`appointmentFormLimiter` 5 req/IP/15ph theo `agents/06-server-api.md`, `lookupLimiter` 30/15ph, `aiLimiter` 20/15ph, `otpVerifyLimiter` 10/15ph — form này không chặn form kia); `server/utils/pagination.ts` (`getPagination` page/limit/skip) — bookings/feedback/record-requests/doctors/news trả `X-Total-Count` giữ shape mảng (frontend không break), 3 route PHI trả `{data,total,page,pageSize}` giữ key `records/tests/histories`; `/api/health` check `SELECT 1` qua Prisma (503 degraded nếu DB lỗi); `server.ts` cleanup `uploads/temp` lúc khởi động + SIGTERM/SIGINT graceful shutdown (close→$disconnect→exit 0, force 10s) + unhandledRejection/uncaughtException; `app.use("/api", notFoundHandler)` → 404 JSON `API endpoint không tồn tại` trước SPA fallback; MulterError → 400; xóa dead code `validateInput`/`validateSubmitInput`. Verify E2E đầy đủ qua `https://localhost:8443`: booking valid 201 / invalid phone 400 tiếng Việt / missing field 400 "Thiếu thông tin bắt buộc"; feedback rating+contact validate; record-request date_to<date_from 400; specialty create 201 + missing/bad type 400; feedback PATCH bad status 400; AI empty message 400; OTP verify 400; patient lookup 400/404; check-patient 200 + bad cccd 400; cancel 200; pagination X-Total-Count (news 7, doctors 4, feedback 3); API 404 JSON; SPA fallback HTML; rate limit burst → 429 đúng bucket + form khác không bị chặn chéo | ✅ Hoàn thành (2026-07-31) |
-| Spec v2.9 review + Database gap analysis | ✅ Hoàn thành (2026-07-22) |
-| dactaupdate.md updated with DB gaps | ✅ Hoàn thành |
+| Spec v2.9 review + Database gap analysis | ✅ Hoàn thành (2026-07-22) || dactaupdate.md updated with DB gaps | ✅ Hoàn thành |
 | Expert System Review Report (report-review.md) | ✅ Hoàn thành |
 | AGENTS.md updated with v2.10 spec (Public Form API, DB Layer rules, Data Retention, ENUM-Badge sync) | ✅ Hoàn thành |
 | Admin Login Single-Canvas Redesign (2026-07-26): Single-Canvas dark theme, Glassmorphism card, DB-backed auth với JWT, spotlight mouse tracking, shake animation, scope selector với layoutId | ✅ Hoàn thành |
@@ -329,21 +329,21 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
 | H1 | Không input validation (Zod/Joi) — request body dùng raw từ client | Toàn bộ routes | ✅ Phase 86: `server/validators/schemas.ts` + `middleware.ts`, wire toàn bộ route public + admin write |
 | H2 | Không Prisma transaction — multi-step operation dễ mất đồng bộ (upload file + DB insert, xoá policy cũ + tạo mới...) | `server/services/*.ts` | ✅ Phase 84: `consent.service.createPolicy` + `record-request.processStatusChange` bọc `$transaction` |
 | H3 | Không pagination API — list endpoint sẽ trả hàng ngàn records | `booking/feedback/news/doctor.service.ts` | ✅ Phase 86: `getPagination` + `X-Total-Count` trên bookings/feedback/record-requests/doctors/news + 3 route PHI trả `{data,total,page,pageSize}` |
-| H4 | Custom JWT — không theo RFC 7519 (thiếu `iat`, `exp` sai format) | `auth.service.ts:43-56` | ❌ |
+| H4 | Custom JWT — không theo RFC 7519 (thiếu `iat`, `exp` sai format) | `auth.service.ts:43-56` | ✅ Phase 88: `sub`/`iat`/`exp` NumericDate seconds; `isExpired` chấp nhận ms cũ + seconds mới |
 | H5 | Không helmet/CORS — thiếu security headers, CORS mở trắng | `server/app.ts` | ✅ Phase 83: helmet CSP env-aware + CORS chỉ allow `CORS_ORIGIN` (mặc định localhost:3000), nginx bỏ reflect-any |
-| H6 | Path traversal protection cần hardening — `resolveSafePhysicalPath` có thể bypass | `record-request.service.ts:46-55` | ❌ |
-| H7 | In-memory login attempt tracker — mất khi restart server, không scale được | `auth.service.ts:17` | ❌ |
-| H8 | **~30+ `any` types** trong frontend — `Record<string, any>` khắp admin tabs | `HospitalContext.tsx`, `PatientTab.tsx`, `HomeTab/index.tsx`, các admin tabs | ❌ |
-| H9 | **~36 unused lucide-react icons** — import nhưng không dùng trong JSX | `Navbar.tsx`, `TenderTab.tsx`, `BookingsTab.tsx`, nhiều file | ❌ |
-| H10 | **`console.log` trong production** — leak OTP/token qua log | `auth.routes.ts:94,149,204`, `reset-admin-password.ts:25` | ❌ |
+| H6 | Path traversal protection cần hardening — `resolveSafePhysicalPath` có thể bypass | `record-request.service.ts:46-55` | ✅ Phase 88: dùng `path.relative` + `isInside` thay `startsWith`, chặn null byte/empty |
+| H7 | In-memory login attempt tracker — mất khi restart server, không scale được | `auth.service.ts:17` | ❌ Wave E (ops): persist DB |
+| H8 | **~30+ `any` types** trong frontend — `Record<string, any>` khắp admin tabs | `HospitalContext.tsx`, `PatientTab.tsx`, `HomeTab/index.tsx`, các admin tabs | ⚠️ Giảm còn ~6 (HospitalContext:186, lib/env.ts:19,28, ContactTab:57, RecordRequestsTab:119, ShiftsTab:59) — Wave F |
+| H9 | **~36 unused lucide-react icons** — import nhưng không dùng trong JSX | `Navbar.tsx`, `TenderTab.tsx`, `BookingsTab.tsx`, nhiều file | ⚠️ Giảm còn ~28 ở 15 file — Wave F |
+| H10 | **`console.log` trong production** — leak OTP/token qua log | `auth.routes.ts:94,149,204`, `reset-admin-password.ts:25` | ✅ Đã sạch (auth.routes không còn log OTP; reset-admin-password in message không mật khẩu; `src/` 0 console.log) |
 
 ### 🟡 MEDIUM
 
 | # | Vấn đề | File | Trạng thái |
 |---|--------|------|------------|
-| M1 | `key={idx}` thay vì unique ID — ~20 files bị ảnh hưởng | Nhiều files | ❌ |
-| M2 | `useEffect` missing dependencies — `fetchRequests`/`fetchFeedbacks` không trong deps | `FeedbackTab.tsx`, `RecordRequestsTab.tsx` | ❌ |
-| M3 | `window.location.reload()` trong `ShiftsTab.tsx` — hard reload | `ShiftsTab.tsx:71` | ❌ |
+| M1 | `key={idx}` thay vì unique ID — ~20 files bị ảnh hưởng | Nhiều files | ⚠️ Literal `key={idx}` = 0; còn index-key biến thể (`key={cidx}`/`key={lidx}`/`key={item.id\|\|idx}`...) ~14 dòng/7 files — Wave F |
+| M2 | `useEffect` missing dependencies — `fetchRequests`/`fetchFeedbacks` không trong deps | `FeedbackTab.tsx`, `RecordRequestsTab.tsx` | ✅ Phase 88: RecordRequestsTab deps `accessToken`→`authedFetch`; FeedbackTab fn đã trong effect |
+| M3 | `window.location.reload()` trong `ShiftsTab.tsx` — hard reload | `ShiftsTab.tsx:71` | ✅ Đã sạch (chỉ còn ErrorBoundary reload hợp lệ) |
 | M4 | Thiếu cascade delete trong Prisma schema | `prisma/schema.prisma` | ❌ |
 | M5 | Mass assignment — `...data` spread cho phép ghi field tuỳ ý vào DB | `news/specialty/service.service.ts` | ❌ |
 | M6 | Version API không đồng nhất — `/api/booking` vs `/api/v1/auth` | `server/app.ts:39-52` | ❌ |
@@ -351,9 +351,9 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
 | M8 | Response format không đồng nhất — `{success, data}` vs `{error}` | Toàn bộ routes | ❌ |
 | M9 | Soft delete không enforce — cần Prisma middleware filter `deletedAt: null` | `prisma/schema.prisma` | ✅ Phase 84: `server/db/prisma.ts` middleware filter `deletedAt: null` cho Patient/AdminUser — mở rộng cả `findUnique`/`update`/`delete`/`updateMany`/`deleteMany` |
 | M10 | JSON body size limit không set — dễ bị DoS payload lớn | `server/app.ts:19` | ❌ |
-| M11 | `console.log` silent sync error thay vì `console.error` | `HospitalContext.tsx:652` | ❌ |
-| M12 | Prop drilling — `PatientPortalSection.tsx` nhận 9 props | `PatientPortalSection.tsx` | ❌ |
-| M13 | Tên component gây nhầm — `PatientTab.tsx` (admin guide) vs `PatientsTab.tsx` (patient records) | `admin/tabs/` | ❌ |
+| M11 | `console.log` silent sync error thay vì `console.error` | `HospitalContext.tsx:652` | ✅ Đã dùng `console.error` — `src/` 0 console.log |
+| M12 | Prop drilling — `PatientPortalSection.tsx` nhận 9 props | `PatientPortalSection.tsx` | ✅ Giảm còn 3 props (`onOpenRecordRequest`/`onOpenFeedback`/`error`) |
+| M13 | Tên component gây nhầm — `PatientTab.tsx` (admin guide) vs `PatientsTab.tsx` (patient records) | `admin/tabs/` | ✅ Phase 88: export `PatientGuideTab` từ `PatientTab.tsx` (file cũ), dùng ở tabs/index + AdminPage |
 
 ### 🟢 LOW
 
