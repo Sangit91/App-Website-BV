@@ -510,14 +510,16 @@ export default function GioiThieuPage() {
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
             <motion.h2
               className="text-4xl font-display font-bold text-green-dark mb-4"
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
               Về chúng tôi
@@ -525,7 +527,8 @@ export default function GioiThieuPage() {
             <motion.div
               className="w-20 h-1 bg-brand-green mx-auto rounded-full"
               initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.6, delay: 0.2 }}
             />
           </motion.div>
@@ -540,7 +543,8 @@ export default function GioiThieuPage() {
               <motion.div
                 key={item.label}
                 initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
                 transition={{ delay: 0.2 + idx * 0.1 }}
                 className="bg-white rounded-2xl p-6 shadow-lg border border-green-800/5 text-center"
               >
@@ -556,7 +560,8 @@ export default function GioiThieuPage() {
           {/* Expandable Details */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
             transition={{ delay: 0.5 }}
             className="bg-mint/30 rounded-3xl p-8"
           >
@@ -675,7 +680,8 @@ export default function GioiThieuPage() {
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
@@ -702,7 +708,8 @@ export default function GioiThieuPage() {
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >

@@ -239,6 +239,7 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 | Admin Panel (13 tabs + 2 pending) | ✅ Hoàn thành CRUD (Specialties, Doctors, Organization, News, Patients mask, Services, Patient Guide, Tender, Contact) |
 | Patient Portal (HIS Integration) | ✅ Hoàn thành |
 | Modern Animation Pattern (6 pages) | ✅ Hoàn thành |
+| ScrollAnimation public components + reducedMotion (Phase 87, 2026-08-01): CTABanner/Doctors/QuickActions/Testimonials/WhyChooseUs/HomePage wrap ScrollAnimation; GioiThieuPage animate→whileInView | ✅ Hoàn thành |
 | prefers-reduced-motion | ✅ Hoàn thành |
 | Shared Animation Hooks | ✅ Hoàn thành |
 | Organization Section in GioiThieuPage | ✅ Hoàn thành |

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Search, Calendar, UserCheck, Inbox, RefreshCw } from "lucide-react";
 import { useHospital } from "../../context/HospitalContext";
 import { Doctor } from "../../types";
+import ScrollAnimation from "../ui/ScrollAnimation";
 
 interface DoctorsProps {
   onOpenBookingWithDoctor: (doctorName: string, specialtyId: string) => void;
@@ -29,7 +30,7 @@ export default function Doctors({ onOpenBookingWithDoctor }: DoctorsProps) {
       <div className="max-w-[1180px] mx-auto px-4">
         
         {/* Section Heading */}
-        <div className="text-center max-w-[680px] mx-auto mb-8">
+        <ScrollAnimation animation="fade-up" className="text-center max-w-[680px] mx-auto mb-8">
           <p className="text-brand-green text-xs font-bold uppercase tracking-widest mb-2">Đội ngũ thầy thuốc</p>
           <h2 className="font-display font-bold text-[28px] md:text-[32px] text-green-dark">
             Đội Ngũ Bác Sĩ Ưu Tú & Tận Tâm
@@ -38,10 +39,10 @@ export default function Doctors({ onOpenBookingWithDoctor }: DoctorsProps) {
           <p className="text-ink/80 text-sm md:text-base">
             Gặp gỡ những bác sĩ chuyên môn cao, thầy thuốc ưu tú của chúng tôi, luôn túc trực hỗ trợ sức khỏe toàn diện cho nhân dân.
           </p>
-        </div>
+        </ScrollAnimation>
 
         {/* Real-time search/filter for Doctors */}
-        <div className="max-w-[500px] mx-auto mb-12 relative">
+        <ScrollAnimation animation="fade-up" delay={0.1} className="max-w-[500px] mx-auto mb-12 relative">
           <div className="relative">
             <input
               type="text"
@@ -57,17 +58,17 @@ export default function Doctors({ onOpenBookingWithDoctor }: DoctorsProps) {
               Đang lọc kết quả theo từ khóa &quot;{searchQuery}&quot; - Tìm thấy {filteredDoctors.length} kết quả
             </p>
           )}
-        </div>
+        </ScrollAnimation>
 
         {/* Doctors Grid */}
         {filteredDoctors.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredDoctors.map((doc: Doctor) => (
-              <div
-                key={doc.id}
-                onClick={() => onOpenBookingWithDoctor(doc.name, doc.specialtyId)}
-                className="bg-white border border-green-800/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group cursor-pointer hover:border-brand-green/30"
-              >
+            {filteredDoctors.map((doc: Doctor, idx) => (
+              <ScrollAnimation key={doc.id} animation="fade-up" delay={idx * 0.08} className="h-full">
+                <div
+                  onClick={() => onOpenBookingWithDoctor(doc.name, doc.specialtyId)}
+                  className="bg-white border border-green-800/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group cursor-pointer hover:border-brand-green/30 h-full"
+                >
                 {/* Doctor Portrait Image */}
                 <div className="relative h-[260px] overflow-hidden bg-mint/30 shrink-0">
                   <img
@@ -113,6 +114,7 @@ export default function Doctors({ onOpenBookingWithDoctor }: DoctorsProps) {
                   </div>
                 </div>
               </div>
+              </ScrollAnimation>
             ))}
           </div>
         ) : (

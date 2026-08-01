@@ -1,5 +1,6 @@
 import React from "react";
 import { Check, ShieldCheck, HeartHandshake, Award, Sparkles } from "lucide-react";
+import ScrollAnimation from "../ui/ScrollAnimation";
 
 export default function WhyChooseUs() {
   return (
@@ -7,7 +8,7 @@ export default function WhyChooseUs() {
       <div className="max-w-[1180px] mx-auto px-4 space-y-16 md:space-y-24">
         
         {/* Section Heading */}
-        <div className="text-center max-w-[680px] mx-auto">
+        <ScrollAnimation animation="fade-up" className="text-center max-w-[680px] mx-auto">
           <p className="text-brand-green text-xs font-bold uppercase tracking-widest mb-2">Giá trị cốt lõi</p>
           <h2 className="font-display font-bold text-[28px] md:text-[32px] text-green-dark">
             Vì sao nên gửi gắm niềm tin tại BVĐK KV Miền Núi Phía Bắc Quảng Nam?
@@ -16,10 +17,10 @@ export default function WhyChooseUs() {
           <p className="text-ink/80 text-sm md:text-base">
             Chúng tôi tự hào là điểm tựa y tế vững chắc hàng đầu cho nhân dân trong khu vực bằng năng lực chuyên môn và tinh thần cống hiến vượt trội.
           </p>
-        </div>
+        </ScrollAnimation>
 
         {/* Row 1: Đội ngũ chuyên môn cao (Image Left - Text Right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-center">
+        <ScrollAnimation animation="slide-left" className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-center">
           {/* Left: Image (Radius Large - 28px) */}
           <div className="lg:col-span-6 relative">
             <div className="w-full h-[320px] md:h-[400px] overflow-hidden rounded-[28px] shadow-lg">
@@ -72,10 +73,10 @@ export default function WhyChooseUs() {
               ))}
             </ul>
           </div>
-        </div>
+        </ScrollAnimation>
 
         {/* Row 2: Thiết bị hiện đại (Text Left - Image Right on Desktop) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-center">
+        <ScrollAnimation animation="slide-right" className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-center">
           {/* Left: Text Content (Reordered to left for desktop grid layout) */}
           <div className="lg:col-span-6 lg:order-1 text-left space-y-5">
             <div className="inline-flex items-center space-x-1.5 bg-peach/15 text-peach px-3.5 py-1 rounded-full text-xs font-bold">
@@ -117,18 +118,18 @@ export default function WhyChooseUs() {
               />
             </div>
             
-            {/* Small floating overlay badge */}
-            <div className="absolute -bottom-4 -left-4 bg-white p-4 rounded-[20px] shadow-md border border-brand-green/10 flex items-center space-x-2.5">
-              <div className="w-9 h-9 bg-mint rounded-xl flex items-center justify-center text-brand-green">
-                <ShieldCheck size={18} />
+              {/* Small floating overlay badge */}
+              <div className="absolute -bottom-4 -left-4 bg-white p-4 rounded-[20px] shadow-md border border-brand-green/10 flex items-center space-x-2.5">
+                <div className="w-9 h-9 bg-mint rounded-xl flex items-center justify-center text-brand-green">
+                  <ShieldCheck size={18} />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-bold text-green-dark">Chuẩn quốc tế</p>
+                  <p className="text-[10px] text-ink/70">An toàn & vô trùng tuyệt đối</p>
+                </div>
               </div>
-              <div className="text-left">
-                <p className="text-xs font-bold text-green-dark">Chuẩn quốc tế</p>
-                <p className="text-[10px] text-ink/70">An toàn & vô trùng tuyệt đối</p>
-              </div>
-            </div>
           </div>
-        </div>
+        </ScrollAnimation>
 
       </div>
     </section>

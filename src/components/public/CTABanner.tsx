@@ -1,5 +1,6 @@
 import React from "react";
 import { Phone, CalendarDays } from "lucide-react";
+import ScrollAnimation from "../ui/ScrollAnimation";
 
 interface CTABannerProps {
   onOpenBooking: () => void;
@@ -11,7 +12,8 @@ export default function CTABanner({ onOpenBooking }: CTABannerProps) {
       <div className="max-w-[1180px] mx-auto px-4">
         
         {/* Banner container (Radius Large - 28px, gradient green theme) */}
-        <div className="relative bg-gradient-to-r from-brand-green via-[#228e51] to-green-dark p-8 md:p-14 rounded-[28px] text-white shadow-xl overflow-hidden select-none text-left">
+        <ScrollAnimation animation="scale-up" className="relative">
+          <div className="relative bg-gradient-to-r from-brand-green via-[#228e51] to-green-dark p-8 md:p-14 rounded-[28px] text-white shadow-xl overflow-hidden select-none text-left">
           
           {/* Circular decorative blobs in background */}
           <div className="absolute -right-16 -top-16 w-64 h-64 bg-white/5 rounded-full blur-2xl"></div>
@@ -57,6 +59,7 @@ export default function CTABanner({ onOpenBooking }: CTABannerProps) {
           </div>
 
         </div>
+        </ScrollAnimation>
 
       </div>
     </section>

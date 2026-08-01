@@ -2447,3 +2447,28 @@ pm run lint frontend van do (pre-existing ChoBenhNhanPage/vite.config/motion eas
 - Docker: cai package moi + code moi -> docker compose up -d --build --force-recreate --renew-anon-volumes; tsx watch trong container khong reload khi edit file nen can docker compose restart admin-api sau khi sua.
 - Token test luu %TEMP%\token.txt phai .Trim() truoc khi dung (Set-Content -Encoding UTF8 them BOM).
 - Rate limit bucket trong bo nho -> reset khi restart container (lien quan khi chay E2E).
+
+## PHASE 87 - ScrollAnimation cho public components + reducedMotion (2026-08-01)
+
+### ScrollAnimation cho HomePage components
+
+- src/components/ui/ScrollAnimation.tsx: them useReducedMotion() - khi reduced motion bat, return <div> thong thuong (khong animation), useEffect observer bi skip; deps effect them reducedMotion.
+- Wrap ScrollAnimation cho cac section chua co animation rieng:
+  - CTABanner.tsx: banner container "scale-up".
+  - Doctors.tsx: section heading "fade-up" + search box "fade-up" delay 0.1 + grid cards "fade-up" delay idx*0.08 (them h-full cho card de grid dong deu).
+  - QuickActions.tsx: heading "fade-up" + 4 glass cards "fade-up" delay idx*0.1.
+  - Testimonials.tsx: heading "fade-up" + 3 cards "fade-up" delay idx*0.1 (them h-full).
+  - WhyChooseUs.tsx: heading "fade-up" + Row1 "slide-left" + Row2 "slide-right". Fix JSX thua 1 </div> o Row 2 (badge div indentation lech gay TS17008/TS17002) - remove extra closing tag.
+  - HomePage.tsx: "Kham pha them" heading "fade-up" + 4 link cards "fade-up" delay 0.05-0.2 (them w-full cho Link).
+  - GioiThieuPage.tsx: doi animate -> whileInView + viewport {once:true, margin:"-50px"} cho cac motion.div section (de chay khi scroll vao, khong chay ngay khi mount).
+
+### Khong sua (da co animation rieng)
+
+- Hero/Specialties/News/Organization/PatientPortalSection da co Framer Motion + useInView tu truoc - khong double-animation.
+
+### Verify
+
+- tsc: loi WhyChooseUs da fix, khong con loi moi. Lint frontend van con pre-existing (ChoBenhNhanPage.tsx:449 ItemData.id, vite.config.ts:6 allowedHosts boolean, admin tabs Variants ease: string) - da ghi nhan Wave D.
+- npm run build pass (vite build + esbuild server + tsc server).
+- docker restart bvdh-frontend -> healthy.
+- Files affected: 8 files (CTABanner, Doctors, QuickActions, Testimonials, WhyChooseUs, ScrollAnimation, GioiThieuPage, HomePage).

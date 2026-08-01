@@ -1,4 +1,5 @@
 import { useEffect, useRef, ReactNode } from "react";
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 
 interface ScrollAnimationProps {
   children: ReactNode;
@@ -16,8 +17,11 @@ export default function ScrollAnimation({
   id
 }: ScrollAnimationProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
+    if (reducedMotion) return;
+
     const element = ref.current;
     if (!element) return;
 
@@ -39,7 +43,15 @@ export default function ScrollAnimation({
     observer.observe(element);
 
     return () => observer.disconnect();
-  }, [delay]);
+  }, [delay, reducedMotion]);
+
+  if (reducedMotion) {
+    return (
+      <div id={id} className={className}>
+        {children}
+      </div>
+    );
+  }
 
   const animationClasses = {
     "fade-up": "scroll-fade-up",
