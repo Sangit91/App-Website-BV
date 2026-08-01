@@ -126,6 +126,7 @@ const isTender = !!(n as any).isTender;
       (n as any)["tenderMethod"] || null,
       (n as any)["tenderEstimateValue"] || null,
       (n as any)["tenderReceivedLocation"] || null,
+      (n as any)["tenderDept"] || null,
       (n as any)["tenderContact"] || null,
       rawContactPhone ? String(rawContactPhone).substring(0, 20) : null,
       (n as any)["tenderDownloadCount"] || 0,
@@ -136,9 +137,9 @@ const isTender = !!(n as any).isTender;
       INSERT INTO news (
         id, title, slug, summary, category, content, image, author, is_featured,
         is_tender, tender_number, tender_start_date, tender_end_date,
-        tender_method, tender_estimate, tender_received_location, contact_name, contact_phone,
+        tender_method, tender_estimate, tender_received_location, tender_dept, contact_name, contact_phone,
         download_count, is_active, published_at, created_at, updated_at
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,NOW(),NOW())
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,NOW(),NOW())
       ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title
     `, vals);
   }

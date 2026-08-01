@@ -1,59 +1,53 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { motion } from "framer-motion";
 import { FileText, Building2, Calendar, Gavel, Server, Stethoscope, Microscope, Pill, Users, Edit, Trash2, LucideIcon, DollarSign, X, Clock, Phone, HelpCircle } from "lucide-react";
-import { SectionCard, AddCard, EditModal, ConfirmDialog } from "../ui";
+import { SectionCard, AddCard, ConfirmDialog } from "../ui";
 import { Button, Modal } from "../../ui";
-
-interface TenderDept {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-  image: string;
-  description: string;
-}
+import { useHospital } from "../../../context/HospitalContext";
+import { useAdmin } from "../../../context/AdminContext";
+import { DEPARTMENTS } from "../../../data";
+import { NewsItem, TenderStatus, TenderMethod } from "../../../types/models/news";
 
 const DEPT_ICONS: Record<string, LucideIcon> = {
   Server, Stethoscope, Microscope, Pill, Building2, Users,
 };
 
-const DEFAULT_DEPTS: TenderDept[] = [
-  { id: "PHÒNG CNTT", name: "Phòng Công Nghệ Thông Tin", icon: "Server", color: "from-blue-500 to-cyan-600", image: "/images/pages/coso-1.jpeg", description: "Quản trị hệ thống CNTT bệnh viện" },
-  { id: "PHÒNG VTTBYT", name: "Vật Tư Thiết Bị Y Tế", icon: "Stethoscope", color: "from-green-500 to-emerald-600", image: "/images/pages/chiphi-1.jpeg", description: "Mua sắm trang thiết bị y tế" },
-  { id: "XÉT NGHIỆM", name: "Khoa Xét Nghiệm", icon: "Microscope", color: "from-purple-500 to-violet-600", image: "/images/pages/xetnghiem-1.jpeg", description: "Vật tư xét nghiệm, hóa chất" },
-  { id: "DƯỢC", name: "Khoa Dược", icon: "Pill", color: "from-orange-500 to-amber-600", image: "/images/pages/duoc-1.jpeg", description: "Đấu thầu thuốc, dược phẩm" },
-  { id: "PHÒNG HCQT", name: "Hành Chính Quản Trị", icon: "Building2", color: "from-teal-500 to-cyan-600", image: "/images/pages/coso-2.jpeg", description: "Hành chính, văn phòng phẩm" },
-  { id: "PHÒNG KẾ TOÁN", name: "Kế Toán Hành Chính", icon: "Users", color: "from-pink-500 to-rose-600", image: "/images/pages/bhyt-1.jpeg", description: "Kế toán, tài chính dự án" },
-];
+const DEPT_META: Record<string, { name: string; icon: string; color: string; image: string; description: string }> = {
+  "PHÒNG CNTT": { name: "Phòng Công Nghệ Thông Tin", icon: "Server", color: "from-blue-500 to-cyan-600", image: "/images/pages/coso-1.jpeg", description: "Quản trị hệ thống CNTT bệnh viện" },
+  "PHÒNG VTTBYT": { name: "Vật Tư Thiết Bị Y Tế", icon: "Stethoscope", color: "from-green-500 to-emerald-600", image: "/images/pages/chiphi-1.jpeg", description: "Mua sắm trang thiết bị y tế" },
+  "XÉT NGHIỆM": { name: "Khoa Xét Nghiệm", icon: "Microscope", color: "from-purple-500 to-violet-600", image: "/images/pages/xetnghiem-1.jpeg", description: "Vật tư xét nghiệm, hóa chất" },
+  "DƯỢC": { name: "Khoa Dược", icon: "Pill", color: "from-orange-500 to-amber-600", image: "/images/pages/duoc-1.jpeg", description: "Đấu thầu thuốc, dược phẩm" },
+  "PHÒNG HCQT": { name: "Hành Chính Quản Trị", icon: "Building2", color: "from-teal-500 to-cyan-600", image: "/images/pages/coso-2.jpeg", description: "Hành chính, văn phòng phẩm" },
+  "PHÒNG KẾ TOÁN HÀNH CHÍNH": { name: "Kế Toán Hành Chính", icon: "Users", color: "from-pink-500 to-rose-600", image: "/images/pages/bhyt-1.jpeg", description: "Kế toán, tài chính dự án" },
+};
 
-interface TenderItem {
-  id: string;
-  title: string;
-  tenderNumber: string;
-  dept: string;
-  estimateValue: string;
-  publishDate: string;
-  startDate: string;
-  endDate: string;
-  status: string;
-  fileName?: string;
-  contact?: string;
-  contactPhone?: string;
+function parseTenderDate(dateStr: string): Date | null {
+  if (!dateStr) return null;
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (match) {
+    const [, y, m, d, h, min, s] = match;
+    const date = new Date(+y, +m - 1, +d, +h, +min, +(s || 0));
+    return isNaN(date.getTime()) ? null : date;
+  }
+  const date = new Date(dateStr);
+  return isNaN(date.getTime()) ? null : date;
 }
 
-const DEFAULT_TENDERS: TenderItem[] = [
-  { id: "1", title: "Mua sắm vật tư y tế năm 2026", tenderNumber: "BHYT-2026-001", dept: "PHÒNG VTTBYT", estimateValue: "500.000.000đ", publishDate: "2026-07-25T08:00", startDate: "2026-08-01T08:00", endDate: "2026-08-30T17:00", status: "Đang mở", contact: "CN. Nguyễn Văn An", contactPhone: "0235.3862.888" },
-  { id: "2", title: "Dịch vụ bảo trì thiết bị MRI", tenderNumber: "BHYT-2026-002", dept: "PHÒNG CNTT", estimateValue: "200.000.000đ", publishDate: "2026-07-20T08:00", startDate: "2026-08-01T08:00", endDate: "2026-08-15T11:30", status: "Sắp đóng", contact: "KS. Trần Thị Bích", contactPhone: "0235.3862.889" },
-  { id: "3", title: "Cung cấp thuốc generic", tenderNumber: "BHYT-2026-003", dept: "DƯỢC", estimateValue: "800.000.000đ", publishDate: "2026-07-28T08:00", startDate: "2026-08-05T08:00", endDate: "2026-09-01T17:00", status: "Đang mở", contact: "DS. Lê Thị Mai", contactPhone: "0235.3862.890" },
-];
+function getTenderStatus(item: Pick<NewsItem, "tenderEndDate">): TenderStatus {
+  const endDate = parseTenderDate(item.tenderEndDate || "");
+  if (!endDate) return "Đang mở";
+  const now = new Date();
+  if (endDate < now) return "Đã đóng";
+  const daysUntil = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysUntil <= 7) return "Sắp mở";
+  return "Đang mở";
+}
 
 const STATUS_OPTIONS = [
   { value: "Đang mở", label: "Đang mở" },
-  { value: "Sắp đóng", label: "Sắp đóng" },
+  { value: "Sắp mở", label: "Sắp đóng thầu" },
   { value: "Đã đóng", label: "Đã đóng" },
 ];
-
-const iconOptions = Object.keys(DEPT_ICONS).map(k => ({ value: k, label: k }));
 
 function toDatetimeLocal(value?: string): string {
   if (!value) return "";
@@ -115,10 +109,10 @@ export default function TenderTab() {
           </div>
           <div>
             <h2 className="font-display font-bold text-lg text-green-dark">Thông tin thầu</h2>
-            <p className="text-[11px] text-ink/50">Cập nhật thông tin đấu thầu và mua sắm công</p>
+            <p className="text-[11px] text-ink/50">Đồng bộ từ database — hiển thị trực tiếp trên trang /thong-tin-thau</p>
           </div>
         </div>
-        <span className="text-xs font-bold bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full">2 Sections</span>
+        <span className="text-xs font-bold bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full">DB-backed</span>
       </div>
 
       <motion.div custom={0} initial="hidden" animate="visible" variants={sectionVariants}>
@@ -132,189 +126,145 @@ export default function TenderTab() {
 }
 
 function DepartmentsSection() {
-  const [enabled, setEnabled] = useState(true);
-  const [depts, setDepts] = useState<TenderDept[]>(DEFAULT_DEPTS);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [editing, setEditing] = useState<TenderDept | null>(null);
+  const { news } = useHospital();
+  const tenders = news.filter(n => n.isTender);
 
-  const handleOpenEdit = (dept: TenderDept | null = null) => {
-    setEditing(dept || {
-      id: "", name: "", icon: "Building2", color: "from-blue-500 to-cyan-600",
-      image: "/images/pages/coso-1.jpeg", description: "",
-    });
-    setIsEditOpen(true);
-  };
-
-  const handleSave = (data: Record<string, string | number | boolean | File | null>) => {
-    if (editing && depts.find(d => d.id === editing.id)) {
-      setDepts(prev => prev.map(d => d.id === editing.id ? { ...d, ...data } : d));
-    } else {
-      const newDept: TenderDept = {
-        id: data.id as string,
-        name: data.name as string,
-        icon: data.icon as string,
-        color: data.color as string,
-        image: data.image as string,
-        description: data.description as string,
-      };
-      setDepts(prev => [...prev, newDept]);
-    }
-    setIsEditOpen(false);
-    setEditing(null);
-  };
-
-  const handleDelete = (id: string) => {
-    setDepts(prev => prev.filter(d => d.id !== id));
-    setDeleteConfirm(null);
-  };
-
-  const deptFields = [
-    {
-      name: "id", label: "Mã phòng ban", type: "text" as const, required: true,
-      hint: "VD: PHÒNG CNTT, PHÒNG VTTBYT",
-      disabled: editing && depts.find(d => d.id === editing.id) ? true : undefined,
-    },
-    { name: "name", label: "Tên phòng ban", type: "text" as const, required: true, hint: "VD: Phòng Công Nghệ Thông Tin" },
-    {
-      name: "icon", label: "Biểu tượng", type: "select" as const, required: true,
-      options: iconOptions,
-    },
-    { name: "image", label: "Đường dẫn ảnh", type: "text" as const, hint: "VD: /images/pages/coso-1.jpeg" },
-    { name: "description", label: "Mô tả", type: "text" as const, hint: "VD: Quản trị hệ thống CNTT bệnh viện" },
+  const deptColors = [
+    { bg: "bg-blue-50", iconBg: "bg-blue-100", iconCol: "text-blue-600", border: "border-l-blue-400" },
+    { bg: "bg-emerald-50", iconBg: "bg-emerald-100", iconCol: "text-emerald-600", border: "border-l-emerald-400" },
+    { bg: "bg-purple-50", iconBg: "bg-purple-100", iconCol: "text-purple-600", border: "border-l-purple-400" },
+    { bg: "bg-amber-50", iconBg: "bg-amber-100", iconCol: "text-amber-600", border: "border-l-amber-400" },
+    { bg: "bg-cyan-50", iconBg: "bg-cyan-100", iconCol: "text-cyan-600", border: "border-l-cyan-400" },
+    { bg: "bg-rose-50", iconBg: "bg-rose-100", iconCol: "text-rose-600", border: "border-l-rose-400" },
   ];
 
-  const initialData = editing ? {
-    id: editing.id, name: editing.name, icon: editing.icon,
-    image: editing.image, description: editing.description,
-  } : {};
-
   return (
-    <>
-      <SectionCard
-        title="Phòng ban tham gia"
-        description="Các phòng ban liên quan đến công tác đấu thầu"
-        icon={<Building2 size={20} />}
-        enabled={enabled}
-        onEnabledChange={setEnabled}
-        badge={`${depts.length} phòng ban`}
-        badgeColor="blue"
-      >
-        <div className="p-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {depts.map((dept, idx) => {
-              const IconComp = DEPT_ICONS[dept.icon] || Building2;
-              const deptColors = [
-                { bg: "bg-blue-50", iconBg: "bg-blue-100", iconCol: "text-blue-600", border: "border-l-blue-400" },
-                { bg: "bg-emerald-50", iconBg: "bg-emerald-100", iconCol: "text-emerald-600", border: "border-l-emerald-400" },
-                { bg: "bg-purple-50", iconBg: "bg-purple-100", iconCol: "text-purple-600", border: "border-l-purple-400" },
-                { bg: "bg-amber-50", iconBg: "bg-amber-100", iconCol: "text-amber-600", border: "border-l-amber-400" },
-                { bg: "bg-cyan-50", iconBg: "bg-cyan-100", iconCol: "text-cyan-600", border: "border-l-cyan-400" },
-                { bg: "bg-rose-50", iconBg: "bg-rose-100", iconCol: "text-rose-600", border: "border-l-rose-400" },
-              ];
-              const c = deptColors[idx % deptColors.length];
-              return (
-                <motion.div key={dept.id} custom={idx} initial="hidden" animate="visible" variants={itemVariants}>
-                  <div className={`group bg-white border border-green-800/5 rounded-xl overflow-hidden hover:shadow-lg hover:border-brand-green/20 transition-all duration-300 border-l-4 ${c.border}`}>
-                    <div className="relative h-28 overflow-hidden">
-                      <img src={dept.image} alt={dept.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-                      <div className="absolute bottom-2 left-3 right-3 flex items-center gap-2">
-                        <div className={`w-8 h-8 rounded-lg ${c.iconBg} flex items-center justify-center shadow`}>
-                          <IconComp size={16} className={c.iconCol} />
-                        </div>
-                      </div>
-                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => handleOpenEdit(dept)} className="p-1 rounded-md bg-white/90 text-gray-600 hover:text-brand-green hover:bg-white cursor-pointer shadow-sm" title="Sửa">
-                          <Edit size={12} />
-                        </button>
-                        <button onClick={() => setDeleteConfirm(dept.id)} className="p-1 rounded-md bg-white/90 text-gray-600 hover:text-red-500 hover:bg-white cursor-pointer shadow-sm" title="Xóa">
-                          <Trash2 size={12} />
-                        </button>
+    <SectionCard
+      title="Phòng ban tham gia"
+      description="Danh sách phòng ban liên quan đến công tác đấu thầu (đồng bộ với trang công khai)"
+      icon={<Building2 size={20} />}
+      enabled
+      badge={`${DEPARTMENTS.length} phòng ban`}
+      badgeColor="blue"
+    >
+      <div className="p-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {DEPARTMENTS.map((deptId, idx) => {
+            const meta = DEPT_META[deptId] || { name: deptId, icon: "Building2", color: "from-blue-500 to-cyan-600", image: "/images/pages/coso-1.jpeg", description: "" };
+            const IconComp = DEPT_ICONS[meta.icon] || Building2;
+            const count = tenders.filter(t => t.tenderDept === deptId).length;
+            const c = deptColors[idx % deptColors.length];
+            return (
+              <motion.div key={deptId} custom={idx} initial="hidden" animate="visible" variants={itemVariants}>
+                <div className={`group bg-white border border-green-800/5 rounded-xl overflow-hidden hover:shadow-lg hover:border-brand-green/20 transition-all duration-300 border-l-4 ${c.border}`}>
+                  <div className="relative h-28 overflow-hidden">
+                    <img src={meta.image} alt={meta.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                    <div className="absolute bottom-2 left-3 right-3 flex items-center gap-2">
+                      <div className={`w-8 h-8 rounded-lg ${c.iconBg} flex items-center justify-center shadow`}>
+                        <IconComp size={16} className={c.iconCol} />
                       </div>
                     </div>
-                    <div className="p-3">
-                      <h4 className="font-display font-bold text-sm text-green-dark leading-tight">{dept.name}</h4>
-                      <p className="text-[10px] text-ink/50 font-mono mt-0.5">{dept.id}</p>
-                      {dept.description && (
-                        <p className="text-[11px] text-ink/60 mt-1 leading-relaxed line-clamp-2">{dept.description}</p>
-                      )}
+                    <div className="absolute top-2 right-2">
+                      <span className="text-[10px] font-bold bg-white/90 text-green-dark px-2 py-0.5 rounded-full shadow-sm">{count} thông báo</span>
                     </div>
                   </div>
-                </motion.div>
-              );
-            })}
-            <AddCard title="Thêm phòng ban" onClick={() => handleOpenEdit()} color="blue" />
-          </div>
+                  <div className="p-3">
+                    <h4 className="font-display font-bold text-sm text-green-dark leading-tight">{meta.name}</h4>
+                    <p className="text-[10px] text-ink/50 font-mono mt-0.5">{deptId}</p>
+                    {meta.description && (
+                      <p className="text-[11px] text-ink/60 mt-1 leading-relaxed line-clamp-2">{meta.description}</p>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
-      </SectionCard>
-
-      <EditModal
-        isOpen={isEditOpen}
-        onClose={() => { setIsEditOpen(false); setEditing(null); }}
-        onSubmit={handleSave}
-        title={editing && depts.find(d => d.id === editing.id) ? "Chỉnh sửa phòng ban" : "Thêm phòng ban mới"}
-        fields={deptFields}
-        initialData={initialData}
-        size="lg"
-      />
-
-      <ConfirmDialog
-        isOpen={!!deleteConfirm}
-        onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
-        title="Xóa phòng ban?"
-        message={`Xóa phòng ban "${depts.find(d => d.id === deleteConfirm)?.name}"? Hành động này không thể hoàn tác.`}
-        confirmText="Xóa"
-        variant="danger"
-      />
-    </>
+      </div>
+    </SectionCard>
   );
 }
 
 function TenderNoticesSection() {
-  const [enabled, setEnabled] = useState(true);
+  const { news, addNews, updateNews, deleteNews } = useHospital();
+  const { activeUser } = useAdmin();
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [editingTender, setEditingTender] = useState<TenderItem | null>(null);
-  const [tenders, setTenders] = useState(DEFAULT_TENDERS);
+  const [deleteConfirm, setDeleteConfirm] = useState<NewsItem | null>(null);
+  const [editingTender, setEditingTender] = useState<NewsItem | null>(null);
 
-  const handleOpenEdit = (tender: TenderItem | null = null) => {
-    setEditingTender(tender || {
-      id: crypto.randomUUID(), title: "", tenderNumber: "",
-      dept: "PHÒNG VTTBYT", estimateValue: "",
-      publishDate: toDatetimeLocal(new Date().toISOString()),
-      startDate: "", endDate: "", status: "Đang mở",
-      contact: "", contactPhone: "",
-    });
+  const isSuperAdmin = activeUser?.role === "Super Admin";
+  const isDeptAdmin = activeUser?.role === "Department Admin";
+
+  const tenders = isSuperAdmin
+    ? news.filter(n => n.isTender)
+    : news.filter(n => n.isTender && n.tenderDept === activeUser?.department);
+
+  const handleOpenEdit = (tender: NewsItem | null = null) => {
+    setEditingTender(tender);
     setIsEditOpen(true);
   };
 
   const handleSave = (formData: Record<string, string | number | boolean | File | null>) => {
-    if (editingTender && tenders.find(t => t.id === editingTender.id)) {
-      setTenders(prev => prev.map(t => t.id === editingTender.id ? { ...t, ...formData } : t));
+    const deptId = formData.dept as string;
+    const deptMeta = DEPT_META[deptId];
+    const dateFmt = { day: '2-digit' as const, month: '2-digit' as const, year: 'numeric' as const, hour: '2-digit' as const, minute: '2-digit' as const };
+    const publishIso = formData.publishDate ? new Date(formData.publishDate as string).toISOString() : new Date().toISOString();
+    const dateStr = formData.publishDate ? new Date(formData.publishDate as string).toLocaleDateString("vi-VN", dateFmt) : new Date().toLocaleDateString("vi-VN", dateFmt);
+
+    const base = {
+      title: (formData.title as string) || "",
+      summary: `Thông báo đấu thầu: ${(formData.title as string) || ""}`,
+      tag: "Thông báo" as const,
+      date: dateStr,
+      publishedAt: publishIso,
+      image: deptMeta?.image || "/images/components/news-placeholder.jpeg",
+      content: "",
+      isTender: true,
+      tenderNumber: (formData.tenderNumber as string) || "",
+      tenderDept: deptId,
+      tenderStartDate: (formData.startDate as string) || "",
+      tenderEndDate: (formData.endDate as string) || "",
+      tenderMethod: "Đấu thầu rộng rãi" as TenderMethod,
+      tenderEstimateValue: (formData.estimateValue as string) || "",
+      tenderReceivedLocation: "",
+      tenderContact: (formData.contact as string) || "",
+      tenderContactPhone: (formData.contactPhone as string) || "",
+      tenderDownloadCount: 0,
+    };
+
+    if (editingTender) {
+      updateNews({ ...editingTender, ...base });
     } else {
-      setTenders(prev => [...prev, { id: crypto.randomUUID(), ...formData } as TenderItem]);
+      addNews(base);
     }
     setIsEditOpen(false);
     setEditingTender(null);
   };
 
-  const handleDelete = (id: string) => {
-    setTenders(prev => prev.filter(t => t.id !== id));
-    setDeleteConfirm(null);
+  const handleDelete = (tender: NewsItem) => {
+    setDeleteConfirm(tender);
   };
 
-  const deptOptions = DEFAULT_DEPTS.map(d => ({ value: d.id, label: d.name }));
+  const confirmDelete = () => {
+    if (deleteConfirm) {
+      deleteNews(deleteConfirm.id);
+      setDeleteConfirm(null);
+    }
+  };
+
+  const deptOptions = DEPARTMENTS.map(d => ({ value: d, label: DEPT_META[d]?.name || d }));
+  const allowedDepts = isDeptAdmin
+    ? deptOptions.filter(o => o.value === activeUser?.department)
+    : deptOptions;
 
   return (
     <>
       <SectionCard
         title="Thông báo thầu"
-        description="Danh sách các thông báo mời thầu"
+        description="Danh sách các thông báo mời thầu (đọc từ database — đồng bộ với trang /thong-tin-thau)"
         icon={<FileText size={20} />}
-        enabled={enabled}
-        onEnabledChange={setEnabled}
+        enabled
         badge={`${tenders.length} thông báo`}
         badgeColor="green"
       >
@@ -322,10 +272,10 @@ function TenderNoticesSection() {
           <div className="flex flex-wrap gap-4">
             {tenders.map((tender, idx) => {
               const c = tenderColors[idx % tenderColors.length];
-              const IconComp = DollarSign;
+              const status = getTenderStatus(tender);
               const statusColor =
-                tender.status === "Đang mở" ? "bg-brand-green/10 text-brand-green" :
-                tender.status === "Sắp đóng" ? "bg-peach/10 text-peach" :
+                status === "Đang mở" ? "bg-brand-green/10 text-brand-green" :
+                status === "Sắp mở" ? "bg-peach/10 text-peach" :
                 "bg-gray-100 text-gray-500";
               return (
                 <motion.div key={tender.id} custom={idx} initial="hidden" animate="visible" variants={itemVariants}>
@@ -333,29 +283,29 @@ function TenderNoticesSection() {
                     <div className="p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div className={`w-9 h-9 rounded-lg ${c.bg} flex items-center justify-center transition-transform group-hover:scale-110`}>
-                          <IconComp size={18} className={c.iconCol} />
+                          <DollarSign size={18} className={c.iconCol} />
                         </div>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusColor}`}>
-                          {tender.status}
+                          {status}
                         </span>
                       </div>
                       <h4 className="font-display font-bold text-sm text-green-dark leading-snug line-clamp-2 min-h-[38px]">{tender.title}</h4>
-                      <p className="text-[10px] text-ink/50 font-mono mt-1">{tender.tenderNumber} • {tender.dept}</p>
+                      <p className="text-[10px] text-ink/50 font-mono mt-1">{tender.tenderNumber || "—"} • {tender.tenderDept || "—"}</p>
                       <div className="mt-3 pt-3 border-t border-green-800/5 flex items-center justify-between">
                         <div>
-                          <span className="text-[11px] font-bold text-green-dark">{tender.estimateValue}</span>
+                          <span className="text-[11px] font-bold text-green-dark">{tender.tenderEstimateValue || "—"}</span>
                           <p className="text-[9px] text-ink/40 flex items-center gap-1 mt-0.5">
-                            <Calendar size={9} /> Mở: {formatTenderDateTime(tender.startDate) || "—"}
+                            <Calendar size={9} /> Mở: {formatTenderDateTime(tender.tenderStartDate) || "—"}
                           </p>
                           <p className="text-[9px] text-peach/80 flex items-center gap-1 mt-0.5">
-                            <Calendar size={9} /> Hạn: {formatTenderDateTime(tender.endDate) || "—"}
+                            <Calendar size={9} /> Hạn: {formatTenderDateTime(tender.tenderEndDate) || "—"}
                           </p>
                         </div>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button onClick={() => handleOpenEdit(tender)} className="p-1 rounded-md text-gray-400 hover:text-brand-green hover:bg-brand-green/5 transition-colors cursor-pointer" title="Sửa">
                             <Edit size={12} />
                           </button>
-                          <button onClick={() => setDeleteConfirm(tender.id)} className="p-1 rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer" title="Xóa">
+                          <button onClick={() => handleDelete(tender)} className="p-1 rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer" title="Xóa">
                             <Trash2 size={12} />
                           </button>
                         </div>
@@ -375,16 +325,17 @@ function TenderNoticesSection() {
         onClose={() => { setIsEditOpen(false); setEditingTender(null); }}
         onSubmit={handleSave}
         initialTender={editingTender}
-        deptOptions={deptOptions}
+        deptOptions={allowedDepts}
       />
 
       <ConfirmDialog
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)}
+        onConfirm={confirmDelete}
         title="Xóa thông báo?"
-        message="Hành động này không thể hoàn tác."
+        message={`Xóa thông báo "${deleteConfirm?.title}"? Dữ liệu sẽ bị xóa khỏi database và trang công khai.`}
         confirmText="Xóa"
+        cancelText="Hủy bỏ"
         variant="danger"
       />
     </>
@@ -395,7 +346,7 @@ interface TenderFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: Record<string, string | number | boolean | File | null>) => void;
-  initialTender: TenderItem | null;
+  initialTender: NewsItem | null;
   deptOptions: { value: string; label: string }[];
 }
 
@@ -404,14 +355,13 @@ function TenderFormModal({ isOpen, onClose, onSubmit, initialTender, deptOptions
   const [form, setForm] = useState({
     title: initialTender?.title || "",
     tenderNumber: initialTender?.tenderNumber || "",
-    dept: initialTender?.dept || "PHÒNG VTTBYT",
-    estimateValue: initialTender?.estimateValue || "",
-    publishDate: initialTender?.publishDate || "",
-    startDate: initialTender?.startDate || "",
-    endDate: initialTender?.endDate || "",
-    status: initialTender?.status || "Đang mở",
-    contact: initialTender?.contact || "",
-    contactPhone: initialTender?.contactPhone || "",
+    dept: initialTender?.tenderDept || (deptOptions[0]?.value || "PHÒNG CNTT"),
+    estimateValue: initialTender?.tenderEstimateValue || "",
+    publishDate: initialTender?.publishedAt ? toDatetimeLocal(initialTender.publishedAt) : toDatetimeLocal(new Date().toISOString()),
+    startDate: initialTender?.tenderStartDate ? toDatetimeLocal(initialTender.tenderStartDate) : "",
+    endDate: initialTender?.tenderEndDate ? toDatetimeLocal(initialTender.tenderEndDate) : "",
+    contact: initialTender?.tenderContact || "",
+    contactPhone: initialTender?.tenderContactPhone || "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -420,18 +370,17 @@ function TenderFormModal({ isOpen, onClose, onSubmit, initialTender, deptOptions
       setForm({
         title: initialTender?.title || "",
         tenderNumber: initialTender?.tenderNumber || "",
-        dept: initialTender?.dept || "PHÒNG VTTBYT",
-        estimateValue: initialTender?.estimateValue || "",
-        publishDate: initialTender?.publishDate || toDatetimeLocal(new Date().toISOString()),
-        startDate: initialTender?.startDate || "",
-        endDate: initialTender?.endDate || "",
-        status: initialTender?.status || "Đang mở",
-        contact: initialTender?.contact || "",
-        contactPhone: initialTender?.contactPhone || "",
+        dept: initialTender?.tenderDept || (deptOptions[0]?.value || "PHÒNG CNTT"),
+        estimateValue: initialTender?.tenderEstimateValue || "",
+        publishDate: initialTender?.publishedAt ? toDatetimeLocal(initialTender.publishedAt) : toDatetimeLocal(new Date().toISOString()),
+        startDate: initialTender?.tenderStartDate ? toDatetimeLocal(initialTender.tenderStartDate) : "",
+        endDate: initialTender?.tenderEndDate ? toDatetimeLocal(initialTender.tenderEndDate) : "",
+        contact: initialTender?.tenderContact || "",
+        contactPhone: initialTender?.tenderContactPhone || "",
       });
       setErrors({});
     }
-  }, [isOpen, initialTender]);
+  }, [isOpen, initialTender, deptOptions]);
 
   const set = (key: keyof typeof form) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm(prev => ({ ...prev, [key]: e.target.value }));
@@ -465,7 +414,7 @@ function TenderFormModal({ isOpen, onClose, onSubmit, initialTender, deptOptions
             </div>
             <div>
               <h3 className="font-display font-bold text-xl">{isEdit ? "Chỉnh sửa thông báo thầu" : "Đăng thông báo thầu mới"}</h3>
-              <p className="text-xs text-mint/80 mt-0.5">Đặt các mốc thời gian để hiển thị chính xác trên website</p>
+              <p className="text-xs text-mint/80 mt-0.5">Lưu vào database — hiển thị ngay trên trang công khai /thong-tin-thau</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-full hover:bg-white/15 text-mint transition-colors cursor-pointer" aria-label="Đóng">
@@ -503,9 +452,12 @@ function TenderFormModal({ isOpen, onClose, onSubmit, initialTender, deptOptions
               </div>
               <div>
                 <label className={labelCls}>Trạng thái</label>
-                <select value={form.status} onChange={set("status")} className={`${inputCls()} appearance-none cursor-pointer`}>
+                <select value={getTenderStatus({ tenderEndDate: form.endDate })} disabled className={`${inputCls()} appearance-none cursor-not-allowed bg-cream-white/50`}>
                   {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
+                <p className="text-[10px] text-ink/40 mt-1 italic flex items-center gap-1">
+                  <HelpCircle size={11} /> Tự tính theo thời điểm khóa thầu (đồng bộ với trang công khai)
+                </p>
               </div>
             </div>
           </div>
