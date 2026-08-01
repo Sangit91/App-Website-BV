@@ -22,13 +22,13 @@
 
 ---
 
-## Database Status — Verified against Prisma schema (2026-07-27)
+## Database Status — Verified against Prisma schema (2026-08-01)
 
-> Cross-check `prisma/schema.prisma` (24 models) vs spec v2.13 mục 15. Kết quả:
+> Cross-check `prisma/schema.prisma` (24 models) vs spec v2.13 mục 15 + đối chiếu thay đổi Phase 84-85 (2026-07-31). Kết quả:
 
 ### Nhóm A — Đã có đầy đủ trong schema ✅
 
-`patients`, `appointments` (có cancel fields: `cancelledAt` + `cancelReason` + `cancelledBy`), `admin_users` (10 fields + MFA + department_id), `doctors`, `doctor_schedules`, `specialties`, `news` (v2.5 tender fields inline), `organization_units` (tree structure), `feedback_requests` (v2.6 + `contactPhone`/`contactEmail` cho ẩn danh), `record_requests` (`requestCode` UNIQUE), `record_request_files`, `notification_logs` (polymorphic + `@@index([createdAt])` sẵn sàng cleanup), `service_groups`, `services`, `news_categories`, `price_list`, `testimonials`, `contact_messages`, `activity_logs` (có `userId`/`details`/`ipAddress`/`userAgent`), `medical_records`, `clinical_tests`, `consent_policies`, `patient_consents`, `treatment_history`.
+`patients` (từ Phase 84: bỏ cột `cccd` plaintext → `cccdHash String? @unique @map("cccd_hash")` + `cccdEncrypted @map("cccd_encrypted")`, AES-256-GCM), `appointments` (có cancel fields: `cancelledAt` + `cancelReason` + `cancelledBy` + index `phone`), `admin_users` (10 fields + MFA + department_id), `doctors`, `doctor_schedules`, `specialties`, `news` (tender fields inline; từ Phase 80: `tender_start_date`/`tender_end_date` đổi `@db.Date` → `@db.Timestamp(3)` lưu giờ; thêm `tender_dept`), `organization_units` (tree structure), `feedback_requests` (v2.6 + `contactPhone`/`contactEmail` cho ẩn danh), `record_requests` (`requestCode` UNIQUE), `record_request_files`, `notification_logs` (polymorphic + `@@index([createdAt])` sẵn sàng cleanup), `service_groups`, `services`, `news_categories`, `price_list`, `testimonials`, `contact_messages`, `activity_logs` (từ Phase 85: thêm `durationMs`/`dataAccessed`/`patientId` + index `createdAt`/`userId`/`patientId` — compliance PHI audit), `medical_records`, `clinical_tests`, `consent_policies` (`policy_version` nullable từ Phase 84), `patient_consents` (index `[patientId, policyVersion, isAgreed]`), `treatment_history`.
 
 ### Nhóm C — Roadmap, chưa triển khai 📋
 
@@ -45,7 +45,7 @@
 
 ### Cần bổ sung trước khi bật cleanup job
 
-- `activity_logs`: thêm `@@index([createdAt])` trước khi bật job cleanup tuân thủ pháp luật. Hiện schema chưa có index này.
+- `activity_logs`: từ Phase 85 đã có `@@index([createdAt])` (cùng `userId`/`patientId`). Tuy nhiên theo Data Retention Governance, `activity_logs` là log **tuân thủ (compliance)** → **KHÔNG được** viết job cleanup. Index phục vụ truy vấn audit, không phải để cleanup.
 - `notification_logs`: đã có `@@index([createdAt])` → sẵn sàng bật job cleanup 180 ngày (theo AGENTS.md Data Retention Governance).
 
 ---
@@ -78,7 +78,7 @@ Mọi bảng file đính kèm dùng cột `file_path` (không dùng `storage_pat
 | Phản hồi | FeedbackTab.tsx | CRUD đầy đủ | Xem + phản hồi khoa mình | Không |
 | Yêu cầu trích sao | RecordRequestsTab.tsx | CRUD đầy đủ | Xem + xử lý khoa mình | Không |
 
-**Trạng thái enforce:** UI có đủ 15 tab, backend có role check cơ bản, **chưa enforce matrix chi tiết + department ownership**. Cần Phase tiếp: RBAC middleware đầy đủ.
+**Trạng thái enforce:** UI có đủ 15 tab. Backend từ Phase 85 đã enforce role-level: specialties/doctors/organization/service/testimonial write → `requireSuperAdmin`; news/feedback/record-request write → `requireAdmin` + `authorizeDepartmentAccess`; bookings GET + appointment `/search` → `requireAnyStaff` (Receptionist+Doctor). **Còn thiếu:** department ownership chi tiết cho từng record (VD: Dept Admin chỉ sửa tin của khoa mình) và matrix cho Shifts/Patients/Tender. Cần Phase tiếp: RBAC middleware department-scoped đầy đủ.
 
 ---
 
@@ -195,20 +195,26 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 
 | Mục | Code status | Ghi chú |
 |-----|-------------|---------|
-| Public form rate limit (5/IP/15ph) | ✅ Có | Phase 49 + AGENTS.md Public Form API |
-| JWT access/refresh + httpOnly cookie | ✅ Có | Phase 68+ Admin Login redesign |
-| Audit logging `activity_logs` | ✅ Schema đủ | Có `userId`/`details`/`ipAddress`/`userAgent`. Cần verify service thực tế ghi |
-| Security headers (helmet) | ✅ Có | `server/app.ts` — `helmet()` middleware cho mọi route |
-| CORS policy | ✅ Có | `server/app.ts` — `cors({ origin, credentials })` |
-| Rate limit admin auth | ✅ Có | 10 req/15 phút trên `/api/v1/auth` qua `express-rate-limit` |
-| Login lockout (5 attempts → 30 phút) | ⚠️ Partial | Lockout Map trong `auth.service.ts`, chưa persist qua DB restart |
-| Consent middleware wired to PHI routes | ✅ Có | `consentCheckMiddleware` trên `GET /:patientId/medical-records`, `clinical-tests`, `treatment-histories` |
-| RBAC enforcement backend | ⚠️ Partial | Role check cơ bản, chưa enforce matrix + department ownership |
-| PHI access log riêng (dataAccessed/purpose) | ❌ Chưa có | Cần Phase tiếp (Nghị định 13/2023) |
-| Password hash | ⚠️ PBKDF2-SHA512 100k | Tương đương bcrypt cost 12, OWASP chấp nhận |
-| Prisma soft-delete middleware | ✅ Có | `$extends` auto-filter `deletedAt: null` cho Patient + AdminUser |
-| Forgot password rate limit + token reset | ❌ Chưa có | Phase tương lai |
+| Public form rate limit (5/IP/15ph) | ✅ Phase 86 | `server/middleware/rate-limit.middleware.ts` — mỗi form 1 bucket riêng (bookingFormLimiter/feedbackFormLimiter/recordRequestFormLimiter/consentFormLimiter/appointmentFormLimiter); lookup 30/15ph, AI 20/15ph, OTP verify 10/15ph |
+| JWT access/refresh + httpOnly cookie | ✅ Phase 82 | Refresh có `jti` + in-memory store, rotation + reuse detection → revokeAllForUser; cookie `bvdh_refresh` httpOnly + secure=IS_PROD + sameSite lax + path `/api/v1/auth` |
+| Audit logging `activity_logs` | ✅ Phase 85 | `activity-log.service.ts` + `activity-log.middleware.ts` (activityLogger đo duration qua `res.on("finish")`); wire toàn bộ admin write routes + 3 PHI routes (`dataAccessed: "PHI"` + patientId); schema thêm `durationMs`/`dataAccessed`/`patientId` + index |
+| Security headers (helmet) | ✅ Phase 83 | helmet CSP env-aware (dev lax / prod strict `script-src 'self'`); nginx server-level CSP/Permissions-Policy/HSTS + bỏ CORS reflect-any. Lưu ý: có 2 CSP (nginx + helmet) cùng áp dụng — browser lấy intersection |
+| CORS policy | ✅ Phase 83 | Chỉ allow `CORS_ORIGIN` (mặc định localhost:3000), credentials; nginx bỏ reflect-any |
+| Rate limit admin auth | ✅ Phase 83 | express-rate-limit 10 req/15ph trên `/api/v1/auth/admin/*` + `/otp/*`; nginx `admin_auth` zone 50r/m |
+| Login lockout (5 attempts → 30 phút) | ⚠️ Partial | Lockout logic còn trong memory Map (Phase 83), chưa persist DB — Wave E |
+| Consent middleware wired to PHI routes | ✅ Phase 81 | `requirePatientReadAccess` (readToken OTP hoặc JWT admin) + `consentCheckMiddleware` trên 3 PHI routes |
+| RBAC enforcement backend | ✅ Phase 85 | Role-level: specialties/doctors/organization/service/testimonial write → `requireSuperAdmin`; news/feedback/record-request write → `requireAdmin` + `authorizeDepartmentAccess`; bookings GET + appointment `/search` → `requireAnyStaff`. Department ownership chi tiết chưa có |
+| PHI access log riêng (dataAccessed/purpose) | ✅ Phase 85 | 3 PHI routes log `PHI_READ_*` + `dataAccessed:"PHI"` + patientId (Nghị định 13/2023) |
+| Password hash | ✅ PBKDF2-SHA512 100k | `auth.service.ts:34` + `seed.ts` chuẩn. Tương đương bcrypt cost 12 |
+| CCCD encryption | ✅ Phase 84 | AES-256-GCM (`cccd.service.ts`) + `cccdHash` SHA-256 unique + bỏ cột `cccd` plaintext; lookup match qua hash, mask `0012****90` |
+| Input validation (Zod) | ✅ Phase 86 | `server/validators/schemas.ts` + `middleware.ts` (validate helper, message tiếng Việt, detect thiếu trường qua `getPathValue`); wire toàn bộ route public + admin write |
+| Pagination thật | ✅ Phase 86 | `server/utils/pagination.ts` (`getPagination` page/limit/skip); bookings/feedback/record-requests/doctors/news trả `X-Total-Count`; 3 route PHI trả `{data,total,page,pageSize}` giữ key records/tests/histories |
+| Health check DB + graceful shutdown | ✅ Phase 86 | `/api/health` check `SELECT 1` qua Prisma (503 degraded); `server.ts` cleanup uploads/temp + SIGTERM/SIGINT shutdown + unhandledRejection; API 404 JSON trước SPA fallback; MulterError → 400 |
+| Prisma soft-delete middleware | ✅ Phase 84 | `$extends` auto-filter `deletedAt: null` cho Patient + AdminUser — mở rộng cả `findUnique`/`update`/`delete`/`updateMany`/`deleteMany` |
+| OTP flow thay token minting | ✅ Phase 81 | Gỡ `/token/access` + `/token/refresh` → `/otp/send` + `/otp/verify` → `readToken` (5 phút); OTP session store, MAX_OTP_ATTEMPTS=5 |
+| Forgot password rate limit + token reset | ❌ Chưa có | Phase tương lai (Wave E) |
 | Frontend password policy validation | ⚠️ Partial | Chưa enforce đầy đủ 8 ký tự + hoa + thường + số |
+| Mass assignment protection | ✅ Phase 86 | Zod whitelisting + explicit field pick (không spread `...data` trực tiếp) trên route admin write |
 
 ---
 
@@ -218,31 +224,43 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 > V3.1 chỉ cần bổ sung các gap sau (chưa có trong v3.0, phát sinh sau ngày 27/07/2026):
 
 **Cần đề xuất bổ sung vào v3.1:**
-1. **KHỐI 5.4.x** — `activity_logs`: thêm `@@index([createdAt])` trước khi bật job cleanup tuân thủ pháp luật. Hiện schema chưa có index này (trong khi `notification_logs` đã có).
-2. **KHỐI 6.x** — PHI access log policy: thêm fields `dataAccessed`/`purpose` cho `activity_logs` theo Nghị định 13/2023 (v3.0 KHỐI 6 đã ghi Consent Management, chưa ghi riêng PHI access audit).
-3. **KHỐI 4.x** — Security: ghi rõ password hash hiện tại là PBKDF2-SHA512 100k iterations (không phải bcrypt cost 12 như dactaupdate đề xuất cũ), chấp nhận được OWASP.
-4. **KHỐI 4.x** — Rate limit matrix chi tiết: phân biệt public form (5/IP/15ph ✅) vs admin auth (5/phút ❌ chưa enforce) vs login lockout (5 lần → 30 phút ❌) vs default public (100/phút ❌).
-5. **KHỐI 4.x** — Forgot password flow: rate limit 3/giờ/user, token reset 30 phút, dùng 1 lần — chưa implement, docx nên ghi trước.
-6. **KHỐI 3.1 (Template C3) hoặc KHỐI 5.4** — Sửa mâu thuẫn `tender_files`: v3.0 dòng 1919 (template C3) ghi "lưu trong bảng tender_files" nhưng schema không có bảng này (file đấu thầu lưu inline trong `news` qua các field `tender_*`). Cần xoá bỏ tham chiếu `tender_files` hoặc quyết định tạo bảng riêng nếu cần quan hệ file 1-n.
-7. **KHỐI 1.2** — Số lượng bảng: "19+ bảng" nên làm rõ thành "24 bảng" (đếm theo Prisma schema thực tế, bao gồm cả consent_policies/patient_consents của KHỐI 6.2).
-8. **KHỐI 3.2 (Logo)** — Thay thế "icon vuông bo góc gradient" bằng `Logo_bqn.png` (`/images/logo/Logo_bqn.png`) cho toàn bộ surface (Navbar, Footer, AdminPage header, AdminLogin, favicon).
-9. **KHỐI 3.6.2 (Admin Login)** — Layout hiện tại khác spec: full dark overlay (không split-screen), có role pill selector (spec cấm production), thêm time display / SYSTEM ONLINE badge / ATTT badge / wave animation / spotlight cursor. Spec cần ghi nhận UI mới hoặc rollback về thiết kế cũ.
-10. **KHỐI 2.3.5 (Specialty Card)** — Icon Lucide đã được thay bằng ảnh thật JPEG (`/images/specialties/*.jpeg`) từ Pexels. Spec cần cập nhật mô tả để phản ánh ảnh thay vì icon.
-11. **KHỐI 3.2 (Section 6 — Trang chủ)** — Chỉ có 6/32 chuyên khoa trong DB, spec ghi "8 thẻ nổi bật" + "12+ chuyên khoa" + "32 chuyên khoa" (phụ lục A.1). Cần seed thêm dữ liệu hoặc cập nhật spec.
-12. **KHỐI 5.4.4 (Specialties)** — Field `icon` trong Prisma/DB lưu giá trị `iconType` ("cardiology"/"obstetrics"/...) nhưng tên column `icon` không khớp với interface TypeScript `iconType`. Cần thêm `@map("icon")` hoặc đổi tên DB column.
-13. **KHỐI 3.6.3 (Admin Navigation)** — Spec chỉ liệt kê 11 nav items nhưng code có 17 tabs (thêm: Home, About, Services, Patient Guide, Tender, Contact). Cập nhật spec navigation hoặc cắt bỏ bớt tab.
-14. **KHỐI 2.x** — Bổ sung animation pattern mới: admin tables dùng `rowVariants` + `motion.tr` stagger (6/8 tabs). PatientGuideTab & TenderTab chưa đồng bộ.
-15. **KHỐI 3.x (API versioning)** — Đồng bộ hoá API prefix: `/api/v1/bookings`, `/api/v1/test-results`, `/api/v1/ai`, `/api/v1/organization` (trước đây dùng `/api/booking`, `/api/gemini`, etc). Tất cả endpoint API đều dùng `/api/v1/`.
-16. **KHỐI 4.x (Security middleware)** — `helmet()` + `cors()` đã enable trên `app.ts` cho toàn bộ route. Express rate-limit (10 req/15ph) trên `/api/v1/auth`. Cần ghi nhận vào spec security section.
-17. **KHỐI 4.x (Mass assignment protection)** — Tất cả update service (`news.service.ts`, `specialty.service.ts`, `service.service.ts`, `doctor.service.ts`) đã thay `...data` spread bằng explicit field whitelisting. Spec nên ghi pattern này.
-18. **KHỐI 5.4.x (Soft delete)** — Prisma `$extends` middleware auto-filter `deletedAt: null` cho Patient + AdminUser trên `findMany`/`findFirst`/`count`. Không cần `WHERE deletedAt IS NULL` trong service code.
-19. **KHỐI 6.x (Consent enforcer)** — `consentCheckMiddleware` đã wire vào patient PHI routes (`GET /:patientId/medical-records`, `clinical-tests`, `treatment-histories`). Trả 403 nếu chưa consent.
-20. **KHỐI 3.6.3 (Admin Navigation)** — Rename `PatientTab` → `PatientGuideTab` để phân biệt với `PatientsTab` (quản lý BN). Cập nhật import trong `AdminPage.tsx`.
-21. **KHỐI 2.6 (Tin tức — thông báo thầu)** — Cơ chế mốc thời gian cho thầu (Phase 80): `news.tender_start_date`/`tender_end_date` dùng `@db.Timestamp(3)` (lưu giờ chính xác, không phải `@db.Date` chỉ lưu ngày). Admin đăng/sửa thầu đặt **3 mốc** qua `datetime-local`: Ngày đăng thầu (`publishedAt`) / Thời điểm mở thầu / Thời điểm khóa thầu. Web hiển thị đúng các mốc admin điền; **không** hiển thị ngày tạo làm mặc định — chỉ fallback ngày tạo khi mốc đó bỏ trống. Spec cần ghi rõ quy ước này.
-22. **KHỐI 3.6.3 / 3.6.4 (Admin — Tender tab)** — `TenderTab` dùng `TenderFormModal` chuyên dụng (thay `EditModal` chung): header gradient full-bleed, 3 phân vùng (Thông tin cơ bản / Mốc thời gian hiển thị / Liên hệ), 3 input `datetime-local`. `TenderItem` gồm `publishDate`/`startDate`/`endDate`/`contact`/`contactPhone`. Ghi chú: section này hiện dùng state local, chưa nối DB news — spec nên quyết định nguồn dữ liệu thầu admin (DB hay local).
+1. ✅ **KHỐI 5.4.x** — `activity_logs`: thêm `@@index([createdAt])` (Phase 85 đã thêm cùng `userId`/`patientId`).
+2. ✅ **KHỐI 6.x** — PHI access log policy: thêm fields `durationMs`/`dataAccessed`/`patientId` cho `activity_logs` theo Nghị định 13/2023 (Phase 85 đã implement + log `PHI_READ_*`).
+3. ✅ **KHỐI 4.x** — Security: ghi rõ password hash hiện tại là PBKDF2-SHA512 100k iterations (`auth.service.ts:34`), tương đương bcrypt cost 12.
+4. ✅ **KHỐI 4.x** — Rate limit matrix chi tiết (Phase 83+86): public form 5/IP/15ph per-bucket (booking/feedback/record-request/consent/appointment riêng), lookup 30/15ph, AI 20/15ph, OTP verify 10/15ph, admin auth 10/15ph, nginx `admin_auth` 50r/m.
+5. ⚠️ **KHỐI 4.x** — Forgot password flow: rate limit 3/giờ/user, token reset 30 phút, dùng 1 lần — **chưa implement**, docx nên ghi trước (Wave E).
+6. ✅ **KHỐI 3.1 (Template C3) hoặc KHỐI 5.4** — Mâu thuẫn `tender_files`: đã xoá tham chiếu bảng này — file đấu thầu lưu inline trong `news` qua các field `tender_*`.
+7. ✅ **KHỐI 1.2** — Số lượng bảng: "24 bảng" (đếm theo Prisma schema thực tế, bao gồm cả consent_policies/patient_consents của KHỐI 6.2).
+8. ✅ **KHỐI 3.2 (Logo)** — Thay thế "icon vuông bo góc gradient" bằng `Logo_bqn.png` (`/images/logo/Logo_bqn.png`) cho toàn bộ surface.
+9. ⚠️ **KHỐI 3.6.2 (Admin Login)** — Layout hiện tại khác spec: full dark overlay (không split-screen), có role pill selector (spec cấm production), thêm time display / SYSTEM ONLINE badge / ATTT badge / wave animation / spotlight cursor. Cần quyết định giữ hay rollback.
+10. ✅ **KHỐI 2.3.5 (Specialty Card)** — Icon Lucide đã được thay bằng ảnh thật JPEG (`/images/specialties/*.jpeg`).
+11. ⚠️ **KHỐI 3.2 (Section 6 — Trang chủ)** — Chỉ có 6/32 chuyên khoa trong DB, spec ghi "8 thẻ nổi bật" + "12+ chuyên khoa" + "32 chuyên khoa". Cần seed thêm hoặc cập nhật spec.
+12. ✅ **KHỐI 5.4.4 (Specialties)** — Field `icon` trong DB lưu `iconType`; interface TypeScript dùng `iconType` — đã map nhất quán.
+13. ✅ **KHỐI 3.6.3 (Admin Navigation)** — Có 15 tabs (not 17): Home, About, Services, Patient Guide, Tender, Contact đều có. Cập nhật spec navigation.
+14. ✅ **KHỐI 2.x** — Animation pattern: admin tables dùng `rowVariants` + `motion.tr` stagger; ScrollAnimation public components + prefers-reduced-motion (Phase 87).
+15. ✅ **KHỐI 3.x (API versioning)** — Đồng bộ API prefix: tất cả endpoint API dùng `/api/v1/*`.
+16. ✅ **KHỐI 4.x (Security middleware)** — `helmet()` (CSP env-aware) + `cors()` chỉ allow `CORS_ORIGIN`; express-rate-limit trên admin auth + OTP. Ghi nhận vào spec security section.
+17. ✅ **KHỐI 4.x (Mass assignment protection)** — Zod whitelisting + explicit field pick thay `...data` spread (Phase 86).
+18. ✅ **KHỐI 5.4.x (Soft delete)** — Prisma `$extends` middleware auto-filter `deletedAt: null` cho Patient + AdminUser trên `findMany`/`findFirst`/`count`/`findUnique`/`update`/`delete`/`updateMany`/`deleteMany` (Phase 84).
+19. ✅ **KHỐI 6.x (Consent enforcer)** — `requirePatientReadAccess` + `consentCheckMiddleware` wire vào patient PHI routes (Phase 81). Trả 403 nếu chưa consent.
+20. ✅ **KHỐI 3.6.3 (Admin Navigation)** — Rename `PatientTab` → `PatientGuideTab` để phân biệt với `PatientsTab`.
+21. ✅ **KHỐI 2.6 (Tin tức — thông báo thầu)** — Cơ chế mốc thời gian cho thầu (Phase 80): `news.tender_start_date`/`tender_end_date` dùng `@db.Timestamp(3)`; admin đăng/sửa thầu đặt **3 mốc** qua `datetime-local`; web hiển thị đúng mốc admin điền, chỉ fallback ngày tạo khi mốc bỏ trống.
+22. ✅ **KHỐI 3.6.3 / 3.6.4 (Admin — Tender tab)** — `TenderTab` dùng `TenderFormModal` chuyên dụng (header gradient full-bleed, 3 phân vùng, 3 input `datetime-local`).
+
+**Bổ sung mới (Phase 81-86 — chưa có trong v3.0):**
+23. **KHỐI 6.x (OTP Flow thay token minting)** — Phase 81 gỡ `/token/access` + `/token/refresh`, thay bằng `/otp/send` + `/otp/verify` → `readToken` (hiệu lực 5 phút). `server/services/otp.service.ts` (OTP session store, MAX_OTP_ATTEMPTS=5, TTL 5min). `/otp/send` dev trả `devOtp`. Spec HIS API Standards (mục 21.x) cần thay mục "Authentication Flow" cũ bằng OTP flow cho PHI + JWT cho admin.
+24. **KHỐI 4.x (Refresh token rotation + reuse detection)** — Phase 82: refresh token có `jti` + in-memory store; mỗi lần refresh → revoke cũ + cấp mới; replay refresh cũ → revokeAllForUser. Cookie `bvdh_refresh` httpOnly + secure=IS_PROD + sameSite lax + path `/api/v1/auth`. Thêm `/admin/logout`.
+25. **KHỐI 4.x (Fail-fast secrets)** — Phase 82: `CONSENT_SECRET` throw khi thiếu (production); `ADMIN_DEFAULT_PASSWORD` env (fallback "Admin@123" chỉ dev).
+26. **KHỐI 4.x (CCCD encryption)** — Phase 84: schema Patient bỏ cột `cccd` plaintext → `cccdHash` (SHA-256 unique) + `cccdEncrypted` (AES-256-GCM qua `cccd.service.ts`). Lookup bệnh nhân match qua hash, hiển thị mask `0012****90`. Spec mục 15.1 cần ghi rõ không lưu CCCD plaintext.
+27. **KHỐI 4.x (Zod validation toàn bộ route)** — Phase 86: `server/validators/schemas.ts` + `middleware.ts` — `validate` helper (message tiếng Việt, detect thiếu trường qua `getPathValue` vì Zod v4 không expose `received`). Wire public + admin write routes.
+28. **KHỐI 3.x (Pagination thật)** — Phase 86: `server/utils/pagination.ts` — list endpoints trả `X-Total-Count` header + shape `{data,total}` (frontend không break vì giữ key cũ); 3 route PHI trả `{data,total,page,pageSize}` giữ key `records/tests/histories`.
+29. **KHỐI 5.4 (Health check + graceful shutdown)** — Phase 86: `/api/health` check `SELECT 1` qua Prisma (503 degraded); `server.ts` cleanup uploads/temp + SIGTERM/SIGINT shutdown + unhandledRejection; API 404 JSON "API endpoint không tồn tại" trước SPA fallback; MulterError → 400.
+30. **KHỐI 3.x (Per-form rate limit bucket)** — Phase 86: mỗi form 1 bucket riêng (không chặn chéo) — spec Public Form API Standards cần ghi rõ hành vi per-endpoint bucket.
+31. **KHỐI 4.x (Audit logging middleware)** — Phase 85: `activity-log.middleware.ts` đo duration qua `res.on("finish")` + ghi log tự động cho toàn bộ admin write routes + 3 PHI routes — spec Audit Logging cần ghi pattern middleware tự động thay vì gọi service thủ công.
+32. **KHỐI 4.x (RBAC enforce helpers)** — Phase 85: `auth.middleware.ts` bổ sung `requireSuperAdmin`/`requireAdmin`/`requireAnyStaff` (Receptionist+Doctor) + `authorizeDepartmentAccess`. Spec RBAC matrix cần ghi mapping route → helper cụ thể.
 
 **Quy ước:**
 - Đánh version v3.1
-- Áp dụng nguyên tắc In-place Update: cập nhật đè trực tiếp vào đúng KHỐI liên quan (KHỐI 4-6), không nối đuôi chương mới.
-- Ghi Changelog tóm tắt KHỐI 1.5: "v3.1 — bổ sung activity_logs index, PHI audit policy, password hash clarification, rate limit matrix, forgot password flow, logo thật, admin login redesign, specialty images, DB seed gap, admin tabs mở rộng".
+- Áp dụng nguyên tắc In-place Update: cập nhật đè trực tiếp vào đúng KHỐI liên quan (KHỐI 3-6), không nối đuôi chương mới.
+- Ghi Changelog tóm tắt KHỐI 1.5: "v3.1 — OTP flow thay token minting, refresh rotation + reuse detection, CCCD encryption, Zod validation toàn bộ route, pagination thật, per-form rate limit bucket, health check + graceful shutdown, audit logging middleware, RBAC enforce helpers, activity_logs index + PHI audit fields, password hash clarification, rate limit matrix, logo thật, admin login redesign, specialty images, admin tabs mở rộng".
 - Audit trail chi tiết: `memory/phase-history.md` Phase tương ứng.
