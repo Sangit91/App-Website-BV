@@ -2617,3 +2617,11 @@ pm run build\: pass.
 - Nguyen nhan: Chrome gan day trigger :focus-visible khi click chuot vao <button> -> hien focus ring mac dinh (vien xanh duong).
 - Fix: them `focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 focus-visible:rounded-full` vao button nav desktop -> an ring khi click chuot, chi hien ring brand-green xanh la khi Tab (a11y giu). Giu nhat quan design system (ring-brand-green/40).
 - Ky thuat: after-state van dung (nav-check: Trang/Giới/Chuyên/Dịch tng ung). 13/13 E2E PASS. lint 0 loi. container healthy.
+
+### Bonus 2: fix nhan nen xanh khi click (2026-08-01)
+
+- Trieu chung van con: click chuyen section -> nav "Trang chu" (active bg-mint) van "nhen nen xanh" roi tat -- khong phai focus ring (da an) ma la CSS transition.
+- Root cause: `transition-all duration-200` va `transition-colors` cua Tailwind ANIMATE ca background-color khi mat active -> fade mint -> transparent (bg di qua 0.984 -> 0.016 tranh), nen hien "nh  n".
+- Fix: doi `transition-all duration-200` -> `transition-[color] duration-200` (chi animate text color, background doi tuc thi khong fade). Giu hieu ung hover text mượt, mat "n  n xanh" khi chuyen trang.
+- Verify: nav-flash cho thay t+0=rgb(234,247,238) mint 100% -> t+150ms=rgba(0,0,0,0) transparent TR ỪC TIẾP (khong qua 0.984/0.016 nua). nav-check active van đúng Trang/Giới/Chuyên/Dịch. 13/13 E2E PASS. lint 0 loi. container healthy.
+- Files affected: src/components/layout/Navbar.tsx.
