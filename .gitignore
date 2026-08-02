@@ -58,6 +58,10 @@ test-results/
 playwright-report/
 playwright/.cache/
 
+# Legacy data migration (nguồn excel + upload + file PDF sinh ra — không commit dữ liệu)
+Data Migration/
+public/tenders/
+
 # Agent/IDE config tool dirs (config local — không track)
 .claude/
 .windsurf/

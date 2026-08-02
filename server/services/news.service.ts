@@ -1,4 +1,5 @@
 import { getPrisma } from "../db/prisma";
+import { Prisma } from "../generated/prisma/client";
 
 export interface NewsInput {
   title: string;
@@ -17,6 +18,7 @@ export interface NewsInput {
   tenderEstimate?: string;
   tenderReceived?: string;
   tenderDept?: string;
+  tenderFile?: { name?: string; size?: string; url?: string; fileType?: string };
   contactName?: string;
   contactPhone?: string;
   contactEmail?: string;
@@ -42,6 +44,7 @@ export interface NewsUpdateInput {
   tenderEstimate?: string;
   tenderReceived?: string;
   tenderDept?: string;
+  tenderFile?: { name?: string; size?: string; url?: string; fileType?: string };
   contactName?: string;
   contactPhone?: string;
   contactEmail?: string;
@@ -99,6 +102,7 @@ export async function createNews(data: NewsInput) {
       tenderDept: data.tenderDept,
       tenderStartDate: data.tenderStartDate ? new Date(data.tenderStartDate) : null,
       tenderEndDate: data.tenderEndDate ? new Date(data.tenderEndDate) : null,
+      tenderFile: data.tenderFile ?? Prisma.JsonNull,
       contactName: data.contactName,
       contactPhone: data.contactPhone,
       contactEmail: data.contactEmail,
@@ -127,6 +131,7 @@ export async function updateNews(id: string, data: NewsUpdateInput) {
   }
   if (data.tenderStartDate !== undefined) updateData.tenderStartDate = data.tenderStartDate ? new Date(data.tenderStartDate) : null;
   if (data.tenderEndDate !== undefined) updateData.tenderEndDate = data.tenderEndDate ? new Date(data.tenderEndDate) : null;
+  if (data.tenderFile !== undefined) updateData.tenderFile = data.tenderFile ?? Prisma.JsonNull;
   if (data.publishedAt !== undefined) updateData.publishedAt = data.publishedAt ? new Date(data.publishedAt) : null;
   return prisma.news.update({ where: { id }, data: updateData });
 }

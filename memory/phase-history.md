@@ -2633,3 +2633,42 @@ pm run build\: pass.
 - Fix: bo hoan toan `transition-[color] duration-200` khoi button nav (khong con transition text/background). Active <-> inactive doi tuc thi, khong fade.
 - Verify: nav-color t+0=color rgb(47,169,104) xanh + bg mint -> t+100ms=color rgb(34,48,42) ink + bg transparent TRẢ TRỰC TIẾP (khong qua doi mau trung binh). nav-check active van đúng. lint 0 loi. container healthy.
 - Files affected: src/components/layout/Navbar.tsx.
+
+## PHASE 93 - Legacy tender migration: excel + file upload -> news (2026-08-02)
+
+### Boi canh
+
+- User them thu muc \Data Migration/\ chua \	hongtinthau.xlsx\ (455 records thau) + \upload/YYYY/MM/DD/<timestamp>TEN.pdf\ (file ho so thau web cu). Yeu cau tool rieng tai su dung.
+
+### Quyet dinh
+
+- Phuong an A: tool chay truc tiep query PostgreSQL (pg+Pool) offline, khong qua API/auth.
+- Map phong (ngu nghia cu -> id he thong):
+  - CNTT -> "PHÒNG CNTT" (Phòng Công Nghệ Thông Tin)
+  - VTYT -> "PHÒNG VTTBYT" (Vật Tư Thiết Bị Y Tế)
+  - Dược -> "DƯỢC" (Khoa Dược)
+  - Phòng HCQT -> "PHÒNG HCQT" (Hành Chính Quản Trị)
+- Han chot khong co trong excel -> dung ngay dang (ngay_gio_hien_thi_web). = tenderEndDate.
+- Noi luu file: \public/tenders/<slug>/<filename>\ (nginx mount ./public truc tiep, serve READ). URL \/tenders/<slug>/<filename>\. Nginx serve static trực tiếp từ public..
+
+### Schema/API
+
+- Model News them \	enderFile Json? @map("tender_file")\ (json name,size,url,fileType) — file ho so thau ghen ket.
+- Migration \20260802041745_add_tender_file\ applied (them \	ender_file\ JSONB + drift site_content drop default updated_at tu schema hien tai).
+- news.service.ts: NewsInput/NewsUpdateInput + create/update map tenderFile (Prisma.JsonNull khi null).
+- HospitalContext dem co su mapping \	enderFile: n.tenderFile\ da co san tu truoc.
+
+### Tool
+
+- \scripts/migrate-legacy-tenders.mjs\: doc excel, map dept, normalize slug (viet + id_bai_viet_cu), copy file PDF/doc -> public/tenders/<slug>/, Pin JSONPath tenderFile, upsert news (idempotent theo slug).
+- Chạy trong container frontend (mount full repo + xlsx + DATABASE_URL=db:5432):
+  \docker exec bvdh-frontend sh -c "cd /app && npm i --no-save xlsx && node scripts/migrate-legacy-tenders.mjs"\
+
+### Verify
+
+- 455/455 tạo mới, 0 thiếu file; chay lai 455 skip-existing (idempotent).
+- DB: 459 tender (455 moi + 4 seed goal), 455 co tender_file, 5 dept (CNTT/VTTT Y TẾ/DƯỢC/HCQTT/XÉT NGHIỆM).
+- API GET /api/v1/news/tenders: 459, 455 co file, URL đúng.. PDF serve 200 qua nginx 8443.
+- Bug fix: is_active=0 (false) luc dau -> UPDATE 455 set is_active=true; + restart bvdh-backend de Prisma client reload cột moi.
+- File hồ sơ: URL /tenders/<slug>/... serve 200.
+- Files affected: prisma/schema.prisma, migration, news.service.ts, scripts/migrate-legacy-tenders.mjs, .gitignore, package.json (xlsx), (dữ liệu Data Migration/ + public data/tenders/ gitignore).

@@ -197,6 +197,7 @@ model News {
   tenderEstimate  String?   @map("tender_estimate") @db.VarChar(100)
   tenderReceived  String?   @map("tender_received_location") @db.Text
   tenderDept      String?   @map("tender_dept") @db.VarChar(50)
+  tenderFile      Json?     @map("tender_file") // { name, size, url, fileType } — file hồ sơ thầu gửi kèm
   contactName     String?   @map("contact_name") @db.VarChar(100)
   contactPhone    String?   @map("contact_phone") @db.VarChar(20)
   contactEmail    String?   @map("contact_email") @db.VarChar(255)

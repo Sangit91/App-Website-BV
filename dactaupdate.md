@@ -268,6 +268,8 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 
 35. **KHỐI 4.x (JSON body size limit cho production)** — Phase 91: `server/app.ts` `express.json({ limit: "10mb" })` (tăng từ "1mb" lên "10mb”) để hỗ trợ các file lớn hơn trong upload/patient portal và APIs. Spec Security Headers cần ghi rõ body size limit.
 
+36. **KHỐI 5.4 (News tender file)** — Phase 93: model `News` thêm cột `tenderFile Json? @map("tender_file")` (JSON `{name,size,url,fileType}`) — file hồ sơ thầu đính kèm. `news.service.ts` map `tenderFile` khi create/update (Prisma.JsonNull khi null). Migration `20260802041745_add_tender_file`. File PDF serve từ `public/tenders/<slug>/<filename>` (nginx static), URL `/tenders/...`. Công cụ nhập thầu web cũ: `scripts/migrate-legacy-tenders.mjs` (đọc Excel + copy file + upsert news, idempotent theo slug). Spec nên ghi rõ News lưu file thầu qua `tender_file` thay vì bảng riêng `tender_files`.
+
 **Kết luận:** Tuy các bản ghi trong dactaupdate.md có từ “hoàn thành” (✅) cho các mục security/OTP/flow logging, chúng **chưa thực sự hoàn thành** — memory.md Phase 81-86 đã xác nhận nhiều mục vẫn **chưa có code**, tương ứng với status “chưa implement” hoặc “chưa enforce code” trong bảng. Danh sách vẫn còn:
 - Log PHI riêng (dataAccessed/purpose) cho `activity_logs`
 - Ngăn chặn cleanup job cho `activity_logs`

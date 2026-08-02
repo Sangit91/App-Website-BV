@@ -416,7 +416,18 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
   - `test:auth` (29 tests) — PBKDF2 hash/verify, adminLogin (success/sai/không tồn tại/disabled), JWT RFC 7519 (verify/fake/expired), refresh rotation + reuse detection, OTP flow (verify/429-sau-5-lần/issue+verifyReadToken/404), CCCD AES-256-GCM roundtrip + hash deterministic + mask
   - `test:unit` (51 tests) — thêm validators zod (booking/feedback/record-request patient lookup/appointment) + pagination
 - ✅ **E2E Playwright (13 tests PASS)** — cài `@playwright/test`, `playwright.config.ts` baseURL đúng `https://localhost:8443` (nginx) + `ignoreHTTPSErrors` (self-signed) + channel chrome. Spec: admin-login (3), booking (3 gồm đặt lịch hợp lệ → phiếu thành công), doctors (2), homepage (3), specialties (2). `npm run test:e2e` full suite.
+- ✅ **E2E Playwright (13 tests PASS)** — cài `@playwright/test`, `playwright.config.ts` baseURL đúng `https://localhost:8443` (nginx) + `ignoreHTTPSErrors` (self-signed) + channel chrome. Spec: admin-login (3), booking (3 gồm đặt lịch hợp lệ → phiếu thành công), doctors (2), homepage (3), specialties (2). `npm run test:e2e` full suite.
 - ⏳ **Integration API contract (supertest)** — chưa làm riêng; E2E đã gọi API thật qua nginx (admin login, booking 201). Có thể bổ sung sau bằng supertest + mock Prisma.
+
+### Phase 93 (Legacy tender migration) - ✅ Hoàn thành (2026-08-02)
+
+- **Migration thầu web cũ → hệ thống hiện tại**: đọc `Data Migration/thongtinthau.xlsx` (455 records) + file PDF `Data Migration/upload/...` → thêm `TenderFile` JSONB + copy file vào `public/tenders/<slug>/<filename>`, upsert bảng `news` 455 thầu. Công cụ tái sử dụng: `scripts/migrate-legacy-tenders.mjs` (idempotent theo slug).
+- Map phòng: CNTT→`PHÒNG CNTT`, VTYT/TBYT→`PHÒNG VTTBYT`, Dược→`DƯỢC`, "Phòng HCQT"→`PHÒNG HCQT`. Hạn chót thiếu → lấy ngày đăng (`ngay_gio_hien_thi_web`).
+- Nơi lưu file: `public/tenders/<slug>/<filename>`, URL `/tenders/...`, nginx serve static trực tiếp từ `public`.
+- Schema: `news.tender_file Json?` (migration `20260802041745_add_tender_file`). `news.service.ts` map `tenderFile` (Prisma.JsonNull khi null). Frontend `HospitalContext` đã có `tenderFile: n.tenderFile`.
+- Verify: 455 filtered tạo mới + 4 seed cũ = 459 trên `/api/v1/news/tenders`, 455 có `tenderFile`, PDF serve 200 qua nginx. Chạy lại 455 skip-existing (idempotent).
+- Chính sách git: gitignore `Data Migration/` + `public/tenders/` (dữ liệu lớn, không commit). Commit code (schema/service/tool/migration/.gitignore/package.json).
+- **Lưu ý khi chạy lại:** cần `npm i --no-save xlsx` trong container frontend + `DATABASE_URL=db:5432`; sau khi generate Prisma cần `docker restart bvdh-backend` để client reload cột mới.
 - **Quality gate verified:** `npm run lint` = 0 lỗi, `npm run build` = pass, Docker 4 services healthy → hệ thống đã dat cơ bản production-ready
 
 ### Phase 52 (2-3 tháng)
