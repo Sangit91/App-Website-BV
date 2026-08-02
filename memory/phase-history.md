@@ -2610,3 +2610,10 @@ pm run build\: pass.
 - visualize: vao / -> "Trang", /gioi-thieu -> "Giới", /chuyen-khoa -> "Chuyên", /dich-vu -> "Dịch" (class bg-mint text-brand-green font-bold).
 - npm run lint: 0 lỗi. docker restart bvdh-frontend -> healthy. npm run build pass.
 - Files affected: src/components/layout/Navbar.tsx.
+
+### Bonus: fix focus-ring blue khi click nav (2026-08-01)
+
+- Trieu chung: click chuyen section -> nav "Trang chu" (co bg-mint) nhay 1 phat vien blue focus ring roi tat.
+- Nguyen nhan: Chrome gan day trigger :focus-visible khi click chuot vao <button> -> hien focus ring mac dinh (vien xanh duong).
+- Fix: them `focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 focus-visible:rounded-full` vao button nav desktop -> an ring khi click chuot, chi hien ring brand-green xanh la khi Tab (a11y giu). Giu nhat quan design system (ring-brand-green/40).
+- Ky thuat: after-state van dung (nav-check: Trang/Giới/Chuyên/Dịch tng ung). 13/13 E2E PASS. lint 0 loi. container healthy.

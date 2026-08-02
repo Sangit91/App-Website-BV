@@ -346,7 +346,7 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
             >
               <button
                 onClick={() => handleLinkClick(item.route || "/")}
-                className={`px-3 py-1.5 rounded-full text-[13px] xl:text-[14px] font-sans font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer flex items-center gap-1 ${
+                className={`px-3 py-1.5 rounded-full text-[13px] xl:text-[14px] font-sans font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer flex items-center gap-1 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 focus-visible:rounded-full ${
                   activeSection === item.id || hoveredMenu === item.id
                     ? "bg-mint text-brand-green font-bold"
                     : "text-ink hover:text-brand-green hover:bg-mint/50"
