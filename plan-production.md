@@ -144,3 +144,80 @@ Phase 89 → 90 → 91 (ops + tests, có thể xen kẽ)
 ## 5. Next action
 
 Wave A (81-83) + Wave B (84-85) + Wave C (86) đã hoàn thành. Tiếp theo: **Phase 87 (Wave D)** — frontend: admin mutations dùng `useAuthedFetch`, booking submit await + bỏ fabricate CCCD, ErrorBoundary class component, xoá mock production path.
+
+> **Cập nhật (2026-08-02):** Waves A-F (Ph 81-91) đã hoàn thành & test infra (unit 51 + E2E 13). Đã đọc đặc tả **v3.2** (02/08/2026) và rà soát toàn diện. Plan tiếp theo theo các Wave S/C/O bên dưới.
+
+---
+
+## 6. PLAN HOÀN THIỆN THEO ĐẶC TẢ v3.2 (2026-08-02)
+
+> Nguồn gap: đối chiếu code thực tế (02/08/2026) với `Dac-ta-Master-v3_2-SRS-TRD.docx`.
+
+### Quyết định đã chốt
+- **Admin login:** GIỮ overlay dark hiện tại (không chuyển split-screen theo mục 3.6.2), chỉ thêm **2FA/OTP**. Ghi nhận lệch UI trên memory/dactaupdate — chờ ban lãnh đạo quyết đổi sau.
+
+### 🔴 Wave S — Bảo mật trọng yếu (chặn go-live, ưu tiên A)
+
+**Phase 95 — 2FA/OTP cho Admin (G1, spec 4.2.3)**
+- Schema: `AdminUser.mfa_secret String?` (nullable) + `mfaVerified`/`mfaEnabled` boolean.
+- Luồng login 2 bước: (1) POST `/auth/admin/login` → nếu user có mfa → trả `mfaRequired: true` + issue mfa session (ttl 5 phút, OTP store in-memory hoặc TOTP); (2) POST `/auth/admin/mfa/verify` {token, code} → cấp access+refresh.
+- Dùng TOTP (speakeasy hoặc otplib) — mã 6 số 30s; backup code trước khi bật.
+- Migration thêm cột; giao diện Admin "Cài đặt" bật/disable MFA + QR setup (TOTP URL otpauth://).
+- Test: login 2FA success/thiếu code/sai code/expired → 400/401 đúng bảng mã.
+
+**Phase 96 — Chuẩn hoá API Response & bảng mã lỗi (G5, spec 4.5)**
+- Middleware `error-code` normal: mọi lỗi → `{error:{code,message}}` theo bảng 9 mã (INVALID_INPUT, UNAUTHORIZED, TOKEN_EXPIRED, FORBIDDEN, CONSENT_REQUIRED, NOT_FOUND, CONFLICT, RATE_LIMITED, INTERNAL_ERROR).
+- Giữ nguyên response thành công (object, {data,total}, 204) — không phá frontend.
+- Map Zod error → INVALID_INPUT 400; JWT hết hạn → TOKEN_EXPIRED; rate-limit → RATE_LIMITED; 404 → NOT_FOUND.
+- ApiContract tests (supertest) chạy red-green.
+
+**Phase 97 — Bảo mật upload file (G8, spec 6.4)**
+- MIME sniff thật (magic bytes) `file-type` không chỉ đuôi; chặn `.exe/.php/.js/.sh`; đổi tên file ngẫu nhiên; nhiều file/1 bản ghi (tender_files).
+- Áp dụng cho uploads (record-request + tender). Log activity cho mọi upload/delete.
+
+### 🟠 Wave C — Khớp chức năng/UI spec
+
+**Phase 98 — CMS workflow Draft/Published/Archived (G2, spec 3.7)**
+- Schema `news`: thêm `archived_at DateTime?`; ngầm is_published đã có (publishedAt). UI NewsTab + TenderTab thêm trạng thái vòng đời + nút Archive (không xoá).
+- Endpoint list filter công khai chỉ `publishedAt<=now && archivedAt=null`.
+
+**Phase 99 — RBAC department-scope hoàn thiện (G12, spec 3.6.1/3.6.3)**
+- enforce record ownership: Dept Admin chỉ sửa tin/tender/feedback/record-request thuộc khoa mình (middleware `authorizeDeptRecord`).
+- Mở rộng ma trận Lịch trực/Bệnh nhân/Tender.
+
+**Phase 100 — Admin session timeout + lockout persist DB (G13/G14)**
+- Session timeout access token (đã 30') + idle timeout FE auto-đưa về /admin/login.
+- Persist login attempt + lockout vào DB (bảng `login_attempts` hoặc cột `locked_until` trên admin_users) — bỏ Map in-memory.
+
+### 🟡 Wave U — UX & Ops (v3.2)
+
+**Phase 101 — Frontend validations + "đã mã hóa" (G11/G15, spec 6.3)**
+- Password policy client (8+ hoa+thường+số+đặc biệt) khi đổi/đặt mật khẩu.
+- Alert "Thông tin đã được mã hoá bảo mật" khi tạo patient (UI Admin).
+- Kiểm tra BHYT có mã hoá at-rest chưa (insurance_number_encrypted) — bổ sung nếu còn plaintext.
+
+**Phase 102 — Nginx cache public + SEO (G5, spec 4.6/6.6)**
+- Cache browser+Nginx 5-15' cho danh sách public (news/specialty/doctor/list) — KHÔNG cache PHI.
+- SEO: meta title/description theo trang, schema.org Hospital/Physician, OG 1200x630, sitemap.xml + robots.txt, ảnh WebP/lazy-load.
+
+**Phase 103 — ESLint+Prettier + Conventional Commits (spec 4.7)**
+- Thêm ESLint + Prettier root config; lint-staged pre-commit; align rule TS/React.
+
+**Phase 104 — Backup 7-14 bản + monitoring (spec 6.1.4/6.1.5)**
+- Script `pg_dump` tự động (cuốn 7-14), mã hoá backup, test restore. Monitoring tối thiểu: health check (có), log lỗi, cảnh báo disk.
+
+### ⏭ Phase 105 — NFR load test + testing scope đầy đủ (spec 6.1.6, 6.8)
+- Load test API (k6) đạt <500ms p95 (normal), <1000ms search, CRUD.
+- Bổ sung unit: RBAC, consent; API test toàn bộ write route + 3 PHI; perfection a11y/RBAC.
+
+---
+
+## 7. Định nghĩa done (checklist v3.2, KHỐI 6.7)
+
+- [ ] 2FA/OTP Admin chặn go-live
+- [ ] Mã hoá at-rest CCCD/BHYT (đã, cần check BHYT)
+- [ ] Chuẩn API error + mã lỗi
+- [ ] Upload security (MIME/rename/multi-file)
+- [ ] CORS allowlist + CSRF token Admin
+- [ ] Backup 7-14 bản + monitoring
+- [ ] Testing: RBAC + API + a11y responsive

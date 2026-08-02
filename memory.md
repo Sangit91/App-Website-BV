@@ -459,6 +459,8 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
 
 ## 📌 Ghi chú quan trọng
 
+0. **Spec v3.2 (02/08/2026)** — đã đọc `Dac-ta-Master-v3_2-SRS-TRD.docx` & rà soát hệ thống. Đã chốt: **giữ Admin login overlay dark** (chỉ thêm 2FA, không chuyển split-screen 3.6.2 — chờ ban lãnh đạo). Plan hoàn thiện theo Wave S/C/O ghi tại `plan-production.md` §6 (2FA, error-code, upload security, CMS workflow, RBAC dept, session timeout, password policy, cache+SEO, ESLint, backup, NFR). ~10 mục thiếu còn lại, ưu tiên 2FA + API error + upload security.
+
 1. **Navbar link "Sơ đồ tổ chức"** → `/gioi-thieu#so-do-to-chuc` (đã update)
 2. **Navbar active state** (Phase 92): dùng `useLocation` map pathname → active nav item theo trang đang xem (`/giới-thiệu`→Giới thiệu...), scroll detection chỉ phụ trợ trang chủ.
 3. **Phase numbering** đã được chuẩn hóa trong `memory/phase-history.md` — không còn trùng số
