@@ -437,6 +437,7 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
 - Nguồn ảnh: 4 ảnh mới thật Wikimedia (computer-office/medicine-vial/ppe/software-it) + còn fallback dùng ảnh chuyên đề seed sa tử.
 - Verify: 459/459 thầu có ảnh (noImage=0), serve 200 qua nginx.
 - **Lưu ý:** `public/images/tenders/*.jpg` là asset nên commit (không như `public/tenders/` PDF đã gitignore). **QUAN TRỌNG:** sau khi thêm ảnh mới vào `public/images/`, phải `npm run build` (copy public→dist) + `docker restart bvdh-frontend`, nếu không server serve từ `dist/` cũ sẽ fallback `text/html` SPA cho ảnh (xem `memory/bugs-fixed.md`).
+- **RIS-PACS (Phase 94B):** bài "Chào giá thuê phần mềm HIS, RIS-PACS, EMR" (slug %ris-pacs%) dùng ảnh `ct-scanner.jpg` (máy CT scanner thật từ Wikimedia Commons, CC BY-SA 2.0) thay cho `software-it.jpg` — 2 bài RIS-PACS được cập nhật.
 - **Quality gate verified:** `npm run lint` = 0 lỗi, `npm run build` = pass, Docker 4 services healthy → hệ thống đã dat cơ bản production-ready
 
 ### Phase 52 (2-3 tháng)

@@ -2700,3 +2700,11 @@ pm run build\: pass.
 - API GET /api/v1/news/tenders: 459, noImage=0, sample img dung.
 - Image serve 200 qua nginx (https://localhost:8443/images/tenders/*.jpg).
 - Files affected: scripts/import-tender-images.ts (new), public/images/tenders/*.jpg (4 moi untracked duoc commit).
+
+## PHASE 94B - Anh CT scanner cho nhom RIS-PACS (2026-08-02)
+
+- Bai 1431 (Chao gia thue phan mem HIS, RIS-PACS, EMR...) truoc dung \software-it.jpg\. User muon anh X-quang/CT/DSA cho nhom chu de RIS-PACS.
+- Tai anh \64-slice CT scanner at the Warwickshire Nuffield Hospital\ (Wikimedia Commons, CC BY-SA 2.0, geograph.org.uk) -> \public/images/tenders/ct-scanner.jpg\ (88KB).
+- Luu y ky thuat: (1) container IP bi Wikimedia 429 rate-limit nhung HOST may tải 200 (qua redirect \Special:Redirect/file\ + UA Mozilla + Accept image/*); (2) sau khi them anh vao public/ phai npm run build (copy public->dist) + docker restart bvdh-frontend de serve image/jpeg.
+- UPDATE 2 row news (slug %ris-pacs%) image=/images/tenders/ct-scanner.jpg truing see. Verify: API tra anh ct-scanner.jpg; GET /images/tenders/ct-scanner.jpg -> 200 image/jpeg 88423.
+- Files affected: public/images/tenders/ct-scanner.jpg (new), (DB 2 row).
