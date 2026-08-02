@@ -1,51 +1,51 @@
-﻿# Bugs Fixed â€” BVÄK Website
+# Bugs Fixed — BVĐK Website
 
-> Danh sÃ¡ch bug Ä‘Ã£ sá»­a. Tra cá»©u theo triá»‡u chá»©ng hoáº·c ngÃ y.
+> Danh sách bug đã sửa. Tra cứu theo triệu chứng hoặc ngày.
 
 ---
 
-## Bug: API Endpoint KhÃ´ng Tá»“n Táº¡i (2026-07-17)
+## Bug: API Endpoint Không Tồn Tại (2026-07-17)
 
-**NgÃ y:** 2026-07-17
+**Ngày:** 2026-07-17
 
-**Váº¥n Ä‘á»:**
-API endpoint khÃ´ng hoáº¡t Ä‘á»™ng.
+**Vấn đề:**
+API endpoint không hoạt động.
 
-**NguyÃªn nhÃ¢n:**
+**Nguyên nhân:**
 Middleware ordering sai.
 
-**Giáº£i phÃ¡p:**
-- Chuyá»ƒn Error Handler xuá»‘ng sau vite.middlewares.
+**Giải pháp:**
+- Chuyển Error Handler xuống sau vite.middlewares.
 
-**Tráº¡ng thÃ¡i:** ÄÃ£ sá»­a.
+**Trạng thái:** Đã sửa.
 
 ---
 
 ## Bug: Broken Images Trong ChoBenhNhanPage & DichVuPage (2026-07-19)
 
-**NgÃ y:** 2026-07-19
+**Ngày:** 2026-07-19
 
-**Váº¥n Ä‘á»:**
-4 áº£nh Unsplash bá»‹ lá»—i 404 hoáº·c cÃ³ kÃ½ tá»± Chinese trong URL
+**Vấn đề:**
+4 ảnh Unsplash bị lỗi 404 hoặc có ký tự Chinese trong URL
 
-**NguyÃªn nhÃ¢n:**
+**Nguyên nhân:**
 1. `photo-1587613865765-5e33e4bd57f9` - 404 Not Found
 2. `photo-1530026405186-ed1f139313f3` - 404 Not Found
-3. `photo-1587613865765-5e33e4é›¶ç‚¹bd58` - URL cÃ³ kÃ½ tá»± Chinese (encoding error)
-4. `photo-1546823é›¶da49c4d-a3b3b3a9a4c1` - URL cÃ³ kÃ½ tá»± Chinese (encoding error)
+3. `photo-1587613865765-5e33e4零点bd58` - URL có ký tự Chinese (encoding error)
+4. `photo-1546823零da49c4d-a3b3b3a9a4c1` - URL có ký tự Chinese (encoding error)
 
 **Files affected:**
-- src/pages/ChoBenhNhanPage.tsx (2 áº£nh)
-- src/pages/DichVuPage.tsx (2 áº£nh)
-- src/pages/ChuyenKhoaPage.tsx (1 áº£nh - cÃ¹ng URL vá»›i DichVuPage)
+- src/pages/ChoBenhNhanPage.tsx (2 ảnh)
+- src/pages/DichVuPage.tsx (2 ảnh)
+- src/pages/ChuyenKhoaPage.tsx (1 ảnh - cùng URL với DichVuPage)
 
-**Giáº£i phÃ¡p:**
-- Thay `photo-1587613865765-5e33e4bd57f9` â†’ `photo-1551601651-2a8555f1a136`
-- Thay `photo-1530026405186-ed1f139313f3` â†’ `photo-1557804506-669a67965ba0`
-- Thay `photo-1587613865765-5e33e4é›¶ç‚¹bd58` â†’ `photo-1559757175-5700dde675bc`
-- Thay `photo-1546823é›¶da49c4d-a3b3b3a9a4c1` â†’ `photo-1519494026892-80bbd2d6fd0d`
+**Giải pháp:**
+- Thay `photo-1587613865765-5e33e4bd57f9` → `photo-1551601651-2a8555f1a136`
+- Thay `photo-1530026405186-ed1f139313f3` → `photo-1557804506-669a67965ba0`
+- Thay `photo-1587613865765-5e33e4零点bd58` → `photo-1559757175-5700dde675bc`
+- Thay `photo-1546823零da49c4d-a3b3b3a9a4c1` → `photo-1519494026892-80bbd2d6fd0d`
 
-**Tráº¡ng thÃ¡i:** ÄÃ£ sá»­a. ÄÃ£ verify táº¥t cáº£ áº£nh thay tháº¿ hoáº¡t Ä‘á»™ng tá»‘t.
+**Trạng thái:** Đã sửa. Đã verify tất cả ảnh thay thế hoạt động tốt.
 
 **Commands:** npm run lint - Passed, npm run build - Passed
 
@@ -53,16 +53,16 @@ Middleware ordering sai.
 
 ## Bug: Encoding Trong Admin Tabs (2026-07-19)
 
-**NgÃ y:** 2026-07-19
+**Ngày:** 2026-07-19
 
-**Váº¥n Ä‘á»:**
-Táº¥t cáº£ cÃ¡c tab files bá»‹ encoding corruption - tiáº¿ng Viá»‡t hiá»ƒn thá»‹ sai (VD: "Tá»•ng sá»‘" â†’ "TÃ¡Â»â€¢ng sÃ¡Â»â€˜")
+**Vấn đề:**
+Tất cả các tab files bị encoding corruption - tiếng Việt hiển thị sai (VD: "Tổng số" → "Tá»•ng sá»‘")
 
-**NguyÃªn nhÃ¢n:**
-PowerShell file write khÃ´ng Ä‘Ãºng encoding UTF-8
+**Nguyên nhân:**
+PowerShell file write không đúng encoding UTF-8
 
-**Giáº£i phÃ¡p:**
-Viáº¿t láº¡i toÃ n bá»™ 9 tab files vá»›i encoding UTF-8 Ä‘Ãºng
+**Giải pháp:**
+Viết lại toàn bộ 9 tab files với encoding UTF-8 đúng
 
 **Files affected:**
 - src/components/admin/tabs/OverviewTab.tsx
@@ -75,27 +75,27 @@ Viáº¿t láº¡i toÃ n bá»™ 9 tab files vá»›i encoding UTF-8 Ä‘Ã
 - src/components/admin/tabs/OrganizationTab.tsx
 - src/components/admin/tabs/LogsTab.tsx
 
-**Tráº¡ng thÃ¡i:** ÄÃ£ sá»­a.
+**Trạng thái:** Đã sửa.
 
 ---
 
 ## Bug: Local Images Migration (2026-07-19)
 
-**NgÃ y:** 2026-07-19
+**Ngày:** 2026-07-19
 
-**Váº¥n Ä‘á»:**
-Phá»¥ thuá»™c vÃ o external image URLs (Unsplash, Pexels) - cÃ³ thá»ƒ bá»‹ lá»—i 404 hoáº·c khÃ´ng load Ä‘Æ°á»£c
+**Vấn đề:**
+Phụ thuộc vào external image URLs (Unsplash, Pexels) - có thể bị lỗi 404 hoặc không load được
 
-**Giáº£i phÃ¡p:**
-- Táº¡o folder structure trong `public/images/`
-  - `public/images/pages/` - áº¢nh cho cÃ¡c trang
-  - `public/images/components/` - áº¢nh cho components (Hero, WhyChooseUs, Organization)
-  - `public/images/doctors/` - áº¢nh bÃ¡c sÄ© placeholder
-  - `public/images/hero/` - áº¢nh hero section
-- Download 54 images tá»« Unsplash/Pexels vá» local
-- Thay tháº¿ táº¥t cáº£ external URLs báº±ng local paths
+**Giải pháp:**
+- Tạo folder structure trong `public/images/`
+  - `public/images/pages/` - Ảnh cho các trang
+  - `public/images/components/` - Ảnh cho components (Hero, WhyChooseUs, Organization)
+  - `public/images/doctors/` - Ảnh bác sĩ placeholder
+  - `public/images/hero/` - Ảnh hero section
+- Download 54 images từ Unsplash/Pexels về local
+- Thay thế tất cả external URLs bằng local paths
 
-**Files Ä‘Ã£ update:**
+**Files đã update:**
 - public/images/ (54 images)
 - src/pages/ChoBenhNhanPage.tsx (12 replacements)
 - src/pages/DichVuPage.tsx (19 replacements)
@@ -113,7 +113,7 @@ Phá»¥ thuá»™c vÃ o external image URLs (Unsplash, Pexels) - cÃ³ thá�
 
 **Total:** 79 replacements across 13 files
 
-**Tráº¡ng thÃ¡i:** âœ… HoÃ n thÃ nh. KhÃ´ng cÃ²n external image URLs trong codebase.
+**Trạng thái:** ✅ Hoàn thành. Không còn external image URLs trong codebase.
 
 **Commands:** npm run lint - Passed, npm run build - Passed
 
@@ -121,18 +121,18 @@ Phá»¥ thuá»™c vÃ o external image URLs (Unsplash, Pexels) - cÃ³ thá�
 
 ## Bug: ThongTinThauPage Toggle Animation (2026-07-19)
 
-**NgÃ y:** 2026-07-19
+**Ngày:** 2026-07-19
 
-**Váº¥n Ä‘á»:**
-Sá»­a animation rotation cá»§a nÃºt thu gá»n/expand department
+**Vấn đề:**
+Sửa animation rotation của nút thu gọn/expand department
 
-**Giáº£i phÃ¡p:**
-- Thay `rotate: isExpanded ? 180 : 0` â†’ `rotate: isExpanded ? 360 : 0`
-- 90 Ä‘á»™ khiáº¿n icon náº±m ngang, 360 giá»¯ nguyÃªn hÆ°á»›ng icon
+**Giải pháp:**
+- Thay `rotate: isExpanded ? 180 : 0` → `rotate: isExpanded ? 360 : 0`
+- 90 độ khiến icon nằm ngang, 360 giữ nguyên hướng icon
 
 **Files affected:** src/pages/ThongTinThauPage.tsx
 
-**Tráº¡ng thÃ¡i:** ÄÃ£ sá»­a.
+**Trạng thái:** Đã sửa.
 
 **Commands:** npm run lint - Passed, npm run build - Passed
 
@@ -140,18 +140,18 @@ Sá»­a animation rotation cá»§a nÃºt thu gá»n/expand department
 
 ## Bug: TinTucPage Image Fixes (2026-07-19)
 
-**NgÃ y:** 2026-07-19
+**Ngày:** 2026-07-19
 
-**Váº¥n Ä‘á»:**
-Sá»­a 2 Ä‘Æ°á»ng dáº«n áº£nh bá»‹ sai trong TinTucPage.tsx
+**Vấn đề:**
+Sửa 2 đường dẫn ảnh bị sai trong TinTucPage.tsx
 
-**Giáº£i phÃ¡p:**
-- `news-placeholder.jpeg`: `/images/pages/` â†’ `/images/components/` (áº£nh náº±m trong components folder)
-- `chi-phi-1.jpeg` â†’ `chiphi-1.jpeg` (thiáº¿u dáº¥u gáº¡ch ngang trong filename)
+**Giải pháp:**
+- `news-placeholder.jpeg`: `/images/pages/` → `/images/components/` (ảnh nằm trong components folder)
+- `chi-phi-1.jpeg` → `chiphi-1.jpeg` (thiếu dấu gạch ngang trong filename)
 
 **Files affected:** src/pages/TinTucPage.tsx
 
-**Tráº¡ng thÃ¡i:** ÄÃ£ sá»­a.
+**Trạng thái:** Đã sửa.
 
 **Commands:** npm run lint - Passed, npm run build - Passed
 
@@ -159,60 +159,60 @@ Sá»­a 2 Ä‘Æ°á»ng dáº«n áº£nh bá»‹ sai trong TinTucPage.tsx
 
 ## Bug: Additional Image Fixes (2026-07-19)
 
-**NgÃ y:** 2026-07-19
+**Ngày:** 2026-07-19
 
-**Váº¥n Ä‘á»:**
-Sá»­a cÃ¡c filename áº£nh bá»‹ sai trong má»™t sá»‘ page
+**Vấn đề:**
+Sửa các filename ảnh bị sai trong một số page
 
-**Giáº£i phÃ¡p:**
-- tiendung-1.jpeg â†’ tiemchung-1.jpeg (DichVuPage)
-- thaisy-1.jpeg â†’ sanphukhoa-1.jpeg (DichVuPage)
-- chi-phi-1.jpeg â†’ chiphi-1.jpeg (DichVuPage)
-- photo-1586773860418-d37222d8f0a3 â†’ /images/pages/coso-2.jpeg (GioiThieuPage)
+**Giải pháp:**
+- tiendung-1.jpeg → tiemchung-1.jpeg (DichVuPage)
+- thaisy-1.jpeg → sanphukhoa-1.jpeg (DichVuPage)
+- chi-phi-1.jpeg → chiphi-1.jpeg (DichVuPage)
+- photo-1586773860418-d37222d8f0a3 → /images/pages/coso-2.jpeg (GioiThieuPage)
 
-**Tráº¡ng thÃ¡i:** ÄÃ£ sá»­a.
+**Trạng thái:** Đã sửa.
 
 ---
 
-## Bug: TinTucPage - Click News Card KhÃ´ng Má»Ÿ Modal (2026-07-22)
+## Bug: TinTucPage - Click News Card Không Mở Modal (2026-07-22)
 
-**NgÃ y:** 2026-07-22
+**Ngày:** 2026-07-22
 
-**Váº¥n Ä‘á»:**
-Click vÃ o card tin tá»©c trÃªn TinTucPage (tab "Tin tá»©c bá»‡nh viá»‡n" vÃ  "Y khoa & Sá»©c khoáº»") khÃ´ng má»Ÿ modal xem chi tiáº¿t.
+**Vấn đề:**
+Click vào card tin tức trên TinTucPage (tab "Tin tức bệnh viện" và "Y khoa & Sức khoẻ") không mở modal xem chi tiết.
 
-**NguyÃªn nhÃ¢n:**
-- TinTucPage render news cards trá»±c tiáº¿p (khÃ´ng qua News.tsx component)
-- CÃ¡c `motion.article` trong TinTucPage thiáº¿u `onClick` handler
-- KhÃ´ng cÃ³ `selectedNews` state Ä‘á»ƒ control modal
-- Featured article (hospitalNews[0]) cÅ©ng khÃ´ng cÃ³ onClick
+**Nguyên nhân:**
+- TinTucPage render news cards trực tiếp (không qua News.tsx component)
+- Các `motion.article` trong TinTucPage thiếu `onClick` handler
+- Không có `selectedNews` state để control modal
+- Featured article (hospitalNews[0]) cũng không có onClick
 
-**Giáº£i phÃ¡p:**
-- ThÃªm `selectedNews: NewsItem | null` state
-- ThÃªm `onClick={() => setSelectedNews(item)}` vÃ o táº¥t cáº£ news cards
-- ThÃªm AnimatePresence modal hiá»ƒn thá»‹ chi tiáº¿t bÃ i viáº¿t
+**Giải pháp:**
+- Thêm `selectedNews: NewsItem | null` state
+- Thêm `onClick={() => setSelectedNews(item)}` vào tất cả news cards
+- Thêm AnimatePresence modal hiển thị chi tiết bài viết
 
 **Files affected:**
 - src/pages/TinTucPage.tsx
 
 **Phase:** 45
 
-**Tráº¡ng thÃ¡i:** ÄÃ£ sá»­a.
+**Trạng thái:** Đã sửa.
 
 ---
 
 ## Bug: Scroll Position Sai Khi Navigate (2026-07-22)
 
-**NgÃ y:** 2026-07-22
+**Ngày:** 2026-07-22
 
-**Váº¥n Ä‘á»:**
-Khi click navigation tá»« HomePage sang cÃ¡c animated page, trang má»›i hiá»‡n á»Ÿ scroll position cá»§a trang cÅ©.
+**Vấn đề:**
+Khi click navigation từ HomePage sang các animated page, trang mới hiện ở scroll position của trang cũ.
 
-**NguyÃªn nhÃ¢n:**
-Framer Motion `useScroll` hook Ä‘á»c scroll position tá»« trang trÆ°á»›c khi trang má»›i mount xong.
+**Nguyên nhân:**
+Framer Motion `useScroll` hook đọc scroll position từ trang trước khi trang mới mount xong.
 
-**Giáº£i phÃ¡p:**
-ThÃªm `useEffect(() => { window.scrollTo(0, 0); }, []);` á»Ÿ Ä‘áº§u má»—i affected page.
+**Giải pháp:**
+Thêm `useEffect(() => { window.scrollTo(0, 0); }, []);` ở đầu mỗi affected page.
 
 **Files affected:**
 - src/pages/ChuyenKhoaPage.tsx
@@ -225,39 +225,39 @@ ThÃªm `useEffect(() => { window.scrollTo(0, 0); }, []);` á»Ÿ Ä‘áº§u m
 
 **Phase:** 44
 
-**Tráº¡ng thÃ¡i:** ÄÃ£ sá»­a.
+**Trạng thái:** Đã sửa.
 
 ---
 
-## Bug: featuredItem undefined crash â€” Cannot read properties of undefined (reading 'img') (2026-07-24)
+## Bug: featuredItem undefined crash — Cannot read properties of undefined (reading 'img') (2026-07-24)
 
-**NgÃ y:** 2026-07-24
+**Ngày:** 2026-07-24
 
-**Váº¥n Ä‘á»:**
-- DichVuPage, ChuyenKhoaPage, ChoBenhNhanPage crash vá»›i lá»—i `Cannot read properties of undefined (reading 'img')`
-- Crash xáº£y ra khi API tráº£ vá» data nhÆ°ng `items` array rá»—ng
+**Vấn đề:**
+- DichVuPage, ChuyenKhoaPage, ChoBenhNhanPage crash với lỗi `Cannot read properties of undefined (reading 'img')`
+- Crash xảy ra khi API trả về data nhưng `items` array rỗng
 
-**NguyÃªn nhÃ¢n:**
+**Nguyên nhân:**
 ```typescript
-// DÃ²ng 256 ChuyenKhoaPage:
+// Dòng 256 ChuyenKhoaPage:
 const featuredItem = currentData?.items.find(item => item.highlight) || currentData?.items[0];
-// Khi items = []: find() â†’ undefined, items[0] â†’ undefined â†’ fallback khÃ´ng hoáº¡t Ä‘á»™ng
-// vÃ¬ || khÃ´ng distinguish Ä‘Æ°á»£c giá»¯a "falsy value" vÃ  "undefined"
+// Khi items = []: find() → undefined, items[0] → undefined → fallback không hoạt động
+// vì || không distinguish được giữa "falsy value" và "undefined"
 
 const featuredItem = currentData?.items.find(item => item.highlight) || currentData?.items[0];
-// Khi items = undefined/null: currentData?.items â†’ undefined â†’ crash ngay khi gá»i .find()
+// Khi items = undefined/null: currentData?.items → undefined → crash ngay khi gọi .find()
 ```
 
-**Giáº£i phÃ¡p:**
+**Giải pháp:**
 ```typescript
-// Fix 1: featuredItem â€” dÃ¹ng ?? thay vÃ¬ || Ä‘á»ƒ distinguish undefined vÃ  falsy
+// Fix 1: featuredItem — dùng ?? thay vì || để distinguish undefined và falsy
 const rawFeatured = currentData?.items?.find(item => item.highlight) ?? currentData?.items?.[0];
 const featuredItem = rawFeatured ?? { name: "", desc: "", price: "", img: "/images/pages/bacsi-1.jpeg" };
 
-// Fix 2: items.filter/map â€” thÃªm ?? [] guard
+// Fix 2: items.filter/map — thêm ?? [] guard
 {(currentData?.items ?? []).filter(item => !item.highlight).map(...)}
 
-// Fix 3: featuredItem cho currentData khÃ´ng cÃ³ ?.
+// Fix 3: featuredItem cho currentData không có ?.
 const featuredItem = (currentData?.items ?? []).find(item => item.highlight) 
   ?? (currentData?.items ?? [])[0] 
   ?? { name: "", desc: "", img: "/images/pages/bacsi-1.jpeg" };
@@ -270,91 +270,91 @@ const featuredItem = (currentData?.items ?? []).find(item => item.highlight)
 
 **Phase:** 62
 
-**Tráº¡ng thÃ¡i:** ÄÃ£ sá»­a.
+**Trạng thái:** Đã sửa.
 
 ---
 
-## Bug: RecordRequestModal - 2 Thanh Scrollbar Chá»“ng Nhau (2026-07-27)
+## Bug: RecordRequestModal - 2 Thanh Scrollbar Chồng Nhau (2026-07-27)
 
-**NgÃ y:** 2026-07-27
+**Ngày:** 2026-07-27
 
-**Váº¥n Ä‘á»:**
-Modal "YÃªu cáº§u trÃ­ch sao há»“ sÆ¡" hiá»ƒn thá»‹ 2 thanh scrollbar chá»“ng nhau â€” 1 cá»§a `Modal` wrapper, 1 cá»§a div body bÃªn trong `RecordRequestModal`.
+**Vấn đề:**
+Modal "Yêu cầu trích sao hồ sơ" hiển thị 2 thanh scrollbar chồng nhau — 1 của `Modal` wrapper, 1 của div body bên trong `RecordRequestModal`.
 
-**NguyÃªn nhÃ¢n:**
-`RecordRequestModal` (dÃ²ng 225-247 báº£n cÅ©) tá»± bá»c `<div className="flex flex-col max-h-[90vh]">` + `<div className="p-6 overflow-y-auto">` bÃªn trong children, trong khi `Modal` (`src/components/ui/Modal.tsx:66-93`) Ä‘Ã£ tá»± lo `max-h-[92vh] flex flex-col overflow-hidden` + body `p-6 overflow-y-auto`. Káº¿t quáº£: 2 lá»›p scrollbar lá»“ng nhau.
+**Nguyên nhân:**
+`RecordRequestModal` (dòng 225-247 bản cũ) tự bọc `<div className="flex flex-col max-h-[90vh]">` + `<div className="p-6 overflow-y-auto">` bên trong children, trong khi `Modal` (`src/components/ui/Modal.tsx:66-93`) đã tự lo `max-h-[92vh] flex flex-col overflow-hidden` + body `p-6 overflow-y-auto`. Kết quả: 2 lớp scrollbar lồng nhau.
 
-**Giáº£i phÃ¡p:**
-- Bá» wrapper `<div className="flex flex-col max-h-[90vh]">` trong `RecordRequestModal`, thay báº±ng fragment `<>`.
-- Bá» class `overflow-y-auto` á»Ÿ div `p-6` body â€” Modal Ä‘Ã£ lo rá»“i.
-- Header gradient custom váº«n dÃ¹ng `shrink-0` Ä‘á»ƒ khÃ´ng bá»‹ cuá»™n máº¥t khi body cuá»™n.
+**Giải pháp:**
+- Bỏ wrapper `<div className="flex flex-col max-h-[90vh]">` trong `RecordRequestModal`, thay bằng fragment `<>`.
+- Bỏ class `overflow-y-auto` ở div `p-6` body — Modal đã lo rồi.
+- Header gradient custom vẫn dùng `shrink-0` để không bị cuộn mất khi body cuộn.
 
-Cáº¥u trÃºc sau fix:
+Cấu trúc sau fix:
 ```
 <Modal size="lg" showCloseButton={false}>
-  â”œâ”€â”€ <div header gradient shrink-0>   â† header custom
-  â””â”€â”€ <div p-6>                         â† body bÃ¬nh thÆ°á»ng
-        â””â”€â”€ <form>...</form>
+  ├── <div header gradient shrink-0>   ← header custom
+  └── <div p-6>                         ← body bình thường
+        └── <form>...</form>
 </Modal>
 ```
 
 **Files affected:**
-- src/components/public/RecordRequestModal.tsx (dÃ²ng 225-247)
+- src/components/public/RecordRequestModal.tsx (dòng 225-247)
 
 **Phase:** 74
 
-**Tráº¡ng thÃ¡i:** ÄÃ£ sá»­a.
+**Trạng thái:** Đã sửa.
 
-**Commands:** tsc --noEmit - Passed (zero lá»—i má»›i; pre-existing errors á»Ÿ vite.config.ts, ChoBenhNhanPage.tsx, auth.routes.ts khÃ´ng liÃªn quan).
+**Commands:** tsc --noEmit - Passed (zero lỗi mới; pre-existing errors ở vite.config.ts, ChoBenhNhanPage.tsx, auth.routes.ts không liên quan).
 
 ---
 
-## Bug Re-encounter: Vite khÃ´ng pick up source fix trong container (2026-07-27)
+## Bug Re-encounter: Vite không pick up source fix trong container (2026-07-27)
 
-**NgÃ y:** 2026-07-27 (gáº·p láº¡i sau Phase 74)
+**Ngày:** 2026-07-27 (gặp lại sau Phase 74)
 
-**Váº¥n Ä‘á»:**
-Sau khi sá»­a `RecordRequestModal.tsx` trÃªn host, browser váº«n hiá»ƒn thá»‹ 2 scrollbar cÅ© â€” code khÃ´ng Ä‘Æ°á»£c pick up.
+**Vấn đề:**
+Sau khi sửa `RecordRequestModal.tsx` trên host, browser vẫn hiển thị 2 scrollbar cũ — code không được pick up.
 
-**NguyÃªn nhÃ¢n:**
-- `docker-compose.yml:16` set `DISABLE_HMR=true` trong container frontend â†’ Vite khÃ´ng watch file.
-- `vite.config.ts:18-19` theo Ä‘Ã³ set `hmr: false` + `watch: null` â†’ Vite khÃ´ng auto-transform khi file thay Ä‘á»•i, dÃ¹ mount `. â†’ /app` Ä‘Ã£ sync file tá»« host ngay láº­p tá»©c.
-- ÄÃ£ ghi nháº­n quy táº¯c nÃ y tá»« **Phase 72** (`memory/phase-history.md:1804`, `memory/phase-history.md:1792`) nhÆ°ng khÃ´ng náº±m trong `AGENTS.md` â†’ dá»… quÃªn.
+**Nguyên nhân:**
+- `docker-compose.yml:16` set `DISABLE_HMR=true` trong container frontend → Vite không watch file.
+- `vite.config.ts:18-19` theo đó set `hmr: false` + `watch: null` → Vite không auto-transform khi file thay đổi, dù mount `. → /app` đã sync file từ host ngay lập tức.
+- Đã ghi nhận quy tắc này từ **Phase 72** (`memory/phase-history.md:1804`, `memory/phase-history.md:1792`) nhưng không nằm trong `AGENTS.md` → dễ quên.
 
-**Giáº£i phÃ¡p:**
+**Giải pháp:**
 ```bash
 docker restart bvdh-frontend
 ```
-- Container restart trong ~3s, healthcheck `healthy` sau ~39s (láº§n Ä‘áº§u pháº£i npm install + Vite warmup).
-- Verify: `docker exec bvdh-frontend grep <pattern> src/...` xÃ¡c nháº­n file Ä‘Ã£ sync.
-- Verify: `docker exec bvdh-frontend wget -qO- http://127.0.0.1:8000/src/...` xÃ¡c nháº­n Vite Ä‘Ã£ transform láº¡i.
-- Browser: **Ctrl+Shift+R** (hard reload) Ä‘á»ƒ bypass cache trÃ¬nh duyá»‡t.
+- Container restart trong ~3s, healthcheck `healthy` sau ~39s (lần đầu phải npm install + Vite warmup).
+- Verify: `docker exec bvdh-frontend grep <pattern> src/...` xác nhận file đã sync.
+- Verify: `docker exec bvdh-frontend wget -qO- http://127.0.0.1:8000/src/...` xác nhận Vite đã transform lại.
+- Browser: **Ctrl+Shift+R** (hard reload) để bypass cache trình duyệt.
 
-**Äá» xuáº¥t cáº£i tiáº¿n AGENTS.md:**
-ThÃªm 1 dÃ²ng ngáº¯n vÃ o má»¥c "Port Policy" hoáº·c táº¡o section má»›i "Docker Dev Workflow" nháº¯c rule "má»—i láº§n sá»­a file â†’ restart bvdh-frontend (HMR Ä‘ang táº¯t)". Hiá»‡n táº¡i rule nÃ y chá»‰ náº±m trong `phase-history.md` â†’ dá»… miss khi Ä‘á»c memory.md má»—i session Ä‘áº§u.
+**Đề xuất cải tiến AGENTS.md:**
+Thêm 1 dòng ngắn vào mục "Port Policy" hoặc tạo section mới "Docker Dev Workflow" nhắc rule "mỗi lần sửa file → restart bvdh-frontend (HMR đang tắt)". Hiện tại rule này chỉ nằm trong `phase-history.md` → dễ miss khi đọc memory.md mỗi session đầu.
 
-**ÄÃ£ apply (2026-07-27):** Section má»›i "ðŸ“Œ Docker Dev Workflow â€” Báº®T BUá»˜C NHá»š" Ä‘Ã£ Ä‘Æ°á»£c thÃªm vÃ o `AGENTS.md:170` ngay sau Port Policy, vá»›i Ä‘áº§y Ä‘á»§: nguyÃªn nhÃ¢n, quy táº¯c báº¯t buá»™c, triá»‡u chá»©ng Ä‘iá»ƒn hÃ¬nh, trÆ°á»ng há»£p KHÃ”NG cáº§n restart (backend tsx watch / Docker config rebuild / Prisma regenerate), vÃ  ghi chÃº vá» viá»‡c báº­t láº¡i HMR.
+**Đã apply (2026-07-27):** Section mới "📌 Docker Dev Workflow — BẮT BUỘC NHỚ" đã được thêm vào `AGENTS.md:170` ngay sau Port Policy, với đầy đủ: nguyên nhân, quy tắc bắt buộc, triệu chứng điển hình, trường hợp KHÔNG cần restart (backend tsx watch / Docker config rebuild / Prisma regenerate), và ghi chú về việc bật lại HMR.
 
-**Files affected:** (chá»‰ lÃ  sá»± cá»‘ khi sá»­a, khÃ´ng cÃ³ diff má»›i)
+**Files affected:** (chỉ là sự cố khi sửa, không có diff mới)
 - `src/components/public/RecordRequestModal.tsx` (fix Phase 74)
-- `docker-compose.yml:16` (config Ä‘Ã£ cÃ³ sáºµn, khÃ´ng Ä‘á»•i)
-- `vite.config.ts:18-19` (config Ä‘Ã£ cÃ³ sáºµn, khÃ´ng Ä‘á»•i)
+- `docker-compose.yml:16` (config đã có sẵn, không đổi)
+- `vite.config.ts:18-19` (config đã có sẵn, không đổi)
 
-**Phase:** 74 (re-encounter â€” cÃ¹ng phase, khÃ´ng táº¡o phase má»›i vÃ¬ khÃ´ng cÃ³ code change má»›i)
+**Phase:** 74 (re-encounter — cùng phase, không tạo phase mới vì không có code change mới)
 
-**Tráº¡ng thÃ¡i:** ÄÃ£ verify workaround. Container `bvdh-frontend` healthy sau restart, Vite serve Ä‘Ãºng code fix.
+**Trạng thái:** Đã verify workaround. Container `bvdh-frontend` healthy sau restart, Vite serve đúng code fix.
 
-**Commands:** docker restart bvdh-frontend â†’ healthy sau 39s. docker exec bvdh-frontend grep verify fix cÃ³ trong container.
+**Commands:** docker restart bvdh-frontend → healthy sau 39s. docker exec bvdh-frontend grep verify fix có trong container.
 
 ---
 
 ## Feature: Enable Vite HMR cho Docker dev (2026-07-28)
 
-### MÃ´ táº£
+### Mô tả
 
-Báº­t láº¡i Vite HMR trong Docker dev environment Ä‘á»ƒ frontend auto-reload khi sá»­a code, thay vÃ¬ pháº£i `docker restart bvdh-frontend` má»—i láº§n.
+Bật lại Vite HMR trong Docker dev environment để frontend auto-reload khi sửa code, thay vì phải `docker restart bvdh-frontend` mỗi lần.
 
-### Thay Ä‘á»•i config
+### Thay đổi config
 
 **docker-compose.yml:16**
 ```diff
@@ -362,43 +362,43 @@ Báº­t láº¡i Vite HMR trong Docker dev environment Ä‘á»ƒ frontend aut
 + DISABLE_HMR=false
 ```
 
-**vite.config.ts:18-19** tá»± Ä‘á»™ng báº­t HMR khi `DISABLE_HMR !== 'true'`:
+**vite.config.ts:18-19** tự động bật HMR khi `DISABLE_HMR !== 'true'`:
 ```ts
 hmr: process.env.DISABLE_HMR !== 'true' ? { clientPort: 3000 } : false,
 watch: process.env.DISABLE_HMR === 'true' ? null : {},
 ```
 
-Nginx config (`nginx/nginx.conf:133`) Ä‘Ã£ sáºµn proxy WebSocket cho HMR.
+Nginx config (`nginx/nginx.conf:133`) đã sẵn proxy WebSocket cho HMR.
 
-### Workflow má»›i
+### Workflow mới
 
-| Action | TrÆ°á»›c (HMR OFF) | Sau (HMR ON) |
+| Action | Trước (HMR OFF) | Sau (HMR ON) |
 |--------|-----------------|--------------|
-| Sá»­a file frontend | `docker restart bvdh-frontend` + Ctrl+Shift+R | Chá»‰ save file â†’ browser auto-reload |
-| Sá»­a file backend | `tsx watch` tá»± reload | Giá»¯ nguyÃªn |
-| Sá»­a config Docker | `docker compose up -d --build` | Giá»¯ nguyÃªn |
+| Sửa file frontend | `docker restart bvdh-frontend` + Ctrl+Shift+R | Chỉ save file → browser auto-reload |
+| Sửa file backend | `tsx watch` tự reload | Giữ nguyên |
+| Sửa config Docker | `docker compose up -d --build` | Giữ nguyên |
 
 ### Verify
 
 - Container `bvdh-frontend` healthy sau rebuild
-- `wget -qO- http://127.0.0.1:8000/@vite/client` tráº£ vá» HMR client code
-- Sá»­a file `RecordRequestModal.tsx` â†’ Vite inject `__vite__createHotContext` vÃ o module transform
+- `wget -qO- http://127.0.0.1:8000/@vite/client` trả về HMR client code
+- Sửa file `RecordRequestModal.tsx` → Vite inject `__vite__createHotContext` vào module transform
 
 ### Files Changed
 
 - `docker-compose.yml:16` (DISABLE_HMR=false)
-- `AGENTS.md` section "Docker Dev Workflow" â€” cáº­p nháº­t rule HMR ON
-- `memory.md` section "Docker Dev Workflow" â€” cáº­p nháº­t quy táº¯c má»›i
+- `AGENTS.md` section "Docker Dev Workflow" — cập nhật rule HMR ON
+- `memory.md` section "Docker Dev Workflow" — cập nhật quy tắc mới
 - `memory/phase-history.md` +Phase 76 entry
 
-### Ghi chÃº
+### Ghi chú
 
-- Rule "restart container khi sá»­a frontend" váº«n giá»¯ trong AGENTS.md/memory.md nhÆ°ng ghi chÃº rÃµ: **chá»‰ Ã¡p dá»¥ng khi HMR OFF**. Khi HMR ON â†’ khÃ´ng cáº§n restart.
-- Khi cáº§n táº¯t HMR Ä‘á»ƒ giá»‘ng production: Ä‘á»•i `false â†’ true` + `docker compose up -d --build public-web`.
-## Bug: ?nh m?i thêm vào public/ không serve (tr? text/html SPA fallback) (2026-08-02)
+- Rule "restart container khi sửa frontend" vẫn giữ trong AGENTS.md/memory.md nhưng ghi chú rõ: **chỉ áp dụng khi HMR OFF**. Khi HMR ON → không cần restart.
+- Khi cần tắt HMR để giống production: đổi `false → true` + `docker compose up -d --build public-web`.
 
-- Trieu chung: 4 anh tender moi (software-it, computer-office, medicine-vial, ppe) them vao public/images/tenders/ khong hien thi tren web; GET /images/tenders/xxx.jpg tra status 200 nhung content-type text/html (943 bytes = index.html SPA fallback), khong phai image/jpeg.
-- Root cause: server dang serve tu dist/ (production build). Anh chi trong public/ không tự động copy vào dist/ cho đến khi build. Đến đó dist/ build trước chỉ có 11 ảnh cũ.
-- Fix: chay l\u1EA1i \
-pm run build\ (Vite copy toan bo public/ -> dist/), roi \docker restart bvdh-frontend\. Verify GET trả image/jpeg đúng length.
-- Lesson: Khi th\u00EAn anh moi vao public/images/tenders/ phai \n\nlat lai npm run build + restart frontend tr\u01B0\u1EDBc khi import-tender-images.ts (ke ca khico xem file trong dist/ chua.
+## Bug: Anh moi them vao public/ khong serve (tra text/html SPA fallback) (2026-08-02)
+
+- Trieu chung: 4 anh tender moi (software-it, computer-office, medicine-vial, ppe) them vao public/images/tenders/ khong hien thi; GET tra status 200 nhung content-type text/html (index.html fallback).
+- Root cause: server serve tu dist/ (production build), anh moi chi trong public/ khong tu dong copy vao dist/ den khi build.
+- Fix: chay lại npm run build (copy public->dist) + docker restart bvdh-frontend; verify GET tra image/jpeg.
+- Lesson: them anh moi vao public/images/ phai npm run build + restart frontend truoc. Xem memory.md ghi chu Phase 94.
