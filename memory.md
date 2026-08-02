@@ -436,7 +436,7 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
 - Chủ đề xuất hiện: surgery 151, lab-microscope 114 (hóa chất/xét nghiệm), medical-equipment 69, documents 35, medicine-vial 34, hospital-bed/facility, software-it, computer-office, ppe, office-cleaning, network-cables.
 - Nguồn ảnh: 4 ảnh mới thật Wikimedia (computer-office/medicine-vial/ppe/software-it) + còn fallback dùng ảnh chuyên đề seed sa tử.
 - Verify: 459/459 thầu có ảnh (noImage=0), serve 200 qua nginx.
-- **Lưu ý:** `public/images/tenders/*.jpg` là asset nên commit (không như `public/tenders/` PDF đã gitignore).
+- **Lưu ý:** `public/images/tenders/*.jpg` là asset nên commit (không như `public/tenders/` PDF đã gitignore). **QUAN TRỌNG:** sau khi thêm ảnh mới vào `public/images/`, phải `npm run build` (copy public→dist) + `docker restart bvdh-frontend`, nếu không server serve từ `dist/` cũ sẽ fallback `text/html` SPA cho ảnh (xem `memory/bugs-fixed.md`).
 - **Quality gate verified:** `npm run lint` = 0 lỗi, `npm run build` = pass, Docker 4 services healthy → hệ thống đã dat cơ bản production-ready
 
 ### Phase 52 (2-3 tháng)
