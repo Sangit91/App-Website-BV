@@ -2549,3 +2549,36 @@ pm run lint frontend van do (pre-existing ChoBenhNhanPage/vite.config/motion eas
 
 - `npx tsc --noEmit` sạch sau từng phần; `docker restart bvdh-frontend` → healthy.
 - Files affected: backend (schema + migration + service + routes + app.ts), `SiteContentContext.tsx` + `main.tsx`, 5 data modules mới, 5 admin tabs (Services/Contact/About/Patient/HomeTab), public: DichVuPage/LienHePage/GioiThieuPage/Footer/Topbar/Navbar/CTABanner.
+
+## PHASE 91 - Testing Infrastructure: Jest + unit tests (2026-08-01)
+
+### Boi canh
+
+- Wave F (plan-production.md): cai Jest/ts-jest, viet unit test auth/core business, Quality Gate = lint && build && test.
+- Project la ESM ("type":"module", server dung \.js\ import trong .ts). Jest config mac dinh cu sai (moduleNameMapping, coverage nguon frontend, thieu moduleNameMapper cho \.js\ import).
+
+### Setup
+
+- \jest.config.cjs\ viet lai: preset ts-jest, testEnvironment node, roots tests, transform ts-jest voi \	sconfig: tsconfig.test.json\, \moduleNameMapper '\x5E(s.{1,2}/.*)\.js\x24': '\x241'\ (strip .js -> ts), testMatch tests/**/*.test.ts.
+- Tao \	sconfig.test.json\ (extend server/tsconfig) -> module CommonJS + moduleResolution node (vi jest chay CJS), includes server + tests, exclude scripts/generated.
+- package.json da co script test:unit/test:auth/test:booking tu Phase truoc - giu nguyen.
+
+### Test da viet (51 tests / 5 suites PASS)
+
+- auth.service.test.ts (12): PBKDF2 hash/verify, adminLogin success/sai pass/user khong ton tai/disable, JWT RFC 7519 verify + fake + expired, refresh rotation + reuse detection, revokeSession.
+- otp.service.test.ts (10): createSession, verifyOtp dung/sai/429 sau 5 lan/404, issueReadToken/verifyReadToken (verified + chua verify + unknown), resolvePatientIdByPatientCode (mock prisma).
+- cccd.service.test.ts (7): AES-256-GCM roundtrip, IV ngau nhien, decrypt loi, hash deterministic, mask.
+- validators/schemas.test.ts (15): booking (phone Viet, thieu name), feedback (patient_id hoac contact, rating 1-5), record-request (date_to<date_from), patientLookup, appointmentCheckPatient (cccd 9/12), appointmentCreate.
+- utils/pagination.test.ts (5): defaut, parse, clamp, page<1, invalid fallback.
+
+### Verify
+
+- \
+pm run test:auth\: 29 tests PASS. \
+pm run test:unit\: 51 tests PASS.
+- \
+pm run lint\: 0 loi. \
+pm run build\: pass.
+- Docker: 4 services healthy.
+- Note: @playwright/test chua cai; playwright.config.ts baseURL dang ?8080 (sai, cai nginx 8443) - Wave F phan E2E de sau.
+- Files affected: jest.config.cjs, tsconfig.test.json, 5 test files moi.

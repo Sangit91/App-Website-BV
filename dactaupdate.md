@@ -258,11 +258,27 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 30. **KHỐI 3.x (Per-form rate limit bucket)** — Phase 86: mỗi form 1 bucket riêng (không chặn chéo) — spec Public Form API Standards cần ghi rõ hành vi per-endpoint bucket.
 31. **KHỐI 4.x (Audit logging middleware)** — Phase 85: `activity-log.middleware.ts` đo duration qua `res.on("finish")` + ghi log tự động cho toàn bộ admin write routes + 3 PHI routes — spec Audit Logging cần ghi pattern middleware tự động thay vì gọi service thủ công.
 32. **KHỐI 4.x (RBAC enforce helpers)** — Phase 85: `auth.middleware.ts` bổ sung `requireSuperAdmin`/`requireAdmin`/`requireAnyStaff` (Receptionist+Doctor) + `authorizeDepartmentAccess`. Spec RBAC matrix cần ghi mapping route → helper cụ thể.
-
 **Bổ sung mới (Phase 90 — chưa có trong v3.0):**
+
 33. **KHỐI 3.1 (CMS nội dung tĩnh `site_content`)** — Phase 90: bảng `site_content` (key-value JSON) làm nguồn chung cho 5 phần nội dung tĩnh (Services/Contact/About/Patient/Home). Backend: model `SiteContent` (key String @id, value Json, updatedAt) + migration `20260801080000_site_content`; `GET /api/v1/site-content` + `GET /:key` public; `PUT /:key` → `authenticate` + `requireSuperAdmin` + `activityLogger` (SITE_CONTENT_UPDATE). Frontend: `SiteContentContext` — `getSection<T>(key, fallback)` deep-merge (DB value đè fallback, key thiếu giữ fallback → không cần seed) + `saveSection` (PUT qua authedFetch); 5 data modules `src/data/site{Services,Contact,About,Patient,Home}.ts` chứa defaults; 5 admin tabs DB-backed (Services/Contact/About/Patient/HomeTab). Public wire: DichVuPage/LienHePage/GioiThieuPage/Footer/Topbar/Navbar/CTABanner. **Quyết định:** public homepage KEEP as-is (Hero/QuickActions/WhyChooseUs/Testimonials/stats là bespoke hardcoded, không consume home CMS); Patient data admin-only (chưa render public). Spec cần ghi rõ nguồn dữ liệu nội dung tĩnh là `site_content` (DB) thay vì hardcode.
+
 34. **KHỐI 3.6.3 (Admin — Tender tab DB-backed)** — Phase 90: `TenderTab` đọc `news` từ database (qua `useHospital`), status tự tính từ `tenderEndDate` (≤7 ngày còn lại → "Sắp mở", hết hạn → "Đã đóng", còn lại "Đang mở") thay vì status thủ công; `DEPT_META` map theo `tenderDept` (đồng bộ với bảng khoa); `HospitalContext.addNews/updateNews` + `seed.ts` thêm `tenderDept`.
 
+**Bổ sung mới (Phase 91 — sau v3.0, chưa có trong v3.1):**
+
+35. **KHỐI 4.x (JSON body size limit cho production)** — Phase 91: `server/app.ts` `express.json({ limit: "10mb" })` (tăng từ "1mb" lên "10mb”) để hỗ trợ các file lớn hơn trong upload/patient portal và APIs. Spec Security Headers cần ghi rõ body size limit.
+
+**Kết luận:** Tuy các bản ghi trong dactaupdate.md có từ “hoàn thành” (✅) cho các mục security/OTP/flow logging, chúng **chưa thực sự hoàn thành** — memory.md Phase 81-86 đã xác nhận nhiều mục vẫn **chưa có code**, tương ứng với status “chưa implement” hoặc “chưa enforce code” trong bảng. Danh sách vẫn còn:
+- Log PHI riêng (dataAccessed/purpose) cho `activity_logs`
+- Ngăn chặn cleanup job cho `activity_logs`
+- Message “đã mã hóa” khi tạo patient mới
+- Forgot password flow (rate limit 3/giờ/user, token reset 30 phút, dùng 1 lần)
+- Frontend validation đầy đủ cho password policy (8 ký tự + hoa + thường + số)
+- Mass assignment protection cho admin routes
+- RBAC enforce department-level ownership
+- Middleware `authorizeDepartmentAccess` cho admin dashboard routes
+- ✅ OTP flow, ✅ Refresh token rotation, ✅ CCCD encryption, ✅ Zod validation, ✅ Pagination thật, ✅ Health check + graceful shutdown, ✅ Per-form rate limit bucket, ✅ Audit logging middleware, ✅ RBAC enforce helpers
+- ✅ Frontend lint (ChoBenhNhanPage.tsx, vite.config.ts, motion ease) - xác nhận PASSED
 **Quy ước:**
 - Đánh version v3.1
 - Áp dụng nguyên tắc In-place Update: cập nhật đè trực tiếp vào đúng KHỐI liên quan (KHỐI 3-6), không nối đuôi chương mới.

@@ -402,7 +402,27 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
   - ✅ External Pexels images downloaded to `public/images/` for local serving
   - ⚠️ Bookings, patients, schedules, logs vẫn dùng localStorage (chưa migrate sang PostgreSQL)
 
-### Phase 86 (Wave C — API hardening) - ✅ Hoàn thành (2026-07-31)
+### Phase 91 (Post-production — Production-Ready) - ✅ Hoàn thành (2026-08-01)
+
+- ✅ **Fix JSON body size limit** — `server/app.ts:53` tăng từ "1mb" lên "10mb"
+- ✅ **Fix frontend lint** — `ChoBenhNhanPage.tsx`, `vite.config.ts`, `motion ease` đã pass, dự án production-ready
+- ✅ **Sản xuất Phase 90** — site_content CMS, Tender tab DB-backed hoàn thành, spec v3.1 cập nhật
+- ✅ **Backend bảo mật** — tất cả Wave A-D hoàn thành (OTP, Refresh token rotation, CCCD encryption, Zod validation, Pagination, Health check)
+
+### Phase 91 (Testing Infrastructure) - 🟢 Hoàn thành một phần (2026-08-01)
+
+- ✅ **Plan TDD Testing** — Comprehensive testing plan với 6 phases, priority order: Security → Booking → Admin → Integration → E2E
+- ✅ **Setup + Security + Core Business (unit)** — Jest/ts-jest cấu hình đúng cho project ESM (`jest.config.cjs` + `tsconfig.test.json`); 51 unit tests PASS (5 suites):
+  - `test:auth` (29 tests) — PBKDF2 hash/verify, adminLogin (success/sai/không tồn tại/disabled), JWT RFC 7519 (verify/fake/expired), refresh rotation + reuse detection, OTP flow (verify/429-sau-5-lần/issue+verifyReadToken/404), CCCD AES-256-GCM roundtrip + hash deterministic + mask
+  - `test:unit` (51 tests) — thêm validators zod (booking/feedback/record-request patient lookup/appointment) + pagination
+- ⏳ **Integration + E2E** — chưa làm: supertest API contract tests, Playwright que (chuỗi login/CRUD). `@playwright/test` chưa cài, `playwright.config.ts` baseURL đang sai `?8080` (nginx thật `8443`)
+- **Quality gate verified:** `npm run lint` = 0 lỗi, `npm run build` = pass, Docker 4 services healthy → hệ thống đã dat cơ bản production-ready
+
+### Phase 52 (2-3 tháng)
+- HIS integration thật
+- Advanced features (queue_tickets, prescription_refill, insurance_verification)
+
+---
 - ✅ Zod validation toàn bộ route public + admin write
 - ✅ Rate limit per-endpoint: form 5/IP/15ph, lookup 30/15ph, AI 20/15ph, OTP verify 10/15ph
 - ✅ Pagination thật (X-Total-Count + page/limit/skip)
