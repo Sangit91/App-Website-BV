@@ -2625,3 +2625,11 @@ pm run build\: pass.
 - Fix: doi `transition-all duration-200` -> `transition-[color] duration-200` (chi animate text color, background doi tuc thi khong fade). Giu hieu ung hover text mượt, mat "n  n xanh" khi chuyen trang.
 - Verify: nav-flash cho thay t+0=rgb(234,247,238) mint 100% -> t+150ms=rgba(0,0,0,0) transparent TR ỪC TIẾP (khong qua 0.984/0.016 nua). nav-check active van đúng Trang/Giới/Chuyên/Dịch. 13/13 E2E PASS. lint 0 loi. container healthy.
 - Files affected: src/components/layout/Navbar.tsx.
+
+### Bonus 3: fix chữ "Trang chủ" nháy đổi màu xanh (2026-08-01)
+
+- Trieu chung con lai: sau fix nhan nen mint, chu nav "Trang chu" VAN nha yeu doi mau xanh khi click chuyen section.
+- Root cause: `transition-[color] duration-200` cua Tailwind anime TEXT COLOR khi mat active (text-brand-green fade -> text-ink) qua 200ms -> nhin nhu chu "nhai doi mau".
+- Fix: bo hoan toan `transition-[color] duration-200` khoi button nav (khong con transition text/background). Active <-> inactive doi tuc thi, khong fade.
+- Verify: nav-color t+0=color rgb(47,169,104) xanh + bg mint -> t+100ms=color rgb(34,48,42) ink + bg transparent TRẢ TRỰC TIẾP (khong qua doi mau trung binh). nav-check active van đúng. lint 0 loi. container healthy.
+- Files affected: src/components/layout/Navbar.tsx.
