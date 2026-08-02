@@ -428,6 +428,15 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
 - Verify: 455 filtered tạo mới + 4 seed cũ = 459 trên `/api/v1/news/tenders`, 455 có `tenderFile`, PDF serve 200 qua nginx. Chạy lại 455 skip-existing (idempotent).
 - Chính sách git: gitignore `Data Migration/` + `public/tenders/` (dữ liệu lớn, không commit). Commit code (schema/service/tool/migration/.gitignore/package.json).
 - **Lưu ý khi chạy lại:** cần `npm i --no-save xlsx` trong container frontend + `DATABASE_URL=db:5432`; sau khi generate Prisma cần `docker restart bvdh-backend` để client reload cột mới.
+
+### Phase 94 (Tender theme images) - ✅ Hoàn thành (2026-08-02)
+
+- Gán ảnh đại diện cho 459 thầu: phân nhóm tiêu đề → 12 chủ đề, mỗi chủ đề tải ảnh Wikimedia Commons (miễn phí, no key) về `public/images/tenders/<theme>.jpg`, cập nhật `news.image`.
+- Tool: `scripts/import-tender-images.ts` (retry + delay chống rate-limit + **FALLBACK** dùng ảnh seed đã có khi Wikimedia 429).
+- Chủ đề xuất hiện: surgery 151, lab-microscope 114 (hóa chất/xét nghiệm), medical-equipment 69, documents 35, medicine-vial 34, hospital-bed/facility, software-it, computer-office, ppe, office-cleaning, network-cables.
+- Nguồn ảnh: 4 ảnh mới thật Wikimedia (computer-office/medicine-vial/ppe/software-it) + còn fallback dùng ảnh chuyên đề seed sa tử.
+- Verify: 459/459 thầu có ảnh (noImage=0), serve 200 qua nginx.
+- **Lưu ý:** `public/images/tenders/*.jpg` là asset nên commit (không như `public/tenders/` PDF đã gitignore).
 - **Quality gate verified:** `npm run lint` = 0 lỗi, `npm run build` = pass, Docker 4 services healthy → hệ thống đã dat cơ bản production-ready
 
 ### Phase 52 (2-3 tháng)

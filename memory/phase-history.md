@@ -2672,3 +2672,31 @@ pm run build\: pass.
 - Bug fix: is_active=0 (false) luc dau -> UPDATE 455 set is_active=true; + restart bvdh-backend de Prisma client reload cột moi.
 - File hồ sơ: URL /tenders/<slug>/... serve 200.
 - Files affected: prisma/schema.prisma, migration, news.service.ts, scripts/migrate-legacy-tenders.mjs, .gitignore, package.json (xlsx), (dữ liệu Data Migration/ + public data/tenders/ gitignore).
+
+## PHASE 94 - Tender theme images: Wikimedia + fallback (2026-08-02)
+
+### Muc tieu
+
+- 455 thau web cu vua migrate (Phase 93) chi co 4 anh placeholder theo phong ban (duoc/vttbyt/cntt/chiphi.jpg). Gan anh dai dien theo noi dung cho tung bai.
+
+### Phan tich nhom chu de
+
+- Phan nhom 455 tieu de (excel) theo tu khoa -> 12 chu de: medicine-vial (thuoc), laboratory (hoa chat/xn), medical-equip (thiet bi y te), software-it (phan mem), computer-office (may tinh/van phong), camera-network, ppe-consumable (vat tu tieu hao), elevator-facility (pccc/thanh may/oto), cleaning-service, document-legal (kiem to/cao gia), transport-vehicle, general-tender.
+
+### Script
+
+- \scripts/import-tender-images.ts\: doc excel -> map slug->theme, moi theme search Wikimedia Commons (prop=imageinfo&iiurlwidth=960, gsrnamespace=6, khong can API key) -> download ve public/images/tenders/<theme>.jpg; xong UPDATE news.image theo slug.
+- Retry + delay 3-4s de tranh Wikimedia rate-limit. FALLBACK map: neu Wikimedia rate-limit (429) thi dung anh chu d de co san trong repo (lab-microscope, surgery, medical-equipment, documents, office-cleaning, medicine-vial, ...) de bao dam toan bo bai co anh.
+
+### Kho khan + giai quyet
+
+- Wikimedia Commons rate-limit chat khi chi 10s request lien tuc -> nhieu theme NO-IMG o lan dau. Giai: retry + delay 4s + fallback bang anh co san.
+- Ten theme lech giua RULES (laboratory) vs THEMES/FALLBACK (lab-chemistry) -> dong bo thanh laboratory.
+
+### Verify
+
+- 459/459 trender co image (no null/empty). Ket phan bo chu de: surgery 151, lab-microscope 114, medical-equipment 69, documents 35, medicine-vial 34, hospital-bed 12, software-it 10, computer-office 10, ppe 9, office-cleaning 6, network-cables 5.
+- 5 anh moi tu Wikimedia (computer-office, medicine-vial, ppe-consumable, software-it + lab) thu vi tuong, cac anh con lai fallback dung anh seed co som (dung phap ngu nghia).
+- API GET /api/v1/news/tenders: 459, noImage=0, sample img dung.
+- Image serve 200 qua nginx (https://localhost:8443/images/tenders/*.jpg).
+- Files affected: scripts/import-tender-images.ts (new), public/images/tenders/*.jpg (4 moi untracked duoc commit).
