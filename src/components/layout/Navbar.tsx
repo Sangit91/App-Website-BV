@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { Menu, X, Phone, Calendar, Heart, ChevronDown, ChevronRight } from "lucide-react";
 import HospitalLogo from "./HospitalLogo";
 import { useSiteContent } from "../../context/SiteContentContext";
@@ -26,6 +27,7 @@ type MegaMenuData = Record<string, MegaMenuItem>;
 export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmin }: NavbarProps) {
   const { getSection } = useSiteContent();
   const contact = getSection("contact", DEFAULT_CONTACT);
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("trang-chu");
@@ -33,6 +35,24 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
   const [mobileExpanded, setMobileExpanded] = useState<Record<string, boolean>>({});
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Map route pathname -> active nav item. Ưu tiên dựa trên trang đang đứng (multi-route),
+  // scroll detection chỉ phụ trợ khi trên trang chủ (các section có id DOM riêng).
+  const pathToSection: Record<string, string> = {
+    "/": "trang-chu",
+    "/gioi-thieu": "gioi-thieu",
+    "/chuyen-khoa": "chuyen-khoa",
+    "/dich-vu": "dich-vu",
+    "/dich-vu/thong-tin-thau": "dich-vu",
+    "/cho-benh-nhan": "benh-nhan",
+    "/tin-tuc": "tin-tuc",
+    "/thong-tin-thau": "tin-tuc",
+  };
+
+  useEffect(() => {
+    const mapped = pathToSection[location.pathname];
+    if (mapped) setActiveSection(mapped);
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleScroll = () => {

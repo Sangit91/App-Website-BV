@@ -439,7 +439,7 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
 ## 📌 Ghi chú quan trọng
 
 1. **Navbar link "Sơ đồ tổ chức"** → `/gioi-thieu#so-do-to-chuc` (đã update)
-2. **Shared Animation Hooks** (Phase 40): Dùng `useReducedMotion`, `AnimatedCounter`, `FloatingShape` từ `src/hooks/`
+2. **Navbar active state** (Phase 92): dùng `useLocation` map pathname → active nav item theo trang đang xem (`/giới-thiệu`→Giới thiệu...), scroll detection chỉ phụ trợ trang chủ.
 3. **Phase numbering** đã được chuẩn hóa trong `memory/phase-history.md` — không còn trùng số
 4. **prefers-reduced-motion** tự động disable: floating, parallax, 3D tilt, Ken Burns, bounce
 7. **Spec v2.9** đã chính thức hoá feedback_requests + record_requests (mục 21.2–21.4)

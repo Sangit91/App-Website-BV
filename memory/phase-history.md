@@ -2592,3 +2592,21 @@ pm run build\: pass.
 - Verify: \playwright test\ = 13/13 PASS (admin-login 3, booking 3, doctors 2, homepage 3, specialties 2). \npm run test:unit\ v\u1EABn 51 PASS. \npm run lint\ 0 loi.
 - Note: format trong file th\u1ECB\u1ECB M\u1EC1 m\u1EBf (vimdump).
 - Files affected: playwright.config.ts, admin-login.spec.ts (new), booking.spec.ts (them test), package.json (+@playwright/test).
+
+## PHASE 92 - Fix Navbar active state theo route (2026-08-01)
+
+### Bug
+
+- Navbar luon hightlight "Trang chu" khi chuyen trang -- activeSection chi set qua scroll detection + document.getElementById (chi ton tai o trang chu). Tren trang /gioi-thieu, /chuyen-khoa, /dich-vu khong co element id tuong ung -> activeSection mac ket "trang-chu".
+
+### Fix (Navbar.tsx)
+
+- Them useLocation + map pathname -> section: "/"->trang-chu, /gioi-thieu->gioi-thieu, /chuyen-khoa->chuyen-khoa, /dich-vu->dich-vu (gom ca /dich-vu/thong-tin-thau), /cho-benh-nhan->benh-nhan, /tin-tuc va /thong-tin-thau->tin-tuc.
+- useEffect [location.pathname] set activeSection the path; scroll detection giu lam bo tro chi tren trang chu (section co id DOM rieng).
+- Lua y: scroll listener co the ghi de active khi cuon qua section goi (vit) -- trong phạm vị trang chu. Tren multi-route, route luon thang.
+
+### Verify
+
+- visualize: vao / -> "Trang", /gioi-thieu -> "Giới", /chuyen-khoa -> "Chuyên", /dich-vu -> "Dịch" (class bg-mint text-brand-green font-bold).
+- npm run lint: 0 lỗi. docker restart bvdh-frontend -> healthy. npm run build pass.
+- Files affected: src/components/layout/Navbar.tsx.
