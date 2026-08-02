@@ -415,7 +415,8 @@ Nguồn: `dactaupdate.md:158-176`. Ma trận này chưa có enforcement code ở
 - ✅ **Setup + Security + Core Business (unit)** — Jest/ts-jest cấu hình đúng cho project ESM (`jest.config.cjs` + `tsconfig.test.json`); 51 unit tests PASS (5 suites):
   - `test:auth` (29 tests) — PBKDF2 hash/verify, adminLogin (success/sai/không tồn tại/disabled), JWT RFC 7519 (verify/fake/expired), refresh rotation + reuse detection, OTP flow (verify/429-sau-5-lần/issue+verifyReadToken/404), CCCD AES-256-GCM roundtrip + hash deterministic + mask
   - `test:unit` (51 tests) — thêm validators zod (booking/feedback/record-request patient lookup/appointment) + pagination
-- ⏳ **Integration + E2E** — chưa làm: supertest API contract tests, Playwright que (chuỗi login/CRUD). `@playwright/test` chưa cài, `playwright.config.ts` baseURL đang sai `?8080` (nginx thật `8443`)
+- ✅ **E2E Playwright (13 tests PASS)** — cài `@playwright/test`, `playwright.config.ts` baseURL đúng `https://localhost:8443` (nginx) + `ignoreHTTPSErrors` (self-signed) + channel chrome. Spec: admin-login (3), booking (3 gồm đặt lịch hợp lệ → phiếu thành công), doctors (2), homepage (3), specialties (2). `npm run test:e2e` full suite.
+- ⏳ **Integration API contract (supertest)** — chưa làm riêng; E2E đã gọi API thật qua nginx (admin login, booking 201). Có thể bổ sung sau bằng supertest + mock Prisma.
 - **Quality gate verified:** `npm run lint` = 0 lỗi, `npm run build` = pass, Docker 4 services healthy → hệ thống đã dat cơ bản production-ready
 
 ### Phase 52 (2-3 tháng)

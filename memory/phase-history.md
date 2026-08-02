@@ -2582,3 +2582,13 @@ pm run build\: pass.
 - Docker: 4 services healthy.
 - Note: @playwright/test chua cai; playwright.config.ts baseURL dang ?8080 (sai, cai nginx 8443) - Wave F phan E2E de sau.
 - Files affected: jest.config.cjs, tsconfig.test.json, 5 test files moi.
+
+### Bonus: E2E Playwright (2026-08-01)
+
+- Cai \@playwright/test\ (devDep). S\\rc \playwright.config.ts\: testDir tests/e2e, baseURL m%\u1EB7c \u0111\u1ECBnh https://localhost:8443 (nginx that) + ignoreHTTPSErrors (self-signed) + channel chrome (browser co san, khong download). Env override qua E2E_BASE_URL.
+- Spec moi \admin-login.spec.ts\ (3 testes): (1) form dang nhap khi chua session, (2) login sai hien thong bao loi, (3) login dung admin/Admin@123 -> vao dashboard (em d\u00EAn Cổng Quản trị Nội bộ + l\u1EDDi chào theo gi\u1EDD). Credentials tu env hoac seed default (khong hardcode real).
+- Booking:\/lar\ openBookingModal helper dispatch \u201Cbvdk:open-booking\u201D qua page.evaluate; therêm test \u201D\u00F1\u1EB7t l\u1ECBch h\u1ED3 l\u1EC7 h\u00ECs phi\u1EBFu th\u00E0nh c\u00F4ng\u201D (unique phone 09xxxxxxxx + date t\u01B0\u01A1ng lai + ch\u1ECDn chuy\u00EAn khoa/khung gi\u1EDD -> success screen \u201C\u0110\u1EB7t L\u1ECBch H\u1EB9n Kh\u00E1m Th\u00E0nh C\u00F4ng!\u201D + \u201CPhi\u1EBFu kh\u00E1m b\u1EC9nh \u0111i\u1EC7n t\u1EED\u201D).
+- Fix syntax error c\u0169 trong booking.spec.ts (kh\u1ED3i searchButton l\u1ED7ng l\u1EC7ch) + marker modal dung getByText(\u201CC\u1EDFng \u0110\u0103ng K\u00FD Kh\u00E1m B\u1EC7nh Tr\u1EF1c Tuy\u1EBfn\u201D) thay getByRole(dialog) (modal kh\u00F4ng c\u00F3 role=dialog).
+- Verify: \playwright test\ = 13/13 PASS (admin-login 3, booking 3, doctors 2, homepage 3, specialties 2). \npm run test:unit\ v\u1EABn 51 PASS. \npm run lint\ 0 loi.
+- Note: format trong file th\u1ECB\u1ECB M\u1EC1 m\u1EBf (vimdump).
+- Files affected: playwright.config.ts, admin-login.spec.ts (new), booking.spec.ts (them test), package.json (+@playwright/test).
