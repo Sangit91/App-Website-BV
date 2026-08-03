@@ -451,8 +451,6 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
                             onClick={() => {
                               if (link.includes("Đặt khám") || link.includes("đặt khám")) {
                                 onOpenBooking();
-                              } else if (link.includes("bệnh sử") || link.includes("Tra cứu")) {
-                                onOpenAI();
                               } else {
                                 handleLinkClick(getLinkRoute(link));
                               }
@@ -525,8 +523,6 @@ export default function Navbar({ onNavClick, onOpenBooking, onOpenAI, onOpenAdmi
                                     setIsOpen(false);
                                     if (link.includes("Đặt khám") || link.includes("đặt khám")) {
                                       onOpenBooking();
-                                    } else if (link.includes("bệnh sử") || link.includes("Tra cứu")) {
-                                      onOpenAI();
                                     } else {
                                       onNavClick(getMobileLinkRoute(link, item.id));
                                     }

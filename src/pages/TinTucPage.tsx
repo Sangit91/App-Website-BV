@@ -9,6 +9,7 @@ import { useReducedMotion } from "../hooks/useReducedMotion";
 import { AnimatedCounter } from "../hooks/AnimatedCounter";
 import { FloatingShape } from "../hooks/FloatingShape";
 import { NewsItem } from "../types";
+import NewsDetailModal from "../components/public/NewsDetailModal";
 
 const NEWS_TABS = [
   { key: "benh-vien", title: "Tin tức bệnh viện", icon: Newspaper, color: "from-green-500 to-emerald-600" },
@@ -428,73 +429,10 @@ export default function TinTucPage() {
 
       <AnimatePresence>
         {selectedNews && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div className="w-full max-w-3xl bg-cream-white rounded-[28px] shadow-2xl overflow-hidden my-8 flex flex-col max-h-[90vh]">
-              <div className="bg-green-dark px-6 py-4 text-white flex justify-between items-center shrink-0 border-b border-brand-green/20">
-                <div className="flex items-center gap-2">
-                  <FileText size={18} className="text-peach" />
-                  <span className="font-display font-bold text-sm tracking-wide text-gray-200">
-                    Tin tức y khoa
-                  </span>
-                </div>
-                <button
-                  onClick={() => setSelectedNews(null)}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition-colors"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              <div className="overflow-y-auto p-6 md:p-10 flex-grow bg-cream-white">
-                <div className="max-w-2xl mx-auto space-y-6">
-                  <div className="flex items-center gap-3 text-xs text-ink/50">
-                    <span className="bg-brand-green/10 text-brand-green font-bold px-3 py-1 rounded-full uppercase tracking-wide">
-                      {selectedNews.tag}
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Calendar size={13} className="text-brand-green" />
-                      <span>{selectedNews.date}</span>
-                    </span>
-                  </div>
-
-                  <h1 className="font-display font-bold text-2xl md:text-3xl text-green-dark leading-tight tracking-tight text-left">
-                    {selectedNews.title}
-                  </h1>
-
-                  <div className="w-full h-64 md:h-80 rounded-2xl overflow-hidden">
-                    <img
-                      src={selectedNews.image}
-                      alt={selectedNews.title}
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-
-                  <div className="font-sans text-ink text-[14.5px] leading-relaxed space-y-4 text-left">
-                    {selectedNews.content ? (
-                      selectedNews.content.split("\n\n").map((paragraph, idx) => (
-                        <p key={`${paragraph}-${idx}`}>{paragraph}</p>
-                      ))
-                    ) : (
-                      <>
-                        <p>{selectedNews.summary}</p>
-                        <p>Nội dung chi tiết đang được cập nhật. Vui lòng quay lại sau hoặc liên hệ bệnh viện để biết thêm thông tin.</p>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 px-6 py-4 flex justify-end border-t border-gray-100 shrink-0">
-                <button
-                  onClick={() => setSelectedNews(null)}
-                  className="px-5 py-2 rounded-full bg-brand-green hover:bg-brand-green/90 text-white text-xs font-bold cursor-pointer transition-all"
-                >
-                  Đóng
-                </button>
-              </div>
-            </div>
-          </div>
+          <NewsDetailModal
+            news={selectedNews}
+            onClose={() => setSelectedNews(null)}
+          />
         )}
       </AnimatePresence>
     </Layout>
