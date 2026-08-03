@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Layout from "../components/layout/Layout";
 import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
-import { Server, Stethoscope, Microscope, Pill, Building2, Users, Calendar, DollarSign, Layers, ShieldCheck, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Server, Stethoscope, Microscope, Pill, Building2, Users, Calendar, DollarSign, Layers, ShieldCheck, AlertCircle, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import { useHospital } from "../context/HospitalContext";
 import { NewsItem, TenderStatus } from "../types";
 import NewsDetailModal from "../components/public/NewsDetailModal";
@@ -67,6 +67,54 @@ function formatDateShort(dateStr: string): string {
   const day = String(d.getDate()).padStart(2, "0");
   const month = String(d.getMonth() + 1).padStart(2, "0");
   return `${h}:${min} - ${day}/${month}/${d.getFullYear()}`;
+}
+
+function normalizeDateSep(value: string): string {
+  return (value || "").replace(/[\/\-.]/g, "/");
+}
+
+function extractDateTokens(value: string): string[] {
+  return normalizeDateSep(value).match(/\d{1,2}\/\d{1,2}\/\d{4}/g) || [];
+}
+
+function matchesSearch(item: NewsItem, query: string): boolean {
+  const raw = query.trim().toLowerCase();
+  if (!raw) return true;
+
+  if (item.title.toLowerCase().includes(raw)) return true;
+  if (item.summary && item.summary.toLowerCase().includes(raw)) return true;
+
+  const qNorm = normalizeDateSep(raw);
+  const isFullDate = /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(qNorm);
+  const isMonthDate = /^\d{1,2}\/\d{4}$/.test(qNorm);
+  if (!isFullDate && !isMonthDate) return false;
+
+  const dateFields: string[] = [
+    item.date,
+    formatDateShort(item.tenderStartDate || ""),
+    formatDateShort(item.tenderEndDate || ""),
+  ];
+  if (item.publishedAt) {
+    const d = new Date(item.publishedAt);
+    if (!isNaN(d.getTime())) dateFields.push(d.toLocaleDateString("vi-VN"));
+  }
+
+  return dateFields.some(f => {
+    const tokens = extractDateTokens(f);
+    if (tokens.length === 0) return false;
+    if (isFullDate) {
+      const [qd, qm, qy] = qNorm.split("/");
+      return tokens.some(t => {
+        const [d, m, y] = t.split("/");
+        return +d === +qd && +m === +qm && y === qy;
+      });
+    }
+    const [qm, qy] = qNorm.split("/");
+    return tokens.some(t => {
+      const [, m, y] = t.split("/");
+      return +m === +qm && y === qy;
+    });
+  });
 }
 
 interface TenderCardProps {
@@ -160,6 +208,8 @@ export default function ThongTinThauPage() {
   const [activeDept, setActiveDept] = useState("PHÒNG CNTT");
   const [selectedTender, setSelectedTender] = useState<NewsItem | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
@@ -168,8 +218,21 @@ export default function ThongTinThauPage() {
   const tenders = news.filter(item => item.isTender).map(item => ({ ...item, status: getTenderStatus(item) }));
   const currentDept = DEPARTMENTS.find(d => d.id === activeDept)!;
   const deptTenders = tenders.filter(t => t.tenderDept === activeDept);
-  const totalPages = Math.max(1, Math.ceil(deptTenders.length / PAGE_SIZE));
-  const currentTenders = deptTenders.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const filteredTenders = searchQuery ? deptTenders.filter(t => matchesSearch(t, searchQuery)) : deptTenders;
+  const totalPages = Math.max(1, Math.ceil(filteredTenders.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const currentTenders = filteredTenders.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  const applySearch = () => {
+    setSearchQuery(searchInput.trim());
+    setCurrentPage(1);
+  };
+
+  const clearSearch = () => {
+    setSearchInput("");
+    setSearchQuery("");
+    setCurrentPage(1);
+  };
 
   return (
     <Layout>
@@ -271,9 +334,37 @@ export default function ThongTinThauPage() {
             </div>
           </div>
 
+          <div className="mb-6 flex flex-col md:flex-row gap-3">
+            <div className="flex-1 flex gap-2">
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") applySearch(); }}
+                placeholder="Tìm theo tiêu đề, ngày cụ thể (VD: 15/07/2026) hoặc tháng (VD: 07/2026)"
+                className="flex-1 px-4 py-3 bg-white border border-green-800/10 rounded-xl text-sm text-green-dark placeholder:text-ink/30 focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green"
+              />
+              <button
+                onClick={applySearch}
+                className="px-5 py-3 bg-brand-green hover:bg-green-700 text-white font-semibold rounded-xl text-sm shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0"
+              >
+                <Search size={16} />
+                Tìm kiếm
+              </button>
+            </div>
+            {searchQuery && (
+              <div className="flex items-center gap-2 bg-mint/60 text-green-dark text-xs font-bold px-4 py-3 rounded-xl border border-brand-green/20">
+                <span>{filteredTenders.length} kết quả cho "{searchQuery}"</span>
+                <button onClick={clearSearch} aria-label="Xóa tìm kiếm" className="w-6 h-6 rounded-full bg-white/70 hover:bg-white flex items-center justify-center text-green-dark cursor-pointer transition-colors">
+                  <X size={13} />
+                </button>
+              </div>
+            )}
+          </div>
+
           <AnimatePresence mode="wait">
             <motion.div key={activeDept} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
-              {deptTenders.length > 0 ? (
+              {filteredTenders.length > 0 ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {currentTenders.map((item, idx) => (
@@ -316,8 +407,12 @@ export default function ThongTinThauPage() {
                   <div className="w-16 h-16 bg-cream-white rounded-full flex items-center justify-center border border-green-800/5 text-gray-400 mx-auto mb-4">
                     <AlertCircle size={24} />
                   </div>
-                  <h5 className="font-display font-extrabold text-base text-green-dark mb-2">Chưa có thông báo mời thầu mới</h5>
-                  <p className="text-sm text-gray-500 max-w-md mx-auto">{currentDept.name} hiện tại chưa công bố dự án mua sắm hoặc đấu thầu thiết bị vật tư nào mới.</p>
+                  <h5 className="font-display font-extrabold text-base text-green-dark mb-2">{searchQuery ? "Không tìm thấy kết quả phù hợp" : "Chưa có thông báo mời thầu mới"}</h5>
+                  <p className="text-sm text-gray-500 max-w-md mx-auto">
+                    {searchQuery
+                      ? `Không có bài viết nào khớp với "${searchQuery}" trong ${currentDept.name}. Thử lại với tiêu đề hoặc ngày/tháng khác.`
+                      : `${currentDept.name} hiện tại chưa công bố dự án mua sắm hoặc đấu thầu thiết bị vật tư nào mới.`}
+                  </p>
                 </div>
               )}
             </motion.div>
