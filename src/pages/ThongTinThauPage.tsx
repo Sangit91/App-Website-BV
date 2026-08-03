@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Layout from "../components/layout/Layout";
 import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
-import { Server, Stethoscope, Microscope, Pill, Building2, Users, Calendar, DollarSign, Layers, ShieldCheck, AlertCircle } from "lucide-react";
+import { Server, Stethoscope, Microscope, Pill, Building2, Users, Calendar, DollarSign, Layers, ShieldCheck, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useHospital } from "../context/HospitalContext";
 import { NewsItem, TenderStatus } from "../types";
 import NewsDetailModal from "../components/public/NewsDetailModal";
@@ -24,6 +24,8 @@ const stats = [
   { value: 50, label: "Nhà thầu", suffix: "+" },
   { value: 2, label: "Tỷ đồng", suffix: "" }
 ];
+
+const PAGE_SIZE = 6;
 
 function parseTenderDate(dateStr: string): Date | null {
   if (!dateStr) return null;
@@ -157,6 +159,7 @@ export default function ThongTinThauPage() {
 
   const [activeDept, setActiveDept] = useState("PHÒNG CNTT");
   const [selectedTender, setSelectedTender] = useState<NewsItem | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
@@ -165,7 +168,8 @@ export default function ThongTinThauPage() {
   const tenders = news.filter(item => item.isTender).map(item => ({ ...item, status: getTenderStatus(item) }));
   const currentDept = DEPARTMENTS.find(d => d.id === activeDept)!;
   const deptTenders = tenders.filter(t => t.tenderDept === activeDept);
-  const featuredTender = deptTenders[0];
+  const totalPages = Math.max(1, Math.ceil(deptTenders.length / PAGE_SIZE));
+  const currentTenders = deptTenders.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <Layout>
@@ -238,7 +242,7 @@ export default function ThongTinThauPage() {
               const isActive = activeDept === dept.id;
               const deptCount = tenders.filter(t => t.tenderDept === dept.id).length;
               return (
-                <motion.button key={dept.id} onClick={() => setActiveDept(dept.id)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                <motion.button key={dept.id} onClick={() => { setActiveDept(dept.id); setCurrentPage(1); }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm whitespace-nowrap transition-all cursor-pointer ${isActive ? `bg-gradient-to-r ${dept.color} text-white shadow-lg` : "bg-gray-100 text-ink/70 hover:bg-gray-200"}`}>
                   <Icon className="w-4 h-4" />
                   <span>{dept.name}</span>
@@ -270,11 +274,43 @@ export default function ThongTinThauPage() {
           <AnimatePresence mode="wait">
             <motion.div key={activeDept} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
               {deptTenders.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {deptTenders.map((item, idx) => (
-                    <TenderCard key={item.id} item={item} dept={{ name: currentDept.name, color: currentDept.color }} index={idx} onClick={() => setSelectedTender(item)} />
-                  ))}
-                </div>
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {currentTenders.map((item, idx) => (
+                      <TenderCard key={item.id} item={item} dept={{ name: currentDept.name, color: currentDept.color }} index={idx} onClick={() => setSelectedTender(item)} />
+                    ))}
+                  </div>
+
+                  {totalPages > 1 && (
+                    <div className="mt-10 flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        aria-label="Trang trước"
+                        className="w-9 h-9 rounded-full border border-green-800/15 text-green-dark font-bold flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:bg-mint cursor-pointer"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+                        <button
+                          key={n}
+                          onClick={() => setCurrentPage(n)}
+                          className={`w-9 h-9 rounded-full text-xs font-bold flex items-center justify-center transition-colors cursor-pointer ${n === currentPage ? "bg-brand-green text-white shadow" : "bg-white text-green-dark border border-green-800/15 hover:bg-mint"}`}
+                        >
+                          {n}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        aria-label="Trang sau"
+                        className="w-9 h-9 rounded-full border border-green-800/15 text-green-dark font-bold flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:bg-mint cursor-pointer"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="bg-white border border-green-800/[0.04] rounded-3xl p-16 text-center">
                   <div className="w-16 h-16 bg-cream-white rounded-full flex items-center justify-center border border-green-800/5 text-gray-400 mx-auto mb-4">
