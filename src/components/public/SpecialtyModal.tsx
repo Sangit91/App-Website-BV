@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Heart, Baby, Activity, Stethoscope, Layers, Smile, Clock, Phone, User, Calendar, ArrowRight } from "lucide-react";
+import { Heart, Baby, Activity, Stethoscope, Layers, Smile, Clock, Phone, User, Calendar, ArrowRight, Eye, Pill, Microscope, Shield } from "lucide-react";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import { Specialty } from "../../types";
@@ -11,7 +11,7 @@ interface SpecialtyModalProps {
   specialty: Specialty | null;
 }
 
-const SPECIALTY_CONTENT: Record<string, {
+export const SPECIALTY_CONTENT: Record<string, {
   icon: React.ElementType;
   color: string;
   bgColor: string;
@@ -197,6 +197,252 @@ const SPECIALTY_CONTENT: Record<string, {
     experts: [
       "BS. Nguyễn Thị Hà - Trưởng khoa Răng Hàm Mặt",
       "BS. Lê Văn Khánh - Chuyên khoa Răng",
+    ],
+  },
+  "noi-chung": {
+    icon: Stethoscope,
+    color: "text-blue-500",
+    bgColor: "bg-blue-500",
+    services: [
+      "Khám bệnh nội khoa tổng quát",
+      "Điều trị bệnh lý tim mạch, huyết áp",
+      "Điều trị bệnh tiêu hóa",
+      "Điều trị bệnh hô hấp",
+      "Quản lý bệnh mạn tính",
+      "Khám sàng lọc sức khỏe tổng quát",
+    ],
+    highlights: [
+      "Đội ngũ bác sĩ nội khoa giàu kinh nghiệm",
+      "Quản lý toàn diện bệnh mạn tính",
+      "Khám sàng lọc phát hiện sớm bệnh lý",
+    ],
+    experts: [
+      "BS. Phan Văn Bình - Trưởng khoa Nội",
+      "BS. Nguyễn Thị Cúc - Chuyên khoa Nội tổng hợp",
+    ],
+  },
+  "noi-tiet": {
+    icon: Activity,
+    color: "text-amber-600",
+    bgColor: "bg-amber-600",
+    services: [
+      "Điều trị đái tháo đường",
+      "Điều trị bệnh tuyến giáp",
+      "Rối loạn chuyển hóa, mỡ máu",
+      "Điều trị loãng xương",
+      "Tư vấn dinh dưỡng - chế độ ăn",
+    ],
+    highlights: [
+      "Quản lý đái tháo đường toàn diện",
+      "Theo dõi và phòng biến chứng định kỳ",
+      "Phối hợp đa khoa trong điều trị",
+    ],
+    experts: [
+      "BS. Trần Quốc Tuấn - Trưởng khoa Nội tiết",
+      "BS. Lê Thị Thảo - Chuyên khoa Nội tiết",
+    ],
+  },
+  "than-nhan-tao": {
+    icon: Activity,
+    color: "text-teal-600",
+    bgColor: "bg-teal-600",
+    services: [
+      "Lọc máu chu kỳ cho bệnh thận mạn",
+      "Chạy thận nhân tạo",
+      "Theo dõi bệnh thận mạn giai đoạn cuối",
+      "Tư vấn chế độ ăn cho bệnh nhân thận",
+    ],
+    highlights: [
+      "Hệ thống máy lọc máu hiện đại",
+      "Đội ngũ điều dưỡng chuyên sâu lọc máu",
+      "Theo dõi sát sao biến chứng",
+    ],
+    experts: [
+      "BS. Võ Văn Hải - Trưởng khoa Thận nhân tạo",
+      "BS. Nguyễn Thị Dung - Chuyên khoa Thận",
+    ],
+  },
+  "co-xuong-khop": {
+    icon: Activity,
+    color: "text-orange-600",
+    bgColor: "bg-orange-600",
+    services: [
+      "Điều trị thoái hóa khớp",
+      "Điều trị viêm khớp, gút",
+      "Chấn thương chỉnh hình",
+      "Vật lý trị liệu - phục hồi chức năng",
+    ],
+    highlights: [
+      "Điều trị kết hợp Đông - Tây y",
+      "Chương trình phục hồi chức năng bài bản",
+      "Giảm đau, cải thiện vận động",
+    ],
+    experts: [
+      "BS. Huỳnh Văn Sơn - Trưởng khoa Cơ Xương Khớp",
+      "BS. Lê Thị Ngọc - Chuyên khoa Phục hồi chức năng",
+    ],
+  },
+  "da-lieu": {
+    icon: Smile,
+    color: "text-fuchsia-600",
+    bgColor: "bg-fuchsia-600",
+    services: [
+      "Khám và điều trị bệnh da liễu",
+      "Điều trị mụn, nám, sạm da",
+      "Điều trị vảy nến, chàm, mề đay",
+      "Thẩm mỹ da không xâm lấn",
+    ],
+    highlights: [
+      "Trang thiết bị thẩm mỹ da hiện đại",
+      "Phác đồ điều trị cá thể hóa",
+      "Tư vấn chăm sóc da chuyên sâu",
+    ],
+    experts: [
+      "BS. Nguyễn Thị Xuân - Trưởng khoa Da Liễu",
+      "BS. Trần Minh Khang - Chuyên khoa Da liễu",
+    ],
+  },
+  "tam-ly": {
+    icon: Activity,
+    color: "text-indigo-600",
+    bgColor: "bg-indigo-600",
+    services: [
+      "Khám và đánh giá sức khỏe tâm thần",
+      "Trị liệu tâm lý cá nhân",
+      "Điều trị rối loạn lo âu, trầm cảm",
+      "Tư vấn rối loạn giấc ngủ",
+    ],
+    highlights: [
+      "Bác sĩ tâm thần + chuyên viên tâm lý",
+      "Không gian trị liệu riêng tư, thân thiện",
+      "Bảo mật thông tin tuyệt đối",
+    ],
+    experts: [
+      "BS. Phạm Văn Đức - Trưởng khoa Tâm lý & Sức khỏe",
+      "ThS. Nguyễn Thị Lan - Chuyên viên tâm lý lâm sàng",
+    ],
+  },
+  "tham-my": {
+    icon: Smile,
+    color: "text-pink-600",
+    bgColor: "bg-pink-600",
+    services: [
+      "Thẩm mỹ da, trẻ hóa da",
+      "Điều trị mụn, sẹo, nám",
+      "Chăm sóc da chuyên sâu",
+      "Tư vấn thẩm mỹ nội khoa",
+    ],
+    highlights: [
+      "Trang thiết bị thẩm mỹ chuẩn y khoa",
+      "Đội ngũ bác sĩ có chứng chỉ thẩm mỹ",
+      "Quy trình vô khuẩn, an toàn",
+    ],
+    experts: [
+      "BS. Lê Thị Hồng - Trưởng khoa Thẩm mỹ",
+      "BS. Nguyễn Văn Thành - Chuyên khoa Thẩm mỹ da",
+    ],
+  },
+  "duoc": {
+    icon: Pill,
+    color: "text-cyan-600",
+    bgColor: "bg-cyan-600",
+    services: [
+      "Cung ứng, quản lý thuốc",
+      "Tư vấn sử dụng thuốc an toàn",
+      "Theo dõi tương tác thuốc",
+      "Quản lý kho dược, kiểm kê",
+    ],
+    highlights: [
+      "Hệ thống quản lý thuốc chuẩn GPP",
+      "Dược sĩ tư vấn trực tiếp",
+      "Đảm bảo nguồn thuốc chính hãng",
+    ],
+    experts: [
+      "DSCKII. Nguyễn Văn Khoa - Trưởng khoa Dược",
+      "DS. Trần Thị Lý - Chuyên khoa Dược lâm sàng",
+    ],
+  },
+  "mat": {
+    icon: Eye,
+    color: "text-blue-600",
+    bgColor: "bg-blue-600",
+    services: [
+      "Khám mắt tổng quát",
+      "Phẫu thuật khúc xạ (cận, loạn thị)",
+      "Điều trị đục thủy tinh thể",
+      "Điều trị glôcôm, tăng nhãn áp",
+      "Khám mắt cho trẻ em",
+    ],
+    highlights: [
+      "Máy móc chẩn đoán mắt hiện đại",
+      "Phẫu thuật an toàn, phục hồi nhanh",
+      "Tầm soát thị lực cho học sinh",
+    ],
+    experts: [
+      "BS. Ngô Văn Phú - Trưởng khoa Mắt",
+      "BS. Lê Thị Mai - Chuyên khoa Mắt",
+    ],
+  },
+  "xet-nghiem": {
+    icon: Microscope,
+    color: "text-purple-600",
+    bgColor: "bg-purple-600",
+    services: [
+      "Xét nghiệm sinh hóa máu",
+      "Xét nghiệm huyết học, đông máu",
+      "Xét nghiệm vi sinh, ký sinh trùng",
+      "Giải phẫu bệnh, tế bào học",
+      "Xét nghiệm nước tiểu, dịch",
+    ],
+    highlights: [
+      "Hệ thống máy xét nghiệm tự động",
+      "Quy trình đảm bảo chất lượng ISO",
+      "Kết quả nhanh chóng, chính xác",
+    ],
+    experts: [
+      "BS. Trần Văn Tú - Trưởng khoa Xét nghiệm",
+      "KTV. Nguyễn Thị Hạnh - Kỹ thuật viên xét nghiệm",
+    ],
+  },
+  "yte-du-phong": {
+    icon: Shield,
+    color: "text-emerald-600",
+    bgColor: "bg-emerald-600",
+    services: [
+      "Tiêm chủng mở rộng",
+      "Phòng chống dịch bệnh",
+      "Truyền thông giáo dục sức khỏe",
+      "Giám sát bệnh truyền nhiễm",
+    ],
+    highlights: [
+      "Chương trình tiêm chủng đầy đủ",
+      "Hoạt động cộng đồng thiết thực",
+      "Bảo vệ sức khỏe cộng đồng",
+    ],
+    experts: [
+      "BS. Lê Văn Hòa - Trưởng khoa Y tế dự phòng",
+      "BS. Nguyễn Thị Thu - Chuyên khoa Y tế dự phòng",
+    ],
+  },
+  "ung-buou": {
+    icon: Activity,
+    color: "text-purple-500",
+    bgColor: "bg-purple-500",
+    services: [
+      "Phẫu thuật u bướu",
+      "Hóa trị liệu",
+      "Xạ trị",
+      "Điều trị giảm đau - chăm sóc giảm nhẹ",
+      "Tầm soát ung thư sớm",
+    ],
+    highlights: [
+      "Phác đồ điều trị chuẩn quốc tế",
+      "Hội chẩn đa chuyên khoa",
+      "Hỗ trợ tâm lý cho người bệnh",
+    ],
+    experts: [
+      "BS. Nguyễn Văn Nhân - Trưởng khoa Ung bướu",
+      "BS. Trần Thị Ngọc - Chuyên khoa Ung bướu",
     ],
   },
 };

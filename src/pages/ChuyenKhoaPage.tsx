@@ -2,10 +2,38 @@ import { useState, useEffect, useRef, MouseEvent } from "react";
 import { useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
-import { Activity, Scissors, Stethoscope, Baby, Microscope, ArrowRight, ChevronRight, X } from "lucide-react";
+import { Activity, Scissors, Stethoscope, Baby, Microscope, ArrowRight, ChevronRight, X, Phone, Calendar, MapPin, Clock, User } from "lucide-react";
 import { useReducedMotion } from "../hooks/useReducedMotion";
 import { AnimatedCounter } from "../hooks/AnimatedCounter";
 import { FloatingShape } from "../hooks/FloatingShape";
+import { useSiteContent } from "../context/SiteContentContext";
+import { DEFAULT_CONTACT } from "../data/siteContact";
+import { SPECIALTY_CONTENT } from "../components/public/SpecialtyModal";
+
+function specialtyContentKey(name: string): string {
+  const n = name.toLowerCase();
+  if (n.includes("nội chung") || n.includes("nội tổng hợp")) return "noi-chung";
+  if (n.includes("nội tiết")) return "noi-tiet";
+  if (n.includes("hồi sức") || n.includes("icu")) return "cap-cuu";
+  if (n.includes("ung bướu")) return "ung-buou";
+  if (n.includes("thận")) return "than-nhan-tao";
+  if (n.includes("xương khớp") || n.includes("cơ xương")) return "co-xuong-khop";
+  if (n.includes("da liễu")) return "da-lieu";
+  if (n.includes("tâm lý")) return "tam-ly";
+  if (n.includes("thẩm mỹ")) return "tham-my";
+  if (n.includes("xét nghiệm")) return "xet-nghiem";
+  if (n.includes("y tế dự phòng")) return "yte-du-phong";
+  if (n.includes("dược")) return "duoc";
+  if (n.includes("mắt")) return "mat";
+  if (n.includes("tim")) return "tim-mach";
+  if (n.includes("sản")) return "san-khoa";
+  if (n.includes("nhi")) return "nhi-khoa";
+  if (n.includes("ngoại")) return "ngoai-tong-hop";
+  if (n.includes("hình ảnh") || n.includes("chẩn đoán")) return "chan-doan-hinh-anh";
+  if (n.includes("mũi") || n.includes("tai")) return "tai-mui-hong";
+  if (n.includes("răng") || n.includes("hàm mặt")) return "rang-ham-mat";
+  return "";
+}
 
 const DEPARTMENTS = [
   { key: "ngoai-cap-cuu", title: "Ngoại & Cấp cứu", icon: Scissors, color: "from-red-500 to-rose-600", bgLight: "bg-red-50", textColor: "text-red-600" },
@@ -197,6 +225,9 @@ export default function ChuyenKhoaPage() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("ngoai-cap-cuu");
   const [selectedSpecialty, setSelectedSpecialty] = useState<{ name: string; desc: string; img: string } | null>(null);
+  const { getSection } = useSiteContent();
+  const contact = getSection("contact", DEFAULT_CONTACT);
+  const selectedSpecialtyContent = selectedSpecialty ? SPECIALTY_CONTENT[specialtyContentKey(selectedSpecialty.name)] : undefined;
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -510,7 +541,7 @@ export default function ChuyenKhoaPage() {
       <AnimatePresence>
         {selectedSpecialty && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div className="w-full max-w-2xl bg-cream-white rounded-[28px] shadow-2xl overflow-hidden my-8 flex flex-col max-h-[90vh]">
+            <div className="w-full max-w-xl bg-cream-white rounded-[28px] shadow-2xl overflow-hidden my-8 flex flex-col max-h-[90vh]">
               <div className="bg-green-dark px-6 py-4 text-white flex justify-between items-center shrink-0 border-b border-brand-green/20">
                 <div className="flex items-center gap-2">
                   <Stethoscope size={18} className="text-peach" />
@@ -524,10 +555,10 @@ export default function ChuyenKhoaPage() {
                 </button>
               </div>
 
-              <div className="overflow-y-auto p-6 md:p-10 flex-grow bg-cream-white">
-                <div className="max-w-xl mx-auto space-y-6">
+              <div className="overflow-y-auto p-5 md:p-7 flex-grow bg-cream-white">
+                <div className="max-w-xl mx-auto space-y-4">
                   {selectedSpecialty.img && (
-                    <div className="w-full h-56 rounded-2xl overflow-hidden">
+                    <div className="aspect-[16/9] rounded-2xl overflow-hidden border border-green-800/5">
                       <img
                         src={selectedSpecialty.img}
                         alt={selectedSpecialty.name}
@@ -537,15 +568,77 @@ export default function ChuyenKhoaPage() {
                     </div>
                   )}
                   <div>
-                    <h1 className="font-display font-bold text-2xl md:text-3xl text-green-dark leading-tight">
+                    <h1 className="font-display font-bold text-xl md:text-2xl text-green-dark leading-tight">
                       {selectedSpecialty.name}
                     </h1>
                     <div className="w-16 h-1 bg-brand-green rounded-full mt-3" />
                   </div>
-                  <p className="text-ink text-[15px] leading-relaxed">
+                  <p className="text-ink text-sm md:text-[15px] leading-relaxed">
                     {selectedSpecialty.desc}
                   </p>
-                  <div className="bg-mint/40 border border-brand-green/10 rounded-xl p-5">
+
+                  {selectedSpecialtyContent && selectedSpecialtyContent.services.length > 0 && (
+                    <div>
+                      <h4 className="font-display font-bold text-green-dark text-[13px] mb-2 flex items-center gap-2">
+                        <Stethoscope size={14} className={selectedSpecialtyContent.color} />
+                        Kỹ thuật & dịch vụ mũi nhọn
+                      </h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {selectedSpecialtyContent.services.slice(0, 6).map((service, idx) => (
+                          <span
+                            key={`s-${idx}`}
+                            className={`${selectedSpecialtyContent.bgColor}/10 ${selectedSpecialtyContent.color} text-[11px] font-bold px-3 py-1 rounded-full`}
+                          >
+                            {service}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedSpecialtyContent && selectedSpecialtyContent.experts.length > 0 && (
+                    <div>
+                      <h4 className="font-display font-bold text-green-dark text-[13px] mb-2 flex items-center gap-2">
+                        <User size={14} className={selectedSpecialtyContent.color} />
+                        Đội ngũ chuyên gia
+                      </h4>
+                      <div className="space-y-1.5">
+                        {selectedSpecialtyContent.experts.map((expert, idx) => (
+                          <div key={`e-${idx}`} className="flex items-center gap-2 text-sm">
+                            <User size={14} className="text-ink/40 shrink-0" />
+                            <span className="text-ink/70">{expert}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div className="bg-mint/40 border border-brand-green/10 rounded-xl p-3 flex items-center gap-2">
+                      <MapPin size={15} className="text-brand-green shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-ink/50 uppercase tracking-wide">Địa điểm</p>
+                        <p className="text-[11px] font-semibold text-green-dark leading-tight">Quầy tiếp nhận - Nhà A</p>
+                      </div>
+                    </div>
+                    <div className="bg-mint/40 border border-brand-green/10 rounded-xl p-3 flex items-center gap-2">
+                      <Clock size={15} className="text-brand-green shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-ink/50 uppercase tracking-wide">Giờ làm việc</p>
+                        <p className="text-[11px] font-semibold text-green-dark leading-tight">T2 - T7 (07:00 - 16:30)</p>
+                      </div>
+                    </div>
+                    <div className="bg-mint/40 border border-brand-green/10 rounded-xl p-3 flex items-center gap-2">
+                      <Phone size={15} className="text-brand-green shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-ink/50 uppercase tracking-wide">Hotline</p>
+                        <p className="text-[11px] font-semibold text-green-dark leading-tight">{contact.hotline}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-mint/40 border border-brand-green/10 rounded-xl p-4 flex items-start gap-2.5">
+                    <Calendar size={16} className="text-brand-green shrink-0 mt-0.5" />
                     <p className="text-sm text-green-dark font-medium leading-relaxed">
                       Để được tư vấn và đặt lịch khám với chuyên khoa này, vui lòng liên hệ bệnh viện qua số hotline hoặc đến trực tiếp quầy tiếp nhận.
                     </p>
@@ -553,12 +646,26 @@ export default function ChuyenKhoaPage() {
                 </div>
               </div>
 
-              <div className="bg-gray-50 px-6 py-4 flex justify-end border-t border-gray-100 shrink-0">
+              <div className="bg-gray-50 px-6 py-4 flex flex-wrap justify-end items-center gap-3 border-t border-gray-100 shrink-0">
                 <button
                   onClick={() => setSelectedSpecialty(null)}
-                  className="px-5 py-2 rounded-full bg-brand-green hover:bg-brand-green/90 text-white text-xs font-bold cursor-pointer transition-all"
+                  className="px-5 py-2.5 rounded-full border border-green-800/20 text-green-dark text-xs font-bold hover:bg-green-800/5 transition-colors cursor-pointer"
                 >
                   Đóng
+                </button>
+                <a
+                  href={`tel:${contact.hotline.replace(/\./g, "")}`}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand-green hover:bg-green-700 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
+                >
+                  <Phone size={14} />
+                  Gọi Hotline: {contact.hotline}
+                </a>
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent("bvdk:open-booking"))}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand-green hover:bg-green-700 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
+                >
+                  <Calendar size={14} />
+                  Đặt lịch khám
                 </button>
               </div>
             </div>

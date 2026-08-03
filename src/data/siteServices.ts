@@ -52,9 +52,9 @@ export const DEFAULT_SERVICES: SiteServiceCategory[] = [
     description: "Các gói dịch vụ y tế toàn diện từ khám định kỳ đến điều trị chuyên sâu",
     items: [
       { id: "s1", name: "Dịch vụ trọn gói", desc: "Gói khám, điều trị toàn diện", price: "Từ 5.000.000đ", img: "/images/pages/vip-1.jpeg", highlight: true },
-      { id: "s2", name: "Kiến thức thai sản", desc: "Tư vấn, chăm sóc mẹ và bé", price: "Miễn phí", img: "/images/pages/sanphukhoa-1.jpeg" },
+      { id: "s2", name: "Kiến thức thai sản", desc: "Tư vấn, chăm sóc mẹ và bé", price: "Miễn phí", img: "/images/pages/hero-thaisan.jpeg" },
       { id: "s3", name: "Điều trị vô sinh, hiếm muộn", desc: "IVF, IUI, các phương pháp hỗ trợ", price: "Từ 15.000.000đ", img: "/images/pages/timmach-1.jpeg" },
-      { id: "s4", name: "Dịch vụ thai sản và sinh trọn gói", desc: "Theo dõi thai kỳ, sinh con", price: "Từ 25.000.000đ", img: "/images/pages/sanphukhoa-1.jpeg" },
+      { id: "s4", name: "Dịch vụ thai sản và sinh trọn gói", desc: "Theo dõi thai kỳ, sinh con", price: "Từ 25.000.000đ", img: "/images/pages/hero-thaisan.jpeg" },
     ],
   },
   {

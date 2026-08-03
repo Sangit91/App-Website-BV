@@ -2,12 +2,13 @@ import { useState, useEffect, useRef, MouseEvent } from "react";
 import { useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import { motion, useScroll, useTransform, useInView, useMotionValue, AnimatePresence } from "framer-motion";
-import { Calendar, Home, Syringe, Shield, Heart, Truck, Sparkles, Baby, Plane, Stethoscope, ArrowRight, ChevronRight, Check, X, type LucideIcon } from "lucide-react";
+import { Calendar, Home, Syringe, Shield, Heart, Truck, Sparkles, Baby, Plane, Stethoscope, ArrowRight, ChevronRight, Check, X, Phone, Info, type LucideIcon } from "lucide-react";
 import { useReducedMotion } from "../hooks/useReducedMotion";
 import { AnimatedCounter } from "../hooks/AnimatedCounter";
 import { FloatingShape } from "../hooks/FloatingShape";
 import { useSiteContent } from "../context/SiteContentContext";
 import { DEFAULT_SERVICES, SERVICE_ICON_MAP } from "../data/siteServices";
+import { DEFAULT_CONTACT } from "../data/siteContact";
 
 interface ServiceDept {
   key: string;
@@ -164,6 +165,7 @@ export default function DichVuPage() {
 
   const { getSection } = useSiteContent();
   const servicesData = getSection("services", DEFAULT_SERVICES);
+  const contact = getSection("contact", DEFAULT_CONTACT);
 
   const SERVICE_CATEGORIES: ServiceDept[] = servicesData.map(cat => ({
     key: cat.key,
@@ -380,10 +382,10 @@ export default function DichVuPage() {
                 </button>
               </div>
 
-              <div className="overflow-y-auto p-6 md:p-10 flex-grow bg-cream-white">
-                <div className="max-w-xl mx-auto space-y-6">
+              <div className="overflow-y-auto p-5 md:p-7 flex-grow bg-cream-white">
+                <div className="max-w-xl mx-auto space-y-4">
                   {selectedService.img && (
-                    <div className="w-full h-56 rounded-2xl overflow-hidden">
+                    <div className="aspect-[16/9] rounded-2xl overflow-hidden border border-green-800/5">
                       <img
                         src={selectedService.img}
                         alt={selectedService.name}
@@ -392,21 +394,21 @@ export default function DichVuPage() {
                       />
                     </div>
                   )}
-                  <div>
-                    <h1 className="font-display font-bold text-2xl md:text-3xl text-green-dark leading-tight">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h1 className="font-display font-bold text-xl md:text-2xl text-green-dark leading-tight">
                       {selectedService.name}
                     </h1>
-                    <div className="w-16 h-1 bg-brand-green rounded-full mt-3" />
+                    {selectedService.price && (
+                      <span className="inline-flex bg-brand-green/10 text-brand-green font-bold text-xs px-3 py-1 rounded-full">
+                        {selectedService.price}
+                      </span>
+                    )}
                   </div>
-                  {selectedService.price && (
-                    <div className="inline-flex bg-brand-green/10 text-brand-green font-bold text-sm px-4 py-2 rounded-full">
-                      {selectedService.price}
-                    </div>
-                  )}
-                  <p className="text-ink text-[15px] leading-relaxed">
+                  <p className="text-ink text-sm md:text-[15px] leading-relaxed">
                     {selectedService.desc}
                   </p>
-                  <div className="bg-mint/40 border border-brand-green/10 rounded-xl p-5">
+                  <div className="bg-mint/40 border border-brand-green/10 rounded-xl p-4 flex items-start gap-2.5">
+                    <Info size={16} className="text-brand-green shrink-0 mt-0.5" />
                     <p className="text-sm text-green-dark font-medium leading-relaxed">
                       Để đặt lịch sử dụng dịch vụ này, vui lòng liên hệ bệnh viện qua số hotline hoặc đến trực tiếp quầy tiếp nhận.
                     </p>
@@ -414,13 +416,20 @@ export default function DichVuPage() {
                 </div>
               </div>
 
-              <div className="bg-gray-50 px-6 py-4 flex justify-end border-t border-gray-100 shrink-0">
+              <div className="bg-gray-50 px-6 py-4 flex justify-end items-center gap-3 border-t border-gray-100 shrink-0">
                 <button
                   onClick={() => setSelectedService(null)}
-                  className="px-5 py-2 rounded-full bg-brand-green hover:bg-brand-green/90 text-white text-xs font-bold cursor-pointer transition-all"
+                  className="px-5 py-2.5 rounded-full border border-green-800/20 text-green-dark text-xs font-bold hover:bg-green-800/5 transition-colors cursor-pointer"
                 >
                   Đóng
                 </button>
+                <a
+                  href={`tel:${contact.hotline.replace(/\./g, "")}`}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand-green hover:bg-green-700 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
+                >
+                  <Phone size={14} />
+                  Gọi Hotline: {contact.hotline}
+                </a>
               </div>
             </div>
           </div>
