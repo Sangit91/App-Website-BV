@@ -150,9 +150,10 @@ export default function NewsDetailModal({ news, onClose }: NewsDetailModalProps)
                   )}
 
                   {selectedTenderStatus !== "Đã đóng" && news.tenderEndDate && !timeLeft.expired && (
-                    <div className="bg-green-dark text-white px-3.5 py-1.5 rounded-lg font-mono text-[12.5px] font-bold flex items-center gap-1.5 shadow-sm">
-                      <Clock size={13} className="text-peach" />
-                      <span>Hạn đóng thầu còn: <span className="text-peach">{timeLeft.days} ngày {timeLeft.hours} giờ {timeLeft.minutes} phút {timeLeft.seconds} giây</span></span>
+                    <div className="bg-green-dark text-white px-3.5 py-2 rounded-lg font-mono text-[12px] md:text-[12.5px] font-bold flex items-center gap-1.5 shadow-sm leading-snug">
+                      <Clock size={13} className="text-peach shrink-0" />
+                      <span className="text-peach">Hạn đóng thầu còn:</span>
+                      <span className="whitespace-nowrap">{timeLeft.days} ngày {timeLeft.hours} giờ {timeLeft.minutes} phút {timeLeft.seconds} giây</span>
                     </div>
                   )}
 
@@ -223,20 +224,20 @@ export default function NewsDetailModal({ news, onClose }: NewsDetailModalProps)
                 )}
 
                 <div className="bg-white/60 p-3 rounded-xl border border-brand-green/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <FileText size={18} className="text-brand-green" />
-                    <div>
-                      <p className="font-sans font-bold text-[12.5px] text-green-dark truncate max-w-[280px]">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <FileText size={18} className="text-brand-green shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-sans font-bold text-[12.5px] text-green-dark truncate whitespace-nowrap max-w-[280px]">
                         {news.tenderFile?.name || "Hồ sơ mời thầu chi tiết (PDF)"}
                       </p>
-                      <p className="text-[11px] text-gray-500">
+                      <p className="text-[11px] text-gray-500 truncate">
                         Dung lượng: {news.tenderFile?.size || "N/A"} • Lượt tải: {news.tenderDownloadCount || 0}
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={handleDownload}
-                    className="flex items-center gap-1.5 bg-brand-green hover:bg-green-700 text-white text-[11.5px] font-bold py-1.5 px-3 rounded-lg shadow-sm transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 bg-brand-green hover:bg-green-700 text-white text-[11.5px] font-bold py-1.5 px-3 rounded-lg shadow-sm transition-colors shrink-0"
                   >
                     <Download size={13} />
                     Tải Hồ Sơ Thầu
