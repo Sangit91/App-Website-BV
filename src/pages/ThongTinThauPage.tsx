@@ -210,6 +210,8 @@ export default function ThongTinThauPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
@@ -232,6 +234,7 @@ export default function ThongTinThauPage() {
     setSearchInput("");
     setSearchQuery("");
     setCurrentPage(1);
+    setIsSearchOpen(false);
   };
 
   return (
@@ -323,44 +326,56 @@ export default function ThongTinThauPage() {
 
       <section className="py-16 bg-gradient-to-b from-gray-50/50 to-white">
         <div className="max-w-[1580px] mx-auto px-4 xl:px-8 2xl:px-10">
-          <div className="mb-8 flex items-center justify-between">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-2xl font-display font-bold text-green-dark">{currentDept.name}</h2>
               <p className="text-sm text-ink/60">Danh sách các thông báo mua sắm, mời thầu do {currentDept.name} đăng tải</p>
             </div>
-            <div className="hidden sm:flex items-center gap-1.5 bg-mint text-green-dark py-1.5 px-4 rounded-full border border-brand-green/20 text-xs font-bold">
-              <ShieldCheck size={14} className="text-brand-green" />
-              <span>Chính xác & Công khai</span>
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-1.5 bg-mint text-green-dark py-1.5 px-4 rounded-full border border-brand-green/20 text-xs font-bold">
+                <ShieldCheck size={14} className="text-brand-green" />
+                <span>Chính xác & Công khai</span>
+              </div>
+              <div className={`group relative z-50 flex items-center justify-end bg-white border border-green-800/10 rounded-full overflow-hidden shadow-sm transition-all duration-300 ease-in-out h-10 ${isSearchOpen ? "w-80" : "w-10 hover:w-80 focus-within:w-80"}`}>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") applySearch(); }}
+                  placeholder="Nhập tiêu đề hoặc ngày đăng (dd/mm/yyyy)"
+                  className={`h-full flex-1 min-w-0 bg-transparent outline-none text-sm text-green-dark placeholder:text-xs placeholder:text-ink/30 pl-4 transition-opacity duration-300 ${isSearchOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus:opacity-100"}`}
+                />
+                <button
+                  onClick={applySearch}
+                  className={`shrink-0 mr-1.5 px-3 py-1.5 bg-brand-green hover:bg-green-700 text-white text-xs font-bold rounded-full transition-opacity duration-300 ${isSearchOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+                >
+                  Tìm
+                </button>
+                <button
+                  onClick={() => {
+                    setIsSearchOpen(true);
+                    setTimeout(() => searchInputRef.current?.focus(), 250);
+                  }}
+                  aria-label="Mở tìm kiếm thầu"
+                  className="w-10 h-10 shrink-0 flex items-center justify-center text-green-dark hover:bg-mint/60 transition-colors cursor-pointer"
+                >
+                  <Search size={16} />
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="mb-6 flex flex-col md:flex-row gap-3">
-            <div className="flex-1 flex gap-2">
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") applySearch(); }}
-                placeholder="Tìm theo tiêu đề, ngày cụ thể (VD: 15/07/2026) hoặc tháng (VD: 07/2026)"
-                className="flex-1 px-4 py-3 bg-white border border-green-800/10 rounded-xl text-sm text-green-dark placeholder:text-ink/30 focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green"
-              />
-              <button
-                onClick={applySearch}
-                className="px-5 py-3 bg-brand-green hover:bg-green-700 text-white font-semibold rounded-xl text-sm shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0"
-              >
-                <Search size={16} />
-                Tìm kiếm
-              </button>
-            </div>
-            {searchQuery && (
-              <div className="flex items-center gap-2 bg-mint/60 text-green-dark text-xs font-bold px-4 py-3 rounded-xl border border-brand-green/20">
+          {searchQuery && (
+            <div className="mb-6 flex items-center justify-end">
+              <div className="flex items-center gap-2 bg-mint/60 text-green-dark text-xs font-bold px-4 py-3 rounded-full border border-brand-green/20">
                 <span>{filteredTenders.length} kết quả cho "{searchQuery}"</span>
                 <button onClick={clearSearch} aria-label="Xóa tìm kiếm" className="w-6 h-6 rounded-full bg-white/70 hover:bg-white flex items-center justify-center text-green-dark cursor-pointer transition-colors">
                   <X size={13} />
                 </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           <AnimatePresence mode="wait">
             <motion.div key={activeDept} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
