@@ -95,10 +95,10 @@ export default function NewsDetailModal({ news, onClose }: NewsDetailModalProps)
             <div className="border-b-2 border-green-800/10 pb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div className="leading-tight">
                 <p className="font-display font-bold text-[12px] text-green-dark tracking-wide uppercase">
-                  SỞ Y TẾ TỈNH QUẢNG NAM
+                  SỞ Y TẾ THÀNH PHỐ ĐÀ NẴNG
                 </p>
                 <p className="font-sans font-bold text-[13px] text-brand-green uppercase">
-                  BVĐK KV MIỀN NÚI PHÍA BẮC
+                  BỆNH VIỆN ĐA KHOA KHU VỰC MIỀN NÚI PHÍA BẮC QUẢNG NAM
                 </p>
                 <p className="font-sans text-[11px] text-gray-500">
                   Số: {news.tenderNumber || news.id.toUpperCase()}-2026/TB-BV

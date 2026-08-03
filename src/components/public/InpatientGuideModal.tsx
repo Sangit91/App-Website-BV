@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { Bed, Users, Clock, Utensils, Shield, X, Check } from "lucide-react";
+import { Bed, Users, Utensils, Shield, Check, Phone, Calendar } from "lucide-react";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
+import { DEFAULT_CONTACT } from "../../data/siteContact";
 
 interface InpatientGuideModalProps {
   isOpen: boolean;
@@ -99,7 +100,18 @@ export default function InpatientGuideModal({ isOpen, onClose }: InpatientGuideM
 
         <div className="flex justify-end gap-3 pt-4 border-t border-green-800/5">
           <Button variant="secondary" onClick={onClose}>Đóng</Button>
+          <a
+            href={`tel:${DEFAULT_CONTACT.hotline.replace(/\./g, "")}`}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand-green hover:bg-green-700 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
+          >
+            <Phone size={14} />
+            Gọi Hotline: {DEFAULT_CONTACT.hotline}
+          </a>
           <Button onClick={() => window.print()}>In hướng dẫn</Button>
+          <Button onClick={() => window.open("/dat-kham", "_blank")}>
+            <Calendar size={16} />
+            <span>Đặt lịch khám</span>
+          </Button>
         </div>
       </div>
     </Modal>
