@@ -68,3 +68,11 @@ public/tenders/
 .agents/
 opencode.json
 skills-lock.json
+
+# Loop system state (agent loop runtime files — state local, không track)
+.grok/
+LOOP.md
+STATE.md
+loop-budget.md
+loop-constraints.md
+loop-run-log.md
